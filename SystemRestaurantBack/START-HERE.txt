@@ -1,0 +1,9 @@
+RESTAURANTSYSTEM - INICIO RAPIDO
+
+1. Confirma que PostgreSQL esté iniciado.
+2. Crea la base de datos vacía "restaurant_system".
+3. Copia secret.example.yml como secret.yml y coloca tus credenciales.
+4. Abre PowerShell en esta carpeta.
+5. Ejecuta: .\mvnw.cmd clean spring-boot:run
+6. Espera a que Flyway termine la migración inicial.
+7. Abre: http://localhost:3210/api/health

@@ -1,0 +1,69 @@
+RESTAURANTSYSTEM — BLOQUE 1
+
+Este ZIP contiene el primer flujo vertical del sistema:
+
+- Configuración del restaurante.
+- Categorías.
+- Productos.
+- Precio, disponibilidad y estado activo.
+- Destino de comanda: cocina, barra o ninguno.
+- Interfaz Angular conectada a la API.
+- Migración inicial de PostgreSQL con Flyway.
+
+REQUISITOS
+
+- JDK 21.
+- Node.js 22.12 o superior dentro de la rama 22, o Node.js 24.
+- PostgreSQL 18 (también puede funcionar con versiones soportadas anteriores).
+
+1. PREPARAR POSTGRESQL
+
+Crear una base vacía:
+
+  CREATE DATABASE restaurant_system;
+
+2. CONFIGURAR EL BACKEND
+
+Entrar a SystemRestaurantBack y copiar:
+
+  secret.example.yml -> secret.yml
+
+Editar secret.yml y colocar el usuario y la contraseña reales de PostgreSQL.
+Nunca subir secret.yml a Git ni enviarlo dentro de otro ZIP.
+
+3. INICIAR EL BACKEND
+
+Desde SystemRestaurantBack:
+
+  .\mvnw.cmd clean spring-boot:run
+
+Flyway creará automáticamente las tablas al iniciar.
+
+API:
+
+  http://localhost:3210/api/health
+
+4. INICIAR ANGULAR
+
+Desde SystemRestaurantFront:
+
+  npm ci
+  npm start
+
+Aplicación:
+
+  http://localhost:4200
+
+5. PRUEBA RECOMENDADA
+
+- Abrir Configuración y guardar los datos del restaurante.
+- Abrir Catálogo.
+- Crear una categoría, por ejemplo Hamburguesas.
+- Crear un producto con precio y destino Cocina.
+- Marcar el producto como agotado y volverlo a habilitar.
+
+SIGUIENTE BLOQUE
+
+Usuarios, contraseñas, roles y seguridad con Spring Security.
+
+Consulta AVANCE-PROYECTO.md para ver las decisiones y el alcance completo.

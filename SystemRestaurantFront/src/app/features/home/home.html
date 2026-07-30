@@ -1,0 +1,71 @@
+<section class="hero">
+  <div>
+    <span class="eyebrow">RestaurantSystem</span>
+    <h1>El primer módulo del restaurante ya está en marcha</h1>
+    <p>
+      Configura la identidad del negocio y registra el catálogo que utilizarán pedidos, cocina y
+      caja en los siguientes bloques.
+    </p>
+    <div class="hero-actions">
+      <a routerLink="/catalogo" class="primary-link">
+        <i class="pi pi-book"></i>
+        Administrar catálogo
+      </a>
+      <a routerLink="/configuracion" class="secondary-link">Configurar restaurante</a>
+    </div>
+  </div>
+
+  <p-button
+    label="Comprobar backend"
+    icon="pi pi-server"
+    [loading]="loading()"
+    (onClick)="checkBackend()"
+  />
+</section>
+
+<section class="cards">
+  <p-card header="Bloque 1 · Catálogo">
+    <div class="status-line">
+      <p-tag value="Listo" severity="success" />
+      <span>Categorías y orden de aparición</span>
+    </div>
+    <div class="status-line">
+      <p-tag value="Listo" severity="success" />
+      <span>Productos, precios y disponibilidad</span>
+    </div>
+    <div class="status-line">
+      <p-tag value="Listo" severity="success" />
+      <span>Destino de comanda: cocina, barra o ninguno</span>
+    </div>
+  </p-card>
+
+  <p-card header="Estado del backend">
+    @if (loading()) {
+      <div class="loading-box">
+        <p-progress-spinner ariaLabel="Consultando backend" strokeWidth="5" />
+      </div>
+    } @else if (health(); as currentHealth) {
+      <div class="status-line">
+        <span>Aplicación</span>
+        <strong>{{ currentHealth.application }}</strong>
+      </div>
+      <div class="status-line">
+        <span>API</span>
+        <p-tag
+          [value]="currentHealth.status"
+          [severity]="currentHealth.status === 'UP' ? 'success' : 'warn'"
+        />
+      </div>
+      <div class="status-line">
+        <span>PostgreSQL</span>
+        <p-tag
+          [value]="currentHealth.database"
+          [severity]="currentHealth.database === 'UP' ? 'success' : 'danger'"
+        />
+      </div>
+      <small>Última revisión: {{ currentHealth.timestamp | date: 'medium' }}</small>
+    } @else {
+      <p class="muted">Inicia el backend en el puerto <code>3210</code> y comprueba la conexión.</p>
+    }
+  </p-card>
+</section>

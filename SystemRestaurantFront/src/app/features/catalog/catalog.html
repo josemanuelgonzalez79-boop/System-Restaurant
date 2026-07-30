@@ -1,0 +1,279 @@
+<section class="page-heading">
+  <div>
+    <span class="eyebrow">Administración</span>
+    <h1>Catálogo del restaurante</h1>
+    <p>Crea categorías y productos que después utilizarán meseros, cocina y caja.</p>
+  </div>
+  <div class="summary">
+    <strong>{{ categories().length }}</strong>
+    <span>categorías</span>
+    <strong>{{ products().length }}</strong>
+    <span>productos</span>
+  </div>
+</section>
+
+@if (loading()) {
+  <div class="loading">Cargando catálogo…</div>
+} @else {
+  <section class="editor-grid">
+    <p-card [header]="editingCategoryId() ? 'Editar categoría' : 'Nueva categoría'">
+      <form [formGroup]="categoryForm" (ngSubmit)="submitCategory()">
+        <label>
+          <span>Nombre</span>
+          <input pInputText formControlName="name" placeholder="Ej. Hamburguesas" />
+        </label>
+
+        <label>
+          <span>Descripción</span>
+          <textarea
+            pTextarea
+            formControlName="description"
+            rows="3"
+            placeholder="Descripción opcional"
+          ></textarea>
+        </label>
+
+        <label>
+          <span>Orden</span>
+          <p-inputnumber
+            formControlName="sortOrder"
+            [min]="0"
+            [useGrouping]="false"
+            inputId="category-sort"
+          />
+        </label>
+
+        <div class="form-actions">
+          @if (editingCategoryId()) {
+            <p-button
+              type="button"
+              label="Cancelar"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="cancelCategoryEdit()"
+            />
+          }
+          <p-button
+            type="submit"
+            [label]="editingCategoryId() ? 'Guardar cambios' : 'Crear categoría'"
+            icon="pi pi-save"
+            [loading]="savingCategory()"
+          />
+        </div>
+      </form>
+    </p-card>
+
+    <p-card [header]="editingProductId() ? 'Editar producto' : 'Nuevo producto'">
+      @if (activeCategories().length === 0) {
+        <div class="empty-note">
+          <i class="pi pi-info-circle"></i>
+          Crea o activa una categoría antes de registrar productos.
+        </div>
+      }
+
+      <form [formGroup]="productForm" (ngSubmit)="submitProduct()">
+        <div class="two-columns">
+          <label>
+            <span>Categoría</span>
+            <p-select
+              formControlName="categoryId"
+              [options]="activeCategories()"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Selecciona una categoría"
+              inputId="product-category"
+            />
+          </label>
+
+          <label>
+            <span>SKU o clave</span>
+            <input pInputText formControlName="sku" placeholder="Opcional" />
+          </label>
+        </div>
+
+        <label>
+          <span>Nombre</span>
+          <input pInputText formControlName="name" placeholder="Ej. Hamburguesa clásica" />
+        </label>
+
+        <label>
+          <span>Descripción</span>
+          <textarea
+            pTextarea
+            formControlName="description"
+            rows="3"
+            placeholder="Ingredientes o presentación"
+          ></textarea>
+        </label>
+
+        <div class="two-columns">
+          <label>
+            <span>Precio</span>
+            <p-inputnumber
+              formControlName="price"
+              mode="currency"
+              currency="MXN"
+              locale="es-MX"
+              [min]="0"
+              inputId="product-price"
+            />
+          </label>
+
+          <label>
+            <span>Destino de comanda</span>
+            <p-select
+              formControlName="destination"
+              [options]="destinations"
+              optionLabel="label"
+              optionValue="value"
+              inputId="product-destination"
+            />
+          </label>
+        </div>
+
+        <div class="form-actions">
+          @if (editingProductId()) {
+            <p-button
+              type="button"
+              label="Cancelar"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="cancelProductEdit()"
+            />
+          }
+          <p-button
+            type="submit"
+            [label]="editingProductId() ? 'Guardar cambios' : 'Crear producto'"
+            icon="pi pi-save"
+            [loading]="savingProduct()"
+            [disabled]="activeCategories().length === 0"
+          />
+        </div>
+      </form>
+    </p-card>
+  </section>
+
+  <p-card header="Categorías registradas" styleClass="table-card">
+    <p-table [value]="categories()" [rowHover]="true">
+      <ng-template #header>
+        <tr>
+          <th>Orden</th>
+          <th>Categoría</th>
+          <th>Descripción</th>
+          <th>Estado</th>
+          <th class="actions-column">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-category>
+        <tr>
+          <td>{{ category.sortOrder }}</td>
+          <td>
+            <strong>{{ category.name }}</strong>
+          </td>
+          <td>{{ category.description || '—' }}</td>
+          <td>
+            <p-tag
+              [value]="category.active ? 'Activa' : 'Inactiva'"
+              [severity]="category.active ? 'success' : 'secondary'"
+            />
+          </td>
+          <td>
+            <div class="row-actions">
+              <p-button
+                icon="pi pi-pencil"
+                ariaLabel="Editar categoría"
+                [text]="true"
+                [rounded]="true"
+                (onClick)="editCategory(category)"
+              />
+              <p-button
+                [icon]="category.active ? 'pi pi-ban' : 'pi pi-check'"
+                [ariaLabel]="category.active ? 'Desactivar categoría' : 'Activar categoría'"
+                [severity]="category.active ? 'danger' : 'success'"
+                [text]="true"
+                [rounded]="true"
+                (onClick)="toggleCategory(category)"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5">Todavía no existen categorías.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-card header="Productos registrados" styleClass="table-card">
+    <p-table [value]="products()" [rowHover]="true">
+      <ng-template #header>
+        <tr>
+          <th>Producto</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Comanda</th>
+          <th>Disponibilidad</th>
+          <th class="actions-column">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-product>
+        <tr [class.inactive-row]="!product.active">
+          <td>
+            <strong>{{ product.name }}</strong>
+            @if (product.sku) {
+              <small>{{ product.sku }}</small>
+            }
+          </td>
+          <td>{{ product.categoryName }}</td>
+          <td>{{ product.price | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</td>
+          <td>{{ destinationLabel(product.destination) }}</td>
+          <td>
+            @if (!product.active) {
+              <p-tag value="Inactivo" severity="secondary" />
+            } @else {
+              <p-tag
+                [value]="product.available ? 'Disponible' : 'Agotado'"
+                [severity]="product.available ? 'success' : 'warn'"
+              />
+            }
+          </td>
+          <td>
+            <div class="row-actions">
+              <p-button
+                icon="pi pi-pencil"
+                ariaLabel="Editar producto"
+                [text]="true"
+                [rounded]="true"
+                (onClick)="editProduct(product)"
+              />
+              <p-button
+                [icon]="product.available ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                [ariaLabel]="product.available ? 'Marcar agotado' : 'Marcar disponible'"
+                severity="warn"
+                [text]="true"
+                [rounded]="true"
+                [disabled]="!product.active"
+                (onClick)="toggleAvailability(product)"
+              />
+              <p-button
+                [icon]="product.active ? 'pi pi-ban' : 'pi pi-check'"
+                [ariaLabel]="product.active ? 'Desactivar producto' : 'Activar producto'"
+                [severity]="product.active ? 'danger' : 'success'"
+                [text]="true"
+                [rounded]="true"
+                (onClick)="toggleProductActive(product)"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6">Todavía no existen productos.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+}

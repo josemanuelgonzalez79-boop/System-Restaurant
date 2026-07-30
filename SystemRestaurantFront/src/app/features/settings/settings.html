@@ -1,0 +1,83 @@
+<section class="page-heading">
+  <div>
+    <span class="eyebrow">Personalización</span>
+    <h1>Configuración del restaurante</h1>
+    <p>Estos datos identifican esta instalación y después aparecerán en tickets y reportes.</p>
+  </div>
+</section>
+
+<p-card>
+  @if (loading()) {
+    <div class="loading">Cargando configuración…</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="form-grid">
+        <label>
+          <span>Razón o nombre comercial</span>
+          <input pInputText formControlName="businessName" autocomplete="organization" />
+        </label>
+
+        <label>
+          <span>Nombre que verá el personal</span>
+          <input pInputText formControlName="displayName" />
+        </label>
+
+        <label>
+          <span>Moneda</span>
+          <input pInputText formControlName="currencyCode" maxlength="3" />
+          <small>Utiliza el código de tres letras, por ejemplo MXN.</small>
+        </label>
+
+        <label>
+          <span>Zona horaria</span>
+          <input pInputText formControlName="timezone" />
+          <small>Para Mazatlán y Culiacán: America/Mazatlan.</small>
+        </label>
+
+        <label>
+          <span>Teléfono</span>
+          <input pInputText formControlName="phone" autocomplete="tel" />
+        </label>
+
+        <label>
+          <span>Dirección</span>
+          <input pInputText formControlName="address" autocomplete="street-address" />
+        </label>
+
+        <label>
+          <span>Color principal</span>
+          <div class="color-field">
+            <input type="color" formControlName="primaryColor" aria-label="Color principal" />
+            <input pInputText formControlName="primaryColor" maxlength="7" />
+          </div>
+        </label>
+
+        <label>
+          <span>Color secundario</span>
+          <div class="color-field">
+            <input type="color" formControlName="secondaryColor" aria-label="Color secundario" />
+            <input pInputText formControlName="secondaryColor" maxlength="7" />
+          </div>
+        </label>
+      </div>
+
+      <div class="preview">
+        <span [style.background]="form.controls.primaryColor.value"></span>
+        <span [style.background]="form.controls.secondaryColor.value"></span>
+        <strong>{{ form.controls.displayName.value || 'Mi restaurante' }}</strong>
+      </div>
+
+      <div class="actions">
+        @if (version() !== null) {
+          <small>Versión de configuración: {{ version() }}</small>
+        }
+        <p-button
+          type="submit"
+          label="Guardar configuración"
+          icon="pi pi-save"
+          [loading]="saving()"
+        />
+      </div>
+    </form>
+  }
+</p-card>
