@@ -1,8 +1,8 @@
 <section class="page-heading">
   <div>
     <span class="eyebrow">Personalización</span>
-    <h1>Configuración del restaurante</h1>
-    <p>Estos datos identifican esta instalación y después aparecerán en tickets y reportes.</p>
+    <h1>Configuración del negocio</h1>
+    <p>Estos datos identifican esta instalación y definen el perfil inicial de Essential.</p>
   </div>
 </section>
 
@@ -20,6 +20,17 @@
         <label>
           <span>Nombre que verá el personal</span>
           <input pInputText formControlName="displayName" />
+        </label>
+
+        <label>
+          <span>Giro principal</span>
+          <p-select
+            formControlName="businessType"
+            [options]="businessTypes"
+            optionLabel="label"
+            optionValue="value"
+            inputId="business-type"
+          />
         </label>
 
         <label>
@@ -64,7 +75,7 @@
       <div class="preview">
         <span [style.background]="form.controls.primaryColor.value"></span>
         <span [style.background]="form.controls.secondaryColor.value"></span>
-        <strong>{{ form.controls.displayName.value || 'Mi restaurante' }}</strong>
+        <strong>{{ form.controls.displayName.value || 'Mi negocio' }}</strong>
       </div>
 
       <div class="actions">

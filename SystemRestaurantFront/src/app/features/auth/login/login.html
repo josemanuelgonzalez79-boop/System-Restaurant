@@ -1,0 +1,50 @@
+<section class="auth-layout">
+  <div class="brand-panel">
+    <img src="essential-mark.png" alt="" />
+    <span class="eyebrow">Essential</span>
+    <h1>Control esencial para tu negocio.</h1>
+    <p>Productos, operación y equipo dentro de una sola plataforma local, clara y adaptable.</p>
+  </div>
+
+  <div class="auth-card">
+    <div class="mobile-brand">
+      <img src="essential-mark.png" alt="" />
+      <strong>essential</strong>
+    </div>
+    <span class="eyebrow">Bienvenido</span>
+    <h2>Inicia sesión</h2>
+    <p>Ingresa con la cuenta creada para esta instalación.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>Usuario</span>
+        <input
+          pInputText
+          formControlName="username"
+          autocomplete="username"
+          placeholder="Tu usuario"
+        />
+      </label>
+
+      <label>
+        <span>Contraseña</span>
+        <p-password
+          formControlName="password"
+          inputId="login-password"
+          autocomplete="current-password"
+          placeholder="Tu contraseña"
+          [feedback]="false"
+          [toggleMask]="true"
+        />
+      </label>
+
+      <p-button
+        type="submit"
+        label="Entrar a Essential"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        [loading]="loading()"
+      />
+    </form>
+  </div>
+</section>

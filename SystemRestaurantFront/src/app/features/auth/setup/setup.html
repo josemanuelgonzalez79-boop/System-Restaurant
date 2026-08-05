@@ -1,0 +1,67 @@
+<section class="auth-layout">
+  <div class="brand-panel">
+    <img src="essential-mark.png" alt="" />
+    <span class="eyebrow">Primera configuración</span>
+    <h1>Bienvenido a Essential.</h1>
+    <p>
+      Crea la cuenta propietaria. Desde ella podrás configurar el negocio y administrar a todo el
+      equipo.
+    </p>
+  </div>
+
+  <div class="auth-card setup-card">
+    <div class="mobile-brand">
+      <img src="essential-mark.png" alt="" />
+      <strong>essential</strong>
+    </div>
+    <span class="eyebrow">Paso 1 de 1</span>
+    <h2>Crear propietario</h2>
+    <p>Esta cuenta tendrá el nivel de acceso más alto de la instalación.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>Nombre completo</span>
+        <input pInputText formControlName="fullName" autocomplete="name" />
+      </label>
+
+      <label>
+        <span>Usuario</span>
+        <input pInputText formControlName="username" autocomplete="username" />
+        <small>Puede contener letras, números, punto, guion y guion bajo.</small>
+      </label>
+
+      <label>
+        <span>Contraseña</span>
+        <p-password
+          formControlName="password"
+          inputId="setup-password"
+          autocomplete="new-password"
+          promptLabel="Escribe una contraseña"
+          weakLabel="Débil"
+          mediumLabel="Media"
+          strongLabel="Fuerte"
+          [toggleMask]="true"
+        />
+        <small>Utiliza al menos 10 caracteres.</small>
+      </label>
+
+      <label>
+        <span>Confirmar contraseña</span>
+        <p-password
+          formControlName="confirmPassword"
+          inputId="setup-confirm-password"
+          autocomplete="new-password"
+          [feedback]="false"
+          [toggleMask]="true"
+        />
+      </label>
+
+      <p-button
+        type="submit"
+        label="Crear cuenta y continuar"
+        icon="pi pi-check"
+        [loading]="loading()"
+      />
+    </form>
+  </div>
+</section>

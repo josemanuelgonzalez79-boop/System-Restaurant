@@ -3,23 +3,40 @@
 <header class="app-header">
   <p-toolbar>
     <ng-template #start>
-      <a routerLink="/" class="brand" aria-label="Ir al inicio de RestaurantSystem">
-        <span class="brand-mark"><i class="pi pi-shop"></i></span>
+      <a routerLink="/" class="brand" aria-label="Ir al inicio de Essential">
+        <img class="brand-logo" src="essential-mark.png" alt="" />
         <span>
-          <strong>RestaurantSystem</strong>
-          <small>Gestión de restaurantes</small>
+          <strong>essential</strong>
+          <small>Control para tu negocio</small>
         </span>
       </a>
     </ng-template>
 
     <ng-template #end>
-      <nav aria-label="Navegación principal">
-        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-          Inicio
-        </a>
-        <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
-        <a routerLink="/configuracion" routerLinkActive="active">Configuración</a>
-      </nav>
+      @if (auth.authenticated()) {
+        <nav aria-label="Navegación principal">
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+            Inicio
+          </a>
+          @if (auth.canAdminister()) {
+            <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
+          }
+          @if (auth.isOwner()) {
+            <a routerLink="/usuarios" routerLinkActive="active">Usuarios</a>
+          }
+          @if (auth.canAdminister()) {
+            <a routerLink="/configuracion" routerLinkActive="active">Configuración</a>
+          }
+        </nav>
+        <span class="current-user">{{ auth.user()?.fullName }}</span>
+        <p-button
+          icon="pi pi-sign-out"
+          [rounded]="true"
+          [text]="true"
+          ariaLabel="Cerrar sesión"
+          (onClick)="logout()"
+        />
+      }
       <p-button
         icon="pi pi-moon"
         [rounded]="true"
@@ -35,4 +52,4 @@
   <router-outlet />
 </main>
 
-<footer>RestaurantSystem · operación local para restaurantes</footer>
+<footer>Essential · control esencial para tu negocio</footer>

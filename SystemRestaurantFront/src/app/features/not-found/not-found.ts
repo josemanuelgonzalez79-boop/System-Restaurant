@@ -10,7 +10,7 @@ import { ButtonModule } from 'primeng/button';
       <span>404</span>
       <h1>Página no encontrada</h1>
       <p>La ruta solicitada no existe.</p>
-      <a pButton routerLink="/" label="Volver al inicio" icon="pi pi-home"></a>
+      <a pButton routerLink="/" label="Volver a Essential" icon="pi pi-home"></a>
     </section>
   `,
   styles: `

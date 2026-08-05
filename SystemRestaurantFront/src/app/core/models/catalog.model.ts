@@ -15,7 +15,7 @@ export interface CategoryPayload {
   sortOrder: number;
 }
 
-export type ProductDestination = 'KITCHEN' | 'BAR' | 'NONE';
+export type ProductDestination = 'PRODUCTION' | 'SERVICE' | 'NONE';
 
 export interface Product {
   id: number;

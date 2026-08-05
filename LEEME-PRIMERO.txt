@@ -1,14 +1,19 @@
-RESTAURANTSYSTEM — BLOQUE 1
+ESSENTIAL — BLOQUES 1 Y 2
 
-Este ZIP contiene el primer flujo vertical del sistema:
+Esta versión convierte la plantilla inicial en una base genérica para restaurantes,
+tiendas, servicios y otros negocios locales.
 
-- Configuración del restaurante.
-- Categorías.
-- Productos.
+INCLUYE
+
+- Identidad visual de Essential.
+- Configuración del negocio.
+- Categorías, productos o servicios.
 - Precio, disponibilidad y estado activo.
-- Destino de comanda: cocina, barra o ninguno.
-- Interfaz Angular conectada a la API.
-- Migración inicial de PostgreSQL con Flyway.
+- Ruta operativa: producción, servicio o ninguna.
+- Configuración inicial del primer propietario.
+- Inicio y cierre de sesión.
+- Usuarios, contraseñas, roles y permisos.
+- Migraciones de PostgreSQL con Flyway.
 
 REQUISITOS
 
@@ -16,34 +21,30 @@ REQUISITOS
 - Node.js 22.12 o superior dentro de la rama 22, o Node.js 24.
 - PostgreSQL 18 (también puede funcionar con versiones soportadas anteriores).
 
-1. PREPARAR POSTGRESQL
+SI YA EJECUTASTE LA VERSIÓN ANTERIOR
 
-Crear una base vacía:
+1. Detén Angular y Spring Boot.
+2. Conserva tu archivo SystemRestaurantBack\secret.yml.
+3. Reemplaza los archivos del proyecto con esta versión.
+4. Vuelve a colocar tu secret.yml dentro de SystemRestaurantBack.
+5. No borres la base de datos ni ejecutes de nuevo los scripts manualmente.
+6. Inicia el backend. Flyway aplicará automáticamente la migración V2.
+7. Inicia Angular y abre http://localhost:4200.
 
-  CREATE DATABASE restaurant_system;
+La primera pantalla pedirá crear al propietario inicial. Usa una contraseña de
+al menos 10 caracteres. Después podrás iniciar sesión y crear los demás usuarios.
 
-2. CONFIGURAR EL BACKEND
-
-Entrar a SystemRestaurantBack y copiar:
-
-  secret.example.yml -> secret.yml
-
-Editar secret.yml y colocar el usuario y la contraseña reales de PostgreSQL.
-Nunca subir secret.yml a Git ni enviarlo dentro de otro ZIP.
-
-3. INICIAR EL BACKEND
+INICIAR EL BACKEND
 
 Desde SystemRestaurantBack:
 
   .\mvnw.cmd clean spring-boot:run
 
-Flyway creará automáticamente las tablas al iniciar.
-
-API:
+Comprobación:
 
   http://localhost:3210/api/health
 
-4. INICIAR ANGULAR
+INICIAR ANGULAR
 
 Desde SystemRestaurantFront:
 
@@ -54,16 +55,17 @@ Aplicación:
 
   http://localhost:4200
 
-5. PRUEBA RECOMENDADA
+PRUEBA RECOMENDADA
 
-- Abrir Configuración y guardar los datos del restaurante.
-- Abrir Catálogo.
-- Crear una categoría, por ejemplo Hamburguesas.
-- Crear un producto con precio y destino Cocina.
-- Marcar el producto como agotado y volverlo a habilitar.
+- Crear al propietario inicial.
+- Cerrar sesión y volver a ingresar.
+- Abrir Usuarios y registrar un administrador u operador.
+- Configurar el nombre y tipo del negocio.
+- Crear una categoría y un producto o servicio.
+- Comprobar que un operador no pueda administrar usuarios ni configuración.
 
-SIGUIENTE BLOQUE
+SIGUIENTE BLOQUE PROPUESTO
 
-Usuarios, contraseñas, roles y seguridad con Spring Security.
+Sucursales, áreas operativas y puntos de atención adaptables al tipo de negocio.
 
 Consulta AVANCE-PROYECTO.md para ver las decisiones y el alcance completo.

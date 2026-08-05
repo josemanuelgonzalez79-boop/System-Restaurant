@@ -1,27 +1,22 @@
-# RestaurantSystem Frontend
+# Essential Frontend
 
-Frontend de RestaurantSystem desarrollado con Angular y PrimeNG. Consume el backend Spring Boot
-mediante la ruta relativa `/api`.
+Interfaz Angular y PrimeNG para Essential. Consume el backend Spring Boot mediante `/api`.
 
 ## Requisitos
 
 - Node.js 22.12 o superior dentro de la rama 22, o Node.js 24.
 - npm 10 o superior.
-- Backend RestaurantSystem ejecutándose en `http://localhost:3210`.
+- Backend Essential ejecutándose en `http://localhost:3210`.
 
-## Instalar dependencias
+## Instalar y ejecutar
 
 ```powershell
 npm ci
-```
-
-## Ejecutar en desarrollo
-
-```powershell
 npm start
 ```
 
-La aplicación abre en `http://localhost:4200`. El archivo `proxy.conf.json` redirige `/api` hacia `http://localhost:3210`.
+La aplicación abre en `http://localhost:4200`. `proxy.conf.json` redirige `/api` hacia el
+backend local.
 
 ## Compilar
 
@@ -35,27 +30,31 @@ El resultado queda en:
 dist/restaurant-system-front/browser
 ```
 
-## Estructura recomendada
+## Estructura
 
 - `src/app/core`: servicios globales, modelos, interceptores y guardias.
-- `src/app/features`: módulos funcionales como usuarios, mesas, pedidos, cocina e inventario.
-- `src/environments/environment.ts`: configuración general del frontend.
+- `src/app/features`: acceso, usuarios, configuración y catálogo.
+- `src/environments/environment.ts`: configuración general.
+- `public/essential-mark.png`: marca principal de Essential.
 
-El frontend nunca debe conectarse directamente a PostgreSQL. Toda operación con la base de datos debe pasar por el backend Spring Boot.
+El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por Spring Boot.
 
 ## Funciones disponibles
 
-- Inicio con comprobación de la API y PostgreSQL.
-- Configuración del restaurante.
-- Administración de categorías.
-- Administración de productos.
-- Disponibilidad temporal y activación de productos.
-- Destino de comanda para cocina, barra o productos sin comanda.
+- Configuración guiada del primer propietario.
+- Inicio, restauración y cierre de sesión.
+- Administración de usuarios, roles y contraseñas.
+- Configuración genérica del negocio.
+- Administración de categorías y productos o servicios.
+- Disponibilidad, activación y ruta operativa.
 
 Rutas:
 
 ```text
+/login
+/setup
 /
 /catalogo
 /configuracion
+/usuarios
 ```
