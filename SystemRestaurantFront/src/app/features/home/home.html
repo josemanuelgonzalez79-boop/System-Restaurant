@@ -12,7 +12,7 @@
           <i class="pi pi-book"></i>
           Administrar catálogo
         </a>
-        <a routerLink="/configuracion" class="secondary-link">Configurar negocio</a>
+        <a routerLink="/estructura" class="secondary-link">Organizar estructura</a>
       } @else {
         <span class="secondary-link">Sesión activa: {{ auth.user()?.fullName }}</span>
       }
@@ -42,8 +42,12 @@
       <span>Configuración adaptable por giro</span>
     </div>
     <div class="status-line">
-      <p-tag value="Nuevo" severity="info" />
+      <p-tag value="Listo" severity="success" />
       <span>Usuarios, roles y sesiones seguras</span>
+    </div>
+    <div class="status-line">
+      <p-tag value="Nuevo" severity="info" />
+      <span>Sucursales, áreas y puntos de atención</span>
     </div>
   </p-card>
 

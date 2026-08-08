@@ -27,6 +27,13 @@ export const routes: Routes = [
     title: 'Catálogo | Essential',
   },
   {
+    path: 'estructura',
+    loadComponent: () =>
+      import('./features/structure/structure').then((component) => component.Structure),
+    canActivate: [adminGuard],
+    title: 'Estructura | Essential',
+  },
+  {
     path: 'usuarios',
     loadComponent: () => import('./features/users/users').then((component) => component.Users),
     canActivate: [ownerGuard],

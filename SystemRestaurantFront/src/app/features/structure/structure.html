@@ -1,0 +1,495 @@
+<section class="page-heading">
+  <div>
+    <span class="eyebrow">Operación</span>
+    <h1>Estructura del negocio</h1>
+    <p>Organiza sucursales, áreas y puntos de atención sin depender del giro del negocio.</p>
+  </div>
+  <div class="summary" aria-label="Resumen de estructura">
+    <div>
+      <strong>{{ branches().length }}</strong>
+      <span>Sucursales</span>
+    </div>
+    <div>
+      <strong>{{ areas().length }}</strong>
+      <span>Áreas</span>
+    </div>
+    <div>
+      <strong>{{ points().length }}</strong>
+      <span>Puntos</span>
+    </div>
+  </div>
+</section>
+
+@if (loading()) {
+  <div class="loading">Cargando estructura…</div>
+} @else {
+  <section class="editor-grid">
+    <p-card [header]="editingBranchId() ? 'Editar sucursal' : 'Nueva sucursal'">
+      <form [formGroup]="branchForm" (ngSubmit)="submitBranch()">
+        <div class="two-columns">
+          <label>
+            <span>Clave</span>
+            <input pInputText formControlName="code" placeholder="Ej. CENTRO" />
+          </label>
+          <label>
+            <span>Orden</span>
+            <p-inputnumber
+              formControlName="sortOrder"
+              [min]="0"
+              [useGrouping]="false"
+              inputId="branch-sort"
+            />
+          </label>
+        </div>
+
+        <label>
+          <span>Nombre</span>
+          <input pInputText formControlName="name" placeholder="Ej. Sucursal Centro" />
+        </label>
+
+        <label>
+          <span>Dirección</span>
+          <textarea
+            pTextarea
+            formControlName="address"
+            rows="2"
+            placeholder="Dirección opcional"
+          ></textarea>
+        </label>
+
+        <div class="two-columns">
+          <label>
+            <span>Teléfono</span>
+            <input pInputText formControlName="phone" placeholder="Opcional" />
+          </label>
+          <label>
+            <span>Zona horaria</span>
+            <input pInputText formControlName="timezone" />
+          </label>
+        </div>
+
+        <div class="form-actions">
+          @if (editingBranchId()) {
+            <p-button
+              type="button"
+              label="Cancelar"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="cancelBranchEdit()"
+            />
+          }
+          <p-button
+            type="submit"
+            [label]="editingBranchId() ? 'Guardar cambios' : 'Crear sucursal'"
+            icon="pi pi-save"
+            [loading]="savingBranch()"
+          />
+        </div>
+      </form>
+    </p-card>
+
+    <p-card [header]="editingAreaId() ? 'Editar área' : 'Nueva área'">
+      @if (activeBranches().length === 0) {
+        <div class="empty-note">
+          <i class="pi pi-info-circle"></i>
+          Debe existir una sucursal activa.
+        </div>
+      }
+
+      <form [formGroup]="areaForm" (ngSubmit)="submitArea()">
+        <label>
+          <span>Sucursal</span>
+          <p-select
+            formControlName="branchId"
+            [options]="activeBranches()"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Selecciona una sucursal"
+            inputId="area-branch"
+          />
+        </label>
+
+        <div class="two-columns">
+          <label>
+            <span>Nombre</span>
+            <input pInputText formControlName="name" placeholder="Ej. Cocina" />
+          </label>
+          <label>
+            <span>Tipo</span>
+            <p-select
+              formControlName="areaType"
+              [options]="areaTypes"
+              optionLabel="label"
+              optionValue="value"
+              inputId="area-type"
+            />
+          </label>
+        </div>
+
+        <label>
+          <span>Descripción</span>
+          <textarea
+            pTextarea
+            formControlName="description"
+            rows="2"
+            placeholder="Descripción opcional"
+          ></textarea>
+        </label>
+
+        <label>
+          <span>Orden</span>
+          <p-inputnumber
+            formControlName="sortOrder"
+            [min]="0"
+            [useGrouping]="false"
+            inputId="area-sort"
+          />
+        </label>
+
+        <div class="form-actions">
+          @if (editingAreaId()) {
+            <p-button
+              type="button"
+              label="Cancelar"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="cancelAreaEdit()"
+            />
+          }
+          <p-button
+            type="submit"
+            [label]="editingAreaId() ? 'Guardar cambios' : 'Crear área'"
+            icon="pi pi-save"
+            [loading]="savingArea()"
+            [disabled]="activeBranches().length === 0"
+          />
+        </div>
+      </form>
+    </p-card>
+
+    <p-card [header]="editingPointId() ? 'Editar punto' : 'Nuevo punto'">
+      @if (activeAreas().length === 0) {
+        <div class="empty-note">
+          <i class="pi pi-info-circle"></i>
+          Crea o activa un área antes de registrar puntos.
+        </div>
+      }
+
+      <form [formGroup]="pointForm" (ngSubmit)="submitPoint()">
+        <label>
+          <span>Área</span>
+          <p-select
+            formControlName="areaId"
+            [options]="activeAreas()"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Selecciona un área"
+            inputId="point-area"
+          >
+            <ng-template #selectedItem let-area>
+              <span>{{ area.branchName }} · {{ area.name }}</span>
+            </ng-template>
+            <ng-template #item let-area>
+              <span>{{ area.branchName }} · {{ area.name }}</span>
+            </ng-template>
+          </p-select>
+        </label>
+
+        <div class="two-columns">
+          <label>
+            <span>Clave</span>
+            <input pInputText formControlName="code" placeholder="Ej. MESA-01" />
+          </label>
+          <label>
+            <span>Orden</span>
+            <p-inputnumber
+              formControlName="sortOrder"
+              [min]="0"
+              [useGrouping]="false"
+              inputId="point-sort"
+            />
+          </label>
+        </div>
+
+        <div class="two-columns">
+          <label>
+            <span>Nombre</span>
+            <input pInputText formControlName="name" placeholder="Ej. Mesa 1" />
+          </label>
+          <label>
+            <span>Tipo</span>
+            <p-select
+              formControlName="pointType"
+              [options]="pointTypes"
+              optionLabel="label"
+              optionValue="value"
+              inputId="point-type"
+            />
+          </label>
+        </div>
+
+        <label>
+          <span>Descripción</span>
+          <textarea
+            pTextarea
+            formControlName="description"
+            rows="2"
+            placeholder="Descripción opcional"
+          ></textarea>
+        </label>
+
+        <div class="form-actions">
+          @if (editingPointId()) {
+            <p-button
+              type="button"
+              label="Cancelar"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="cancelPointEdit()"
+            />
+          }
+          <p-button
+            type="submit"
+            [label]="editingPointId() ? 'Guardar cambios' : 'Crear punto'"
+            icon="pi pi-save"
+            [loading]="savingPoint()"
+            [disabled]="activeAreas().length === 0"
+          />
+        </div>
+      </form>
+    </p-card>
+  </section>
+
+  <section class="tables-grid">
+    <p-card header="Sucursales registradas" styleClass="table-card">
+      <p-table [value]="branches()" [rowHover]="true" [scrollable]="true">
+        <ng-template #header>
+          <tr>
+            <th>Orden</th>
+            <th>Sucursal</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-branch>
+          <tr [class.inactive-row]="!branch.active">
+            <td>{{ branch.sortOrder }}</td>
+            <td>
+              <strong>{{ branch.name }}</strong>
+              <small>{{ branch.code }}</small>
+            </td>
+            <td>
+              {{ branch.address || 'Sin dirección' }}
+              <small>{{ branch.timezone }}</small>
+            </td>
+            <td>
+              <p-tag
+                [value]="branch.active ? 'Activa' : 'Inactiva'"
+                [severity]="branch.active ? 'success' : 'secondary'"
+              />
+            </td>
+            <td>
+              <div class="row-actions">
+                <p-button
+                  icon="pi pi-pencil"
+                  ariaLabel="Editar sucursal"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="editBranch(branch)"
+                />
+                <p-button
+                  [icon]="branch.active ? 'pi pi-ban' : 'pi pi-check'"
+                  [ariaLabel]="branch.active ? 'Desactivar sucursal' : 'Activar sucursal'"
+                  [severity]="branch.active ? 'danger' : 'success'"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="toggleBranch(branch)"
+                />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+
+    <p-card header="Áreas registradas" styleClass="table-card">
+      <p-table [value]="areas()" [rowHover]="true" [scrollable]="true">
+        <ng-template #header>
+          <tr>
+            <th>Orden</th>
+            <th>Área</th>
+            <th>Sucursal</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-area>
+          <tr [class.inactive-row]="!area.active">
+            <td>{{ area.sortOrder }}</td>
+            <td>
+              <strong>{{ area.name }}</strong>
+              <small>{{ area.description || 'Sin descripción' }}</small>
+            </td>
+            <td>{{ area.branchName }}</td>
+            <td>{{ areaTypeLabel(area.areaType) }}</td>
+            <td>
+              <p-tag
+                [value]="area.active ? 'Activa' : 'Inactiva'"
+                [severity]="area.active ? 'success' : 'secondary'"
+              />
+            </td>
+            <td>
+              <div class="row-actions">
+                <p-button
+                  icon="pi pi-pencil"
+                  ariaLabel="Editar área"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="editArea(area)"
+                />
+                <p-button
+                  [icon]="area.active ? 'pi pi-ban' : 'pi pi-check'"
+                  [ariaLabel]="area.active ? 'Desactivar área' : 'Activar área'"
+                  [severity]="area.active ? 'danger' : 'success'"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="toggleArea(area)"
+                />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="6">Todavía no existen áreas.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </section>
+
+  <p-card header="Puntos de atención registrados" styleClass="wide-card">
+    <p-table [value]="points()" [rowHover]="true" [scrollable]="true">
+      <ng-template #header>
+        <tr>
+          <th>Orden</th>
+          <th>Punto</th>
+          <th>Área</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-point>
+        <tr [class.inactive-row]="!point.active">
+          <td>{{ point.sortOrder }}</td>
+          <td>
+            <strong>{{ point.name }}</strong>
+            <small>{{ point.code }}</small>
+          </td>
+          <td>
+            {{ point.areaName }}
+            <small>{{ point.branchName }}</small>
+          </td>
+          <td>{{ pointTypeLabel(point.pointType) }}</td>
+          <td>
+            <p-tag
+              [value]="point.active ? 'Activo' : 'Inactivo'"
+              [severity]="point.active ? 'success' : 'secondary'"
+            />
+          </td>
+          <td>
+            <div class="row-actions">
+              <p-button
+                icon="pi pi-pencil"
+                ariaLabel="Editar punto"
+                [text]="true"
+                [rounded]="true"
+                (onClick)="editPoint(point)"
+              />
+              <p-button
+                [icon]="point.active ? 'pi pi-ban' : 'pi pi-check'"
+                [ariaLabel]="point.active ? 'Desactivar punto' : 'Activar punto'"
+                [severity]="point.active ? 'danger' : 'success'"
+                [text]="true"
+                [rounded]="true"
+                (onClick)="togglePoint(point)"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6">Todavía no existen puntos de atención.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <p-card header="Usuarios asignados por sucursal" styleClass="wide-card assignments-card">
+    <div class="assignment-toolbar">
+      <label>
+        <span>Sucursal</span>
+        <p-select
+          [ngModel]="assignmentBranchId()"
+          (ngModelChange)="changeAssignmentBranch($event)"
+          [options]="activeBranches()"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Selecciona una sucursal"
+          inputId="assignment-branch"
+        />
+      </label>
+      <div class="assignment-help">
+        <i class="pi pi-users"></i>
+        Define quién podrá operar en esta sucursal. Debe permanecer un propietario asignado.
+      </div>
+    </div>
+
+    @if (loadingAssignments()) {
+      <div class="assignment-loading">Cargando usuarios…</div>
+    } @else if (assignmentBranchId() === null) {
+      <div class="assignment-loading">Selecciona una sucursal activa.</div>
+    } @else {
+      <div class="assignment-list">
+        @for (user of assignmentUsers(); track user.userId) {
+          <label class="assignment-row" [class.disabled]="!user.active">
+            <input
+              type="checkbox"
+              [checked]="assignedUserIds().has(user.userId)"
+              [disabled]="!user.active"
+              (change)="toggleAssignment(user.userId, $any($event.target).checked)"
+            />
+            <span>
+              <strong>{{ user.fullName }}</strong>
+              <small>{{ user.username }} · {{ roleLabel(user.role) }}</small>
+            </span>
+            <p-tag
+              [value]="user.active ? 'Activo' : 'Inactivo'"
+              [severity]="user.active ? 'success' : 'secondary'"
+            />
+          </label>
+        } @empty {
+          <div class="assignment-loading">No existen usuarios para asignar.</div>
+        }
+      </div>
+
+      @if (!hasAssignedOwner()) {
+        <small class="validation-note">Selecciona al menos un propietario.</small>
+      }
+
+      <div class="form-actions assignment-actions">
+        <p-button
+          label="Guardar asignaciones"
+          icon="pi pi-save"
+          [loading]="savingAssignments()"
+          [disabled]="!hasAssignedOwner()"
+          (onClick)="saveAssignments()"
+        />
+      </div>
+    }
+  </p-card>
+}

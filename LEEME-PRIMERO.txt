@@ -1,4 +1,4 @@
-ESSENTIAL — BLOQUES 1 Y 2
+ESSENTIAL — BLOQUES 1, 2 Y 3
 
 Esta versión convierte la plantilla inicial en una base genérica para restaurantes,
 tiendas, servicios y otros negocios locales.
@@ -13,6 +13,8 @@ INCLUYE
 - Configuración inicial del primer propietario.
 - Inicio y cierre de sesión.
 - Usuarios, contraseñas, roles y permisos.
+- Sucursales, áreas operativas y puntos de atención.
+- Asignación de usuarios por sucursal.
 - Migraciones de PostgreSQL con Flyway.
 
 REQUISITOS
@@ -28,7 +30,7 @@ SI YA EJECUTASTE LA VERSIÓN ANTERIOR
 3. Reemplaza los archivos del proyecto con esta versión.
 4. Vuelve a colocar tu secret.yml dentro de SystemRestaurantBack.
 5. No borres la base de datos ni ejecutes de nuevo los scripts manualmente.
-6. Inicia el backend. Flyway aplicará automáticamente la migración V2.
+6. Inicia el backend. Flyway aplicará automáticamente las migraciones pendientes, incluida V3.
 7. Inicia Angular y abre http://localhost:4200.
 
 La primera pantalla pedirá crear al propietario inicial. Usa una contraseña de
@@ -42,7 +44,7 @@ Desde SystemRestaurantBack:
 
 Comprobación:
 
-  http://localhost:3210/api/health
+  http://localhost:3211/api/health
 
 INICIAR ANGULAR
 
@@ -63,9 +65,12 @@ PRUEBA RECOMENDADA
 - Configurar el nombre y tipo del negocio.
 - Crear una categoría y un producto o servicio.
 - Comprobar que un operador no pueda administrar usuarios ni configuración.
+- Abrir Estructura y confirmar la sucursal principal.
+- Crear un área y un punto de atención.
+- Guardar la asignación de usuarios de la sucursal.
 
 SIGUIENTE BLOQUE PROPUESTO
 
-Sucursales, áreas operativas y puntos de atención adaptables al tipo de negocio.
+Apertura de operación y captura de movimientos por sucursal y punto de atención.
 
 Consulta AVANCE-PROYECTO.md para ver las decisiones y el alcance completo.

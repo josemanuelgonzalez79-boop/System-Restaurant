@@ -20,6 +20,7 @@
           </a>
           @if (auth.canAdminister()) {
             <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
+            <a routerLink="/estructura" routerLinkActive="active">Estructura</a>
           }
           @if (auth.isOwner()) {
             <a routerLink="/usuarios" routerLinkActive="active">Usuarios</a>

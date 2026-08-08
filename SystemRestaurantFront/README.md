@@ -33,7 +33,7 @@ dist/restaurant-system-front/browser
 ## Estructura
 
 - `src/app/core`: servicios globales, modelos, interceptores y guardias.
-- `src/app/features`: acceso, usuarios, configuración y catálogo.
+- `src/app/features`: acceso, usuarios, configuración, catálogo y estructura operativa.
 - `src/environments/environment.ts`: configuración general.
 - `public/essential-mark.png`: marca principal de Essential.
 
@@ -47,6 +47,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
 - Configuración genérica del negocio.
 - Administración de categorías y productos o servicios.
 - Disponibilidad, activación y ruta operativa.
+- Administración de sucursales, áreas y puntos de atención.
+- Asignación de usuarios por sucursal.
 
 Rutas:
 
@@ -55,6 +57,7 @@ Rutas:
 /setup
 /
 /catalogo
+/estructura
 /configuracion
 /usuarios
 ```

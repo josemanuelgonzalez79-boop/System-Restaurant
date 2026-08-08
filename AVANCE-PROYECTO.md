@@ -26,6 +26,15 @@ utiliza para todos los clientes; cada instalación conserva su configuración y 
 5. Los permisos restringen configuración, catálogo y usuarios.
 6. Angular protege las rutas y restaura la sesión al recargar.
 
+### Bloque 3: estructura operativa
+
+1. Cada instalación crea una sucursal principal sin perder la configuración existente.
+2. El administrador registra sucursales y controla su orden y estado.
+3. Cada sucursal organiza áreas genéricas de servicio, producción, almacén, caja u oficina.
+4. Cada área contiene puntos de atención como mesas, cajas, estaciones, consultorios o ventanillas.
+5. Los usuarios se asignan a las sucursales en las que podrán operar.
+6. Las jerarquías y asignaciones se validan tanto en la API como en Angular.
+
 ### Roles disponibles
 
 | Rol | Uso previsto |
@@ -54,8 +63,8 @@ utiliza para todos los clientes; cada instalación conserva su configuración y 
 | --- | --- | --- |
 | 1 | Configuración, categorías y productos o servicios | Terminado |
 | 2 | Usuarios, contraseñas, roles y permisos | Terminado |
-| 3 | Sucursales, áreas operativas y puntos de atención | Siguiente |
-| 4 | Apertura de operación y captura de movimientos | Pendiente |
+| 3 | Sucursales, áreas operativas y puntos de atención | Terminado |
+| 4 | Apertura de operación y captura de movimientos | Siguiente |
 | 5 | Partidas, variantes, modificadores y observaciones | Pendiente |
 | 6 | Tablero operativo y estados por partida | Pendiente |
 | 7 | Notificaciones en tiempo real | Pendiente |
@@ -67,7 +76,7 @@ utiliza para todos los clientes; cada instalación conserva su configuración y 
 
 ## Decisiones vigentes
 
-- Una instalación y base de datos por sucursal durante la primera versión.
+- Una instalación y base de datos por negocio durante la primera versión; sus sucursales comparten catálogo y usuarios.
 - Angular y Spring Boot se desarrollan mediante funciones completas.
 - REST realiza las operaciones y WebSocket se agregará para avisos en tiempo real.
 - PostgreSQL siempre será la fuente de verdad.
@@ -77,10 +86,10 @@ utiliza para todos los clientes; cada instalación conserva su configuración y 
 
 ## Próximo bloque
 
-Modelar la operación física sin atarla a un solo giro:
+Abrir y registrar la operación diaria sin atarla a un solo giro:
 
-- Sucursales.
-- Áreas: salón, cocina, almacén, mostrador, taller u oficina.
-- Puntos de atención: mesa, caja, estación, consultorio o ventanilla.
-- Estados activo/inactivo y orden visual.
-- Permisos para asignar operadores a una sucursal.
+- Apertura de una jornada o turno por sucursal.
+- Selección del punto donde se captura el movimiento.
+- Encabezado del movimiento con responsable, fecha y estado.
+- Folio consecutivo local.
+- Estados iniciales: abierto, en proceso, completado y cancelado.

@@ -1,0 +1,275 @@
+:host {
+  display: block;
+}
+
+.page-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  color: var(--p-primary-color);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0.45rem 0;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+}
+
+.page-heading p,
+small {
+  color: var(--p-text-muted-color);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(90px, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.85rem;
+  background: var(--p-content-background);
+}
+
+.summary div {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.8rem 1rem;
+  text-align: center;
+}
+
+.summary div + div {
+  border-left: 1px solid var(--p-content-border-color);
+}
+
+.summary strong {
+  color: var(--p-primary-color);
+  font-size: 1.2rem;
+}
+
+.summary span {
+  color: var(--p-text-muted-color);
+  font-size: 0.76rem;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+form,
+label {
+  display: grid;
+}
+
+form {
+  gap: 0.9rem;
+}
+
+label {
+  gap: 0.4rem;
+  font-weight: 650;
+}
+
+input[pInputText],
+textarea,
+p-inputnumber,
+p-select {
+  width: 100%;
+}
+
+.two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.form-actions,
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.empty-note {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.9rem;
+  padding: 0.75rem;
+  border-radius: 0.6rem;
+  color: var(--p-orange-800);
+  background: var(--p-orange-50);
+}
+
+:host-context(.app-dark) .empty-note {
+  color: var(--p-orange-200);
+  background: color-mix(in srgb, var(--p-orange-500) 16%, transparent);
+}
+
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.wide-card {
+  display: block;
+  margin-top: 1rem;
+}
+
+td strong,
+td small {
+  display: block;
+}
+
+td small {
+  max-width: 260px;
+  margin-top: 0.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inactive-row {
+  opacity: 0.62;
+}
+
+.loading {
+  display: grid;
+  min-height: 360px;
+  color: var(--p-text-muted-color);
+  place-items: center;
+}
+
+.assignment-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.7fr) minmax(360px, 1.3fr);
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.assignment-help {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 42px;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.65rem;
+  color: var(--p-text-muted-color);
+  background: var(--p-content-hover-background);
+}
+
+.assignment-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.assignment-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.7rem;
+  background: var(--p-content-background);
+  cursor: pointer;
+}
+
+.assignment-row:hover {
+  border-color: var(--p-primary-color);
+}
+
+.assignment-row input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--p-primary-color);
+}
+
+.assignment-row strong,
+.assignment-row small {
+  display: block;
+}
+
+.assignment-row small {
+  margin-top: 0.18rem;
+  font-weight: 400;
+}
+
+.assignment-row.disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.assignment-loading {
+  display: grid;
+  min-height: 100px;
+  color: var(--p-text-muted-color);
+  place-items: center;
+}
+
+.validation-note {
+  display: block;
+  margin-top: 0.75rem;
+  color: var(--p-red-500);
+}
+
+.assignment-actions {
+  margin-top: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .editor-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .editor-grid p-card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .tables-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .summary {
+    align-self: stretch;
+  }
+
+  .editor-grid,
+  .assignment-list,
+  .assignment-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-grid p-card:last-child {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .summary div {
+    padding: 0.7rem 0.4rem;
+  }
+}

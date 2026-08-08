@@ -67,12 +67,17 @@ sesión HTTP y protección CSRF.
 | `GET/PUT` | `/api/v1/settings` | Propietario o administrador |
 | `GET/POST/PUT/PATCH` | `/api/v1/categories` | Propietario o administrador |
 | `GET/POST/PUT/PATCH` | `/api/v1/products` | Propietario o administrador |
+| `GET/POST/PUT/PATCH` | `/api/v1/branches` | Propietario o administrador |
+| `GET/POST/PUT/PATCH` | `/api/v1/areas` | Propietario o administrador |
+| `GET/POST/PUT/PATCH` | `/api/v1/service-points` | Propietario o administrador |
+| `GET/PUT` | `/api/v1/branches/{id}/assignments` | Propietario o administrador |
 
 ## Migraciones
 
 ```text
 src/main/resources/db/migration/V1__create_restaurant_settings_and_catalog.sql
 src/main/resources/db/migration/V2__generalize_business_and_add_users.sql
+src/main/resources/db/migration/V3__create_operational_structure.sql
 ```
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. No edites

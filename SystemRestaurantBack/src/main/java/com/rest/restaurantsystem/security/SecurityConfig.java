@@ -38,7 +38,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/settings/**",
                                 "/api/v1/categories/**",
-                                "/api/v1/products/**"
+                                "/api/v1/products/**",
+                                "/api/v1/branches/**",
+                                "/api/v1/areas/**",
+                                "/api/v1/service-points/**"
                         ).hasAnyRole("OWNER", "ADMIN")
                         .anyRequest().authenticated()
                 )
