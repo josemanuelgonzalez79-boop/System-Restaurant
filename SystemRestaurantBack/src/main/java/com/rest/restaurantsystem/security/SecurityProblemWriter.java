@@ -1,9 +1,9 @@
 package com.rest.restaurantsystem.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -13,10 +13,10 @@ import java.util.Map;
 @Component
 class SecurityProblemWriter {
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
-    SecurityProblemWriter(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    SecurityProblemWriter(JsonMapper jsonMapper) {
+        this.jsonMapper = jsonMapper;
     }
 
     void write(HttpServletResponse response, int status, String title, String detail) throws IOException {
@@ -28,6 +28,6 @@ class SecurityProblemWriter {
         problem.put("title", title);
         problem.put("detail", detail);
         problem.put("timestamp", Instant.now());
-        objectMapper.writeValue(response.getOutputStream(), problem);
+        jsonMapper.writeValue(response.getOutputStream(), problem);
     }
 }

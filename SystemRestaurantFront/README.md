@@ -6,7 +6,7 @@ Interfaz Angular y PrimeNG para Essential. Consume el backend Spring Boot median
 
 - Node.js 22.12 o superior dentro de la rama 22, o Node.js 24.
 - npm 10 o superior.
-- Backend Essential ejecutándose en `http://localhost:3210`.
+- Backend Essential ejecutándose en `http://localhost:3211`.
 
 ## Instalar y ejecutar
 

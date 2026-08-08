@@ -6,4 +6,4 @@ RESTAURANTSYSTEM - INICIO RAPIDO
 4. Abre PowerShell en esta carpeta.
 5. Ejecuta: .\mvnw.cmd clean spring-boot:run
 6. Espera a que Flyway termine la migración inicial.
-7. Abre: http://localhost:3210/api/health
+7. Abre: http://localhost:3211/api/health

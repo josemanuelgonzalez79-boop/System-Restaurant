@@ -3,7 +3,7 @@ RESTAURANTSYSTEM FRONTEND
 1. Instala Node.js 22 LTS o 24.
 2. Abre PowerShell en esta carpeta.
 3. Ejecuta: npm ci
-4. Inicia el backend en el puerto 3210.
+4. Inicia el backend en el puerto 3211.
 5. Ejecuta: npm start
 6. Abre: http://localhost:4200
 

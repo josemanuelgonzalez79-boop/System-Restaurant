@@ -23,7 +23,7 @@ spring:
     time-zone: UTC
 
 server:
-  port: ${SERVER_PORT:3210}
+  port: ${SERVER_PORT:3211}
   shutdown: graceful
   compression:
     enabled: true

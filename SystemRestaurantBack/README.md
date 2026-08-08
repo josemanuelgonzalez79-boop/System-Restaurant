@@ -44,7 +44,7 @@ Flyway crea y versiona las tablas. Hibernate usa `validate`; no debe utilizarse
 .\mvnw.cmd clean spring-boot:run
 ```
 
-La API inicia en `http://localhost:3210`.
+La API inicia en `http://localhost:3211`.
 
 ## Acceso inicial
 
