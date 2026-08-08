@@ -64,9 +64,15 @@ small {
   gap: 1rem;
 }
 
+.editor-grid > *,
+.two-columns > * {
+  min-width: 0;
+}
+
 form,
 label {
   display: grid;
+  min-width: 0;
 }
 
 form {
@@ -83,6 +89,20 @@ textarea,
 p-inputnumber,
 p-select {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+:host ::ng-deep .p-inputnumber,
+:host ::ng-deep .p-inputnumber-input,
+:host ::ng-deep .p-select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+:host ::ng-deep .p-inputnumber {
+  display: flex;
 }
 
 .two-columns {

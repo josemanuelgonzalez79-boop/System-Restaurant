@@ -9,6 +9,10 @@ import { PasswordModule } from 'primeng/password';
 
 import { InitialSetupPayload } from '../../../core/models/user.model';
 import { AuthApiService } from '../../../core/services/auth-api.service';
+import {
+  passwordsMatchValidator,
+  PASSWORD_VALIDATORS,
+} from '../../../core/validation/password-policy';
 
 @Component({
   selector: 'app-setup',
@@ -23,20 +27,23 @@ export class Setup implements OnInit {
   private readonly messages = inject(MessageService);
 
   protected readonly loading = signal(false);
-  protected readonly form = this.formBuilder.nonNullable.group({
-    fullName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
-    username: [
-      'admin',
-      [
-        Validators.required,
-        Validators.minLength(4),
-        Validators.maxLength(80),
-        Validators.pattern(/^[A-Za-z0-9._-]+$/),
+  protected readonly form = this.formBuilder.nonNullable.group(
+    {
+      fullName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
+      username: [
+        'admin',
+        [
+          Validators.required,
+          Validators.minLength(4),
+          Validators.maxLength(80),
+          Validators.pattern(/^[A-Za-z0-9._-]+$/),
+        ],
       ],
-    ],
-    password: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(72)]],
-    confirmPassword: ['', [Validators.required]],
-  });
+      password: ['', PASSWORD_VALIDATORS],
+      confirmPassword: ['', [Validators.required]],
+    },
+    { validators: passwordsMatchValidator },
+  );
 
   ngOnInit(): void {
     this.auth.ensureInitialized().subscribe(() => {
@@ -49,19 +56,15 @@ export class Setup implements OnInit {
   protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      return;
-    }
-
-    const value = this.form.getRawValue();
-    if (value.password !== value.confirmPassword) {
       this.messages.add({
         severity: 'warn',
-        summary: 'Las contraseñas no coinciden',
-        detail: 'Escribe la misma contraseña en ambos campos.',
+        summary: 'Revisa los datos',
+        detail: 'Corrige los campos marcados antes de continuar.',
       });
       return;
     }
 
+    const value = this.form.getRawValue();
     const payload: InitialSetupPayload = {
       fullName: value.fullName,
       username: value.username,

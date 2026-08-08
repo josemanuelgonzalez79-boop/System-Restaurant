@@ -8,7 +8,15 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      const detail = error.error?.detail ?? error.error?.message ?? error.message;
+      const validationErrors = error.error?.errors;
+      const firstValidationError =
+        validationErrors && typeof validationErrors === 'object'
+          ? Object.values(validationErrors).find(
+              (value): value is string => typeof value === 'string',
+            )
+          : undefined;
+      const detail =
+        firstValidationError ?? error.error?.detail ?? error.error?.message ?? error.message;
 
       const isSessionProbe = request.url.endsWith('/auth/me') && error.status === 401;
       if (!isSessionProbe) {

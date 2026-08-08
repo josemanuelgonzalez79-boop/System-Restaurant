@@ -13,6 +13,16 @@ public record InitialSetupRequest(
         )
         String username,
         @NotBlank @Size(min = 2, max = 120) String fullName,
-        @NotBlank @Size(min = 10, max = 72) String password
+        @NotBlank(message = PasswordPolicy.REQUIRED_MESSAGE)
+        @Size(
+                min = PasswordPolicy.MIN_LENGTH,
+                max = PasswordPolicy.MAX_LENGTH,
+                message = PasswordPolicy.LENGTH_MESSAGE
+        )
+        @Pattern(
+                regexp = PasswordPolicy.COMPOSITION_REGEX,
+                message = PasswordPolicy.COMPOSITION_MESSAGE
+        )
+        String password
 ) {
 }

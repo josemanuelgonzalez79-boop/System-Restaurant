@@ -33,6 +33,7 @@ small {
 form,
 label {
   display: grid;
+  min-width: 0;
 }
 
 form {
@@ -52,6 +53,33 @@ input[pInputText],
 p-password,
 p-select {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+:host ::ng-deep .p-password,
+:host ::ng-deep .p-password-input,
+:host ::ng-deep .p-select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.field-help {
+  color: var(--p-text-muted-color);
+  font-weight: 400;
+}
+
+.field-errors {
+  display: grid;
+  gap: 0.2rem;
+  color: var(--p-red-500);
+  font-weight: 600;
+}
+
+.field-errors small {
+  color: inherit;
+  font-weight: inherit;
 }
 
 td small {

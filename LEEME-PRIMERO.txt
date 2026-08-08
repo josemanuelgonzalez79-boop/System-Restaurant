@@ -1,7 +1,7 @@
 ESSENTIAL — BLOQUES 1, 2 Y 3
 
-Esta versión convierte la plantilla inicial en una base genérica para restaurantes,
-tiendas, servicios y otros negocios locales.
+Esta versión prepara la base de Essential para la operación de restaurantes pequeños y medianos
+mediante computadoras y tablets conectadas al Wi-Fi o red local del establecimiento.
 
 INCLUYE
 
@@ -33,8 +33,8 @@ SI YA EJECUTASTE LA VERSIÓN ANTERIOR
 6. Inicia el backend. Flyway aplicará automáticamente las migraciones pendientes, incluida V3.
 7. Inicia Angular y abre http://localhost:4200.
 
-La primera pantalla pedirá crear al propietario inicial. Usa una contraseña de
-al menos 10 caracteres. Después podrás iniciar sesión y crear los demás usuarios.
+La primera pantalla pedirá crear al propietario inicial. Usa una contraseña de 10 a 72 caracteres
+que incluya al menos una letra y un número. La pantalla mostrará qué regla falta antes de guardar.
 
 INICIAR EL BACKEND
 
@@ -71,6 +71,6 @@ PRUEBA RECOMENDADA
 
 SIGUIENTE BLOQUE PROPUESTO
 
-Apertura de operación y captura de movimientos por sucursal y punto de atención.
+Mapa de mesas y apertura de pedidos o comandas desde tablet, barra, mostrador o para llevar.
 
-Consulta AVANCE-PROYECTO.md para ver las decisiones y el alcance completo.
+Consulta AVANCE-PROYECTO.md y PLANES-Y-ALCANCE.md para ver las decisiones y las tres opciones.

@@ -19,6 +19,7 @@ import {
 } from '../../core/models/user.model';
 import { AuthApiService } from '../../core/services/auth-api.service';
 import { UserApiService } from '../../core/services/user-api.service';
+import { PASSWORD_VALIDATORS } from '../../core/validation/password-policy';
 
 @Component({
   selector: 'app-users',
@@ -69,11 +70,11 @@ export class Users implements OnInit {
       ],
     ],
     role: this.formBuilder.nonNullable.control<UserRole>('OPERATOR', Validators.required),
-    password: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(72)]],
+    password: ['', PASSWORD_VALIDATORS],
   });
 
   protected readonly passwordForm = this.formBuilder.nonNullable.group({
-    password: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(72)]],
+    password: ['', PASSWORD_VALIDATORS],
   });
 
   ngOnInit(): void {
@@ -83,6 +84,7 @@ export class Users implements OnInit {
   protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.showInvalidFormMessage();
       return;
     }
 
@@ -130,11 +132,7 @@ export class Users implements OnInit {
   protected cancelEdit(): void {
     this.editingId.set(null);
     this.form.controls.username.enable();
-    this.form.controls.password.setValidators([
-      Validators.required,
-      Validators.minLength(10),
-      Validators.maxLength(72),
-    ]);
+    this.form.controls.password.setValidators(PASSWORD_VALIDATORS);
     this.form.reset({
       fullName: '',
       username: '',
@@ -164,6 +162,9 @@ export class Users implements OnInit {
     const user = this.resetUser();
     if (!user || this.passwordForm.invalid) {
       this.passwordForm.markAllAsTouched();
+      if (user) {
+        this.showInvalidFormMessage();
+      }
       return;
     }
 
@@ -194,5 +195,13 @@ export class Users implements OnInit {
       ? items.map((item) => (item.id === updated.id ? updated : item))
       : [...items, updated];
     return result.sort((left, right) => left.fullName.localeCompare(right.fullName));
+  }
+
+  private showInvalidFormMessage(): void {
+    this.messages.add({
+      severity: 'warn',
+      summary: 'Revisa los datos',
+      detail: 'Corrige los campos marcados antes de guardar.',
+    });
   }
 }

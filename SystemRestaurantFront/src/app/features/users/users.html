@@ -12,12 +12,36 @@
       <label>
         <span>Nombre completo</span>
         <input pInputText formControlName="fullName" autocomplete="off" />
+        @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+          <div class="field-errors" role="alert">
+            @if (form.controls.fullName.hasError('required')) {
+              <small>Escribe el nombre completo.</small>
+            } @else if (form.controls.fullName.hasError('minlength')) {
+              <small>El nombre debe contener al menos 2 caracteres.</small>
+            } @else if (form.controls.fullName.hasError('maxlength')) {
+              <small>El nombre no puede superar 120 caracteres.</small>
+            }
+          </div>
+        }
       </label>
 
       <label>
         <span>Usuario</span>
         <input pInputText formControlName="username" autocomplete="off" />
-        <small>Será utilizado para iniciar sesión.</small>
+        <small class="field-help">Será utilizado para iniciar sesión.</small>
+        @if (form.controls.username.touched && form.controls.username.invalid) {
+          <div class="field-errors" role="alert">
+            @if (form.controls.username.hasError('required')) {
+              <small>Escribe un nombre de usuario.</small>
+            } @else if (form.controls.username.hasError('minlength')) {
+              <small>El usuario debe contener al menos 4 caracteres.</small>
+            } @else if (form.controls.username.hasError('maxlength')) {
+              <small>El usuario no puede superar 80 caracteres.</small>
+            } @else if (form.controls.username.hasError('pattern')) {
+              <small>Usa solo letras, números, punto, guion o guion bajo.</small>
+            }
+          </div>
+        }
       </label>
 
       <label>
@@ -38,9 +62,26 @@
             formControlName="password"
             inputId="user-password"
             autocomplete="new-password"
+            promptLabel="Escribe una contraseña"
+            weakLabel="Débil"
+            mediumLabel="Media"
+            strongLabel="Fuerte"
             [toggleMask]="true"
           />
-          <small>Debe contener al menos 10 caracteres.</small>
+          <small class="field-help">Usa al menos 10 caracteres, con letras y números.</small>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <div class="field-errors" role="alert">
+              @if (form.controls.password.hasError('required')) {
+                <small>Escribe una contraseña.</small>
+              } @else if (form.controls.password.hasError('minlength')) {
+                <small>La contraseña debe contener al menos 10 caracteres.</small>
+              } @else if (form.controls.password.hasError('maxlength')) {
+                <small>La contraseña no puede superar 72 caracteres.</small>
+              } @else if (form.controls.password.hasError('pattern')) {
+                <small>La contraseña debe incluir al menos una letra y un número.</small>
+              }
+            </div>
+          }
         </label>
       }
 
@@ -144,9 +185,26 @@
           formControlName="password"
           inputId="reset-password"
           autocomplete="new-password"
+          promptLabel="Escribe una contraseña"
+          weakLabel="Débil"
+          mediumLabel="Media"
+          strongLabel="Fuerte"
           [toggleMask]="true"
         />
-        <small>Debe contener al menos 10 caracteres.</small>
+        <small class="field-help">Usa al menos 10 caracteres, con letras y números.</small>
+        @if (passwordForm.controls.password.touched && passwordForm.controls.password.invalid) {
+          <div class="field-errors" role="alert">
+            @if (passwordForm.controls.password.hasError('required')) {
+              <small>Escribe una contraseña.</small>
+            } @else if (passwordForm.controls.password.hasError('minlength')) {
+              <small>La contraseña debe contener al menos 10 caracteres.</small>
+            } @else if (passwordForm.controls.password.hasError('maxlength')) {
+              <small>La contraseña no puede superar 72 caracteres.</small>
+            } @else if (passwordForm.controls.password.hasError('pattern')) {
+              <small>La contraseña debe incluir al menos una letra y un número.</small>
+            }
+          </div>
+        }
       </label>
       <div class="form-actions">
         <p-button
