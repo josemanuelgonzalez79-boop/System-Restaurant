@@ -44,6 +44,26 @@ public class BranchAssignmentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<BranchAssignmentUserResponse> findAssignedActiveUsers(Long branchId) {
+        return findAll(branchId).stream()
+                .filter(BranchAssignmentUserResponse::active)
+                .filter(BranchAssignmentUserResponse::assigned)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isAssigned(Long branchId, Long userId) {
+        return repository.existsByBranchIdAndUserId(branchId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Set<Long> findAssignedBranchIds(Long userId) {
+        return repository.findAllByUserId(userId).stream()
+                .map(BranchUserAssignment::getBranchId)
+                .collect(Collectors.toSet());
+    }
+
     @Transactional
     public List<BranchAssignmentUserResponse> replace(Long branchId, BranchAssignmentRequest request) {
         Branch branch = branchService.getEntity(branchId);

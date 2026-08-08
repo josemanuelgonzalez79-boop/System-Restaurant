@@ -3,6 +3,7 @@ package com.rest.restaurantsystem.structure;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
+import com.rest.restaurantsystem.order.OrderOccupancyService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,10 +14,16 @@ public class OperationalAreaService {
 
     private final OperationalAreaRepository repository;
     private final BranchService branchService;
+    private final OrderOccupancyService occupancyService;
 
-    public OperationalAreaService(OperationalAreaRepository repository, BranchService branchService) {
+    public OperationalAreaService(
+            OperationalAreaRepository repository,
+            BranchService branchService,
+            OrderOccupancyService occupancyService
+    ) {
         this.repository = repository;
         this.branchService = branchService;
+        this.occupancyService = occupancyService;
     }
 
     @Transactional(readOnly = true)
@@ -44,6 +51,13 @@ public class OperationalAreaService {
 
     @Transactional
     public OperationalAreaResponse update(Long id, OperationalAreaRequest request) {
+        OperationalArea area = getEntity(id);
+        if (!area.getBranch().getId().equals(request.branchId())
+                && occupancyService.hasActiveOrdersForArea(id)) {
+            throw new BadRequestException(
+                    "Completa o cancela los pedidos abiertos antes de mover el área."
+            );
+        }
         Branch branch = branchService.getEntity(request.branchId());
         ensureActiveBranch(branch);
         if (repository.existsByBranch_IdAndNameIgnoreCaseAndIdNot(
@@ -53,7 +67,6 @@ public class OperationalAreaService {
         )) {
             throw new ConflictException("Ya existe otra área con ese nombre en la sucursal.");
         }
-        OperationalArea area = getEntity(id);
         area.update(request, branch);
         return OperationalAreaResponse.from(area);
     }
@@ -63,6 +76,11 @@ public class OperationalAreaService {
         OperationalArea area = getEntity(id);
         if (active) {
             ensureActiveBranch(area.getBranch());
+        }
+        if (!active && area.isActive() && occupancyService.hasActiveOrdersForArea(id)) {
+            throw new BadRequestException(
+                    "Completa o cancela los pedidos abiertos antes de desactivar el área."
+            );
         }
         area.setActive(active);
         return OperationalAreaResponse.from(area);

@@ -1,0 +1,320 @@
+<p-confirmDialog />
+
+<section class="page-heading">
+  <div>
+    <span class="eyebrow">Operación del restaurante</span>
+    <h1>Mesas y pedidos</h1>
+    <p>Abre y recupera pedidos desde una tablet, caja o computadora conectada a la red local.</p>
+  </div>
+
+  <div class="summary" aria-label="Resumen de pedidos">
+    <div>
+      <strong>{{ freePointCount() }}</strong>
+      <span>Libres</span>
+    </div>
+    <div>
+      <strong>{{ occupiedPointCount() }}</strong>
+      <span>Ocupados</span>
+    </div>
+    <div>
+      <strong>{{ takeoutOrders().length }}</strong>
+      <span>Para llevar</span>
+    </div>
+  </div>
+</section>
+
+@if (loading()) {
+  <div class="loading">Preparando la operación del restaurante…</div>
+} @else if (branches().length === 0) {
+  <section class="empty-state">
+    <i class="pi pi-building"></i>
+    <h2>No tienes una sucursal asignada</h2>
+    <p>Un propietario debe asignar tu usuario a una sucursal activa desde Estructura.</p>
+  </section>
+} @else {
+  <section class="operation-toolbar">
+    <label>
+      <span>Sucursal</span>
+      <p-select
+        [ngModel]="selectedBranchId()"
+        (ngModelChange)="changeBranch($event)"
+        [options]="branches()"
+        optionLabel="name"
+        optionValue="id"
+        inputId="order-branch"
+      />
+    </label>
+
+    <div class="toolbar-actions">
+      <p-button
+        label="Actualizar"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="refreshing()"
+        (onClick)="refresh()"
+      />
+      <p-button
+        label="Pedido para llevar"
+        icon="pi pi-shopping-bag"
+        [disabled]="refreshing()"
+        (onClick)="openTakeout()"
+      />
+    </div>
+  </section>
+
+  <nav class="area-filter" aria-label="Filtrar mesas por área">
+    <button type="button" [class.active]="selectedAreaId() === null" (click)="selectArea(null)">
+      Todas
+    </button>
+    @for (area of orderableAreas(); track area.id) {
+      <button
+        type="button"
+        [class.active]="selectedAreaId() === area.id"
+        (click)="selectArea(area.id)"
+      >
+        {{ area.name }}
+      </button>
+    }
+  </nav>
+
+  @if (visiblePoints().length === 0) {
+    <section class="empty-state compact">
+      <i class="pi pi-th-large"></i>
+      <h2>No hay mesas o puntos disponibles</h2>
+      <p>Crea un área de servicio y sus mesas o mostradores desde Estructura.</p>
+    </section>
+  } @else {
+    <section class="point-grid" aria-label="Mapa de mesas y puntos">
+      @for (point of visiblePoints(); track point.id) {
+        @if (orderForPoint(point.id); as order) {
+          <article class="point-card occupied">
+            <header>
+              <div class="point-name">
+                <i [class]="pointIcon(point)"></i>
+                <span>
+                  <strong>{{ point.name }}</strong>
+                  <small>{{ point.areaName }}</small>
+                </span>
+              </div>
+              <p-tag
+                [value]="statusLabel(order.status)"
+                [severity]="statusSeverity(order.status)"
+              />
+            </header>
+
+            <div class="order-main">
+              <strong>{{ order.folio }}</strong>
+              <span>{{ order.guestCount }} comensal(es)</span>
+            </div>
+            <dl>
+              <div>
+                <dt>Responsable</dt>
+                <dd>{{ order.assignedUserName }}</dd>
+              </div>
+              <div>
+                <dt>Abierto</dt>
+                <dd>{{ order.openedAt | date: 'shortTime' }}</dd>
+              </div>
+            </dl>
+            @if (order.notes) {
+              <p class="order-note">{{ order.notes }}</p>
+            }
+
+            <footer class="card-actions">
+              @if (order.status === 'OPEN') {
+                <p-button
+                  label="Iniciar atención"
+                  icon="pi pi-play"
+                  size="small"
+                  [disabled]="refreshing()"
+                  [loading]="changingStatusId() === order.id"
+                  (onClick)="startOrder(order)"
+                />
+              } @else {
+                <p-button
+                  label="Completar"
+                  icon="pi pi-check"
+                  size="small"
+                  severity="success"
+                  [disabled]="refreshing()"
+                  [loading]="changingStatusId() === order.id"
+                  (onClick)="completeOrder(order)"
+                />
+              }
+              <p-button
+                icon="pi pi-times"
+                ariaLabel="Cancelar pedido"
+                severity="danger"
+                size="small"
+                [text]="true"
+                [disabled]="refreshing() || changingStatusId() === order.id"
+                (onClick)="cancelOrder(order)"
+              />
+            </footer>
+          </article>
+        } @else {
+          <article class="point-card free">
+            <header>
+              <div class="point-name">
+                <i [class]="pointIcon(point)"></i>
+                <span>
+                  <strong>{{ point.name }}</strong>
+                  <small>{{ point.areaName }}</small>
+                </span>
+              </div>
+              <p-tag value="Libre" severity="success" />
+            </header>
+            <p class="free-message">Lista para recibir un nuevo pedido.</p>
+            <footer class="card-actions">
+              <p-button
+                label="Abrir pedido"
+                icon="pi pi-plus"
+                size="small"
+                [disabled]="refreshing()"
+                (onClick)="openPoint(point)"
+              />
+            </footer>
+          </article>
+        }
+      }
+    </section>
+  }
+
+  @if (takeoutOrders().length > 0) {
+    <section class="takeout-section">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Mostrador</span>
+          <h2>Pedidos para llevar</h2>
+        </div>
+      </div>
+      <div class="takeout-grid">
+        @for (order of takeoutOrders(); track order.id) {
+          <article class="takeout-card">
+            <div>
+              <strong>{{ order.folio }}</strong>
+              <span>{{ order.customerReference || 'Sin referencia de cliente' }}</span>
+              <small>{{ order.assignedUserName }} · {{ order.openedAt | date: 'shortTime' }}</small>
+            </div>
+            <p-tag [value]="statusLabel(order.status)" [severity]="statusSeverity(order.status)" />
+            <div class="card-actions">
+              @if (order.status === 'OPEN') {
+                <p-button
+                  icon="pi pi-play"
+                  ariaLabel="Iniciar atención"
+                  size="small"
+                  [disabled]="refreshing()"
+                  [loading]="changingStatusId() === order.id"
+                  (onClick)="startOrder(order)"
+                />
+              } @else {
+                <p-button
+                  icon="pi pi-check"
+                  ariaLabel="Completar pedido"
+                  severity="success"
+                  size="small"
+                  [disabled]="refreshing()"
+                  [loading]="changingStatusId() === order.id"
+                  (onClick)="completeOrder(order)"
+                />
+              }
+              <p-button
+                icon="pi pi-times"
+                ariaLabel="Cancelar pedido"
+                severity="danger"
+                size="small"
+                [text]="true"
+                [disabled]="refreshing() || changingStatusId() === order.id"
+                (onClick)="cancelOrder(order)"
+              />
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+}
+
+<p-dialog
+  [header]="
+    selectedPoint() ? 'Abrir pedido en ' + selectedPoint()?.name : 'Nuevo pedido para llevar'
+  "
+  [modal]="true"
+  [visible]="dialogVisible()"
+  [style]="{ width: 'min(94vw, 560px)' }"
+  (visibleChange)="$event ? null : closeDialog()"
+>
+  <form [formGroup]="orderForm" (ngSubmit)="submit()">
+    <div class="dialog-summary">
+      <i [class]="selectedPoint() ? 'pi pi-map-marker' : 'pi pi-shopping-bag'"></i>
+      <div>
+        <strong>{{ selectedBranch()?.name }}</strong>
+        <span>{{ selectedPoint()?.areaName || 'Entrega en mostrador' }}</span>
+      </div>
+    </div>
+
+    <label>
+      <span>Responsable o mesero</span>
+      <p-select
+        formControlName="assignedUserId"
+        [options]="operators()"
+        optionLabel="fullName"
+        optionValue="id"
+        placeholder="Selecciona un responsable"
+        inputId="order-operator"
+      />
+      @if (orderForm.controls.assignedUserId.touched && orderForm.controls.assignedUserId.invalid) {
+        <small class="field-error">Selecciona quién atenderá el pedido.</small>
+      }
+    </label>
+
+    <div class="two-columns">
+      <label>
+        <span>Comensales</span>
+        <p-inputnumber
+          formControlName="guestCount"
+          inputId="order-guests"
+          [min]="1"
+          [max]="99"
+          [showButtons]="true"
+          [useGrouping]="false"
+        />
+        @if (orderForm.controls.guestCount.touched && orderForm.controls.guestCount.invalid) {
+          <small class="field-error">Indica entre 1 y 99 comensales.</small>
+        }
+      </label>
+
+      <label>
+        <span>Cliente o referencia</span>
+        <input
+          pInputText
+          formControlName="customerReference"
+          placeholder="Opcional"
+          autocomplete="off"
+        />
+      </label>
+    </div>
+
+    <label>
+      <span>Notas iniciales</span>
+      <textarea
+        pTextarea
+        formControlName="notes"
+        rows="3"
+        placeholder="Ej. cumpleaños, alergia informada o indicación general"
+      ></textarea>
+    </label>
+
+    <div class="dialog-actions">
+      <p-button
+        type="button"
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="closeDialog()"
+      />
+      <p-button type="submit" label="Abrir pedido" icon="pi pi-plus" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

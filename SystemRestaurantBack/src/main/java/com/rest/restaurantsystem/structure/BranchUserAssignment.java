@@ -39,6 +39,10 @@ class BranchUserAssignment {
         return userId;
     }
 
+    Long getBranchId() {
+        return branchId;
+    }
+
     @PrePersist
     void onCreate() {
         assignedAt = Instant.now();

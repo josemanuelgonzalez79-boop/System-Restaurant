@@ -8,5 +8,9 @@ interface BranchUserAssignmentRepository extends JpaRepository<BranchUserAssignm
 
     List<BranchUserAssignment> findAllByBranchId(Long branchId);
 
+    List<BranchUserAssignment> findAllByUserId(Long userId);
+
+    boolean existsByBranchIdAndUserId(Long branchId, Long userId);
+
     void deleteAllByBranchId(Long branchId);
 }

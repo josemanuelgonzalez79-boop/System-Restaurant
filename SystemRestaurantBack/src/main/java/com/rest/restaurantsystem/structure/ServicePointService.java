@@ -3,6 +3,7 @@ package com.rest.restaurantsystem.structure;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
+import com.rest.restaurantsystem.order.OrderOccupancyService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,10 +14,16 @@ public class ServicePointService {
 
     private final ServicePointRepository repository;
     private final OperationalAreaService areaService;
+    private final OrderOccupancyService occupancyService;
 
-    public ServicePointService(ServicePointRepository repository, OperationalAreaService areaService) {
+    public ServicePointService(
+            ServicePointRepository repository,
+            OperationalAreaService areaService,
+            OrderOccupancyService occupancyService
+    ) {
         this.repository = repository;
         this.areaService = areaService;
+        this.occupancyService = occupancyService;
     }
 
     @Transactional(readOnly = true)
@@ -44,6 +51,13 @@ public class ServicePointService {
 
     @Transactional
     public ServicePointResponse update(Long id, ServicePointRequest request) {
+        ServicePoint point = getEntity(id);
+        if (!point.getArea().getId().equals(request.areaId())
+                && occupancyService.hasActiveOrderForServicePoint(id)) {
+            throw new BadRequestException(
+                    "Completa o cancela el pedido abierto antes de mover el punto."
+            );
+        }
         OperationalArea area = areaService.getEntity(request.areaId());
         ensureActiveHierarchy(area);
         if (repository.existsByArea_IdAndCodeIgnoreCaseAndIdNot(
@@ -53,7 +67,6 @@ public class ServicePointService {
         )) {
             throw new ConflictException("Ya existe otro punto con esa clave en el área.");
         }
-        ServicePoint point = getEntity(id);
         point.update(request, area);
         return ServicePointResponse.from(point);
     }
@@ -63,6 +76,11 @@ public class ServicePointService {
         ServicePoint point = getEntity(id);
         if (active) {
             ensureActiveHierarchy(point.getArea());
+        }
+        if (!active && point.isActive() && occupancyService.hasActiveOrderForServicePoint(id)) {
+            throw new BadRequestException(
+                    "Completa o cancela el pedido abierto antes de desactivar el punto."
+            );
         }
         point.setActive(active);
         return ServicePointResponse.from(point);

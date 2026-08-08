@@ -1,11 +1,15 @@
 package com.rest.restaurantsystem.structure;
 
 import com.rest.restaurantsystem.exception.BadRequestException;
+import com.rest.restaurantsystem.order.OrderOccupancyService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -18,6 +22,9 @@ class OperationalAreaServiceTest {
 
     @Mock
     private BranchService branchService;
+
+    @Mock
+    private OrderOccupancyService occupancyService;
 
     @InjectMocks
     private OperationalAreaService service;
@@ -44,5 +51,29 @@ class OperationalAreaServiceTest {
         );
 
         assertThrows(BadRequestException.class, () -> service.create(request));
+    }
+
+    @Test
+    void rejectsDeactivationWithActiveOrders() {
+        Branch branch = new Branch(new BranchRequest(
+                "PRINCIPAL",
+                "Principal",
+                null,
+                null,
+                "America/Mazatlan",
+                0
+        ));
+        OperationalArea area = new OperationalArea(new OperationalAreaRequest(
+                1L,
+                "Comedor",
+                null,
+                AreaType.SERVICE,
+                0
+        ), branch);
+        ReflectionTestUtils.setField(area, "id", 5L);
+        when(repository.findById(5L)).thenReturn(Optional.of(area));
+        when(occupancyService.hasActiveOrdersForArea(5L)).thenReturn(true);
+
+        assertThrows(BadRequestException.class, () -> service.changeActive(5L, false));
     }
 }

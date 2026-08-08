@@ -92,11 +92,37 @@ footer {
 
 @media (max-width: 720px) {
   .app-header {
-    position: static;
+    padding: 0.5rem 0.5rem 0;
   }
 
   nav {
+    position: fixed;
+    z-index: 30;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0.5rem;
+    overflow-x: auto;
+    border-top: 1px solid var(--p-content-border-color);
+    background: color-mix(in srgb, var(--p-surface-0) 94%, transparent);
+    box-shadow: 0 -8px 28px color-mix(in srgb, #000 10%, transparent);
+    backdrop-filter: blur(16px);
+    scrollbar-width: none;
+  }
+
+  :host-context(.app-dark) nav {
+    background: color-mix(in srgb, var(--p-surface-950) 94%, transparent);
+  }
+
+  nav::-webkit-scrollbar {
     display: none;
+  }
+
+  nav a {
+    flex: 0 0 auto;
   }
 
   .current-user {
@@ -105,5 +131,9 @@ footer {
 
   .brand small {
     display: none;
+  }
+
+  footer {
+    padding-bottom: 5rem;
   }
 }

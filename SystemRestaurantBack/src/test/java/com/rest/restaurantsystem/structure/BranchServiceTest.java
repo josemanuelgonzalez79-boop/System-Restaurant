@@ -1,6 +1,7 @@
 package com.rest.restaurantsystem.structure;
 
 import com.rest.restaurantsystem.exception.BadRequestException;
+import com.rest.restaurantsystem.order.OrderOccupancyService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,6 +18,9 @@ class BranchServiceTest {
 
     @Mock
     private BranchRepository repository;
+
+    @Mock
+    private OrderOccupancyService occupancyService;
 
     @InjectMocks
     private BranchService service;
@@ -40,6 +44,16 @@ class BranchServiceTest {
         Branch branch = new Branch(validRequest());
         when(repository.findById(1L)).thenReturn(Optional.of(branch));
         when(repository.countByActiveTrue()).thenReturn(1L);
+
+        assertThrows(BadRequestException.class, () -> service.changeActive(1L, false));
+    }
+
+    @Test
+    void rejectsDeactivationWithActiveOrders() {
+        Branch branch = new Branch(validRequest());
+        when(repository.findById(1L)).thenReturn(Optional.of(branch));
+        when(repository.countByActiveTrue()).thenReturn(2L);
+        when(occupancyService.hasActiveOrdersForBranch(1L)).thenReturn(true);
 
         assertThrows(BadRequestException.class, () -> service.changeActive(1L, false));
     }

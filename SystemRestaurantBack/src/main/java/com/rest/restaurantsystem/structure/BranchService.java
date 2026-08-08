@@ -3,6 +3,7 @@ package com.rest.restaurantsystem.structure;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
+import com.rest.restaurantsystem.order.OrderOccupancyService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,9 +15,11 @@ import java.util.List;
 public class BranchService {
 
     private final BranchRepository repository;
+    private final OrderOccupancyService occupancyService;
 
-    public BranchService(BranchRepository repository) {
+    public BranchService(BranchRepository repository, OrderOccupancyService occupancyService) {
         this.repository = repository;
+        this.occupancyService = occupancyService;
     }
 
     @Transactional(readOnly = true)
@@ -59,6 +62,11 @@ public class BranchService {
         Branch branch = getEntity(id);
         if (!active && branch.isActive() && repository.countByActiveTrue() <= 1) {
             throw new BadRequestException("Debe permanecer al menos una sucursal activa.");
+        }
+        if (!active && branch.isActive() && occupancyService.hasActiveOrdersForBranch(id)) {
+            throw new BadRequestException(
+                    "Completa o cancela los pedidos abiertos antes de desactivar la sucursal."
+            );
         }
         branch.setActive(active);
         return BranchResponse.from(branch);

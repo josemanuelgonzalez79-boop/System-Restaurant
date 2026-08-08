@@ -20,6 +20,12 @@ export const routes: Routes = [
     title: 'Inicio | Essential',
   },
   {
+    path: 'pedidos',
+    loadComponent: () => import('./features/orders/orders').then((component) => component.Orders),
+    canActivate: [authGuard],
+    title: 'Mesas y pedidos | Essential',
+  },
+  {
     path: 'catalogo',
     loadComponent: () =>
       import('./features/catalog/catalog').then((component) => component.Catalog),

@@ -18,6 +18,7 @@
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
             Inicio
           </a>
+          <a routerLink="/pedidos" routerLinkActive="active">Pedidos</a>
           @if (auth.canAdminister()) {
             <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
             <a routerLink="/estructura" routerLinkActive="active">Estructura</a>

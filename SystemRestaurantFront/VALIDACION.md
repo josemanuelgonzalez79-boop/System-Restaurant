@@ -11,10 +11,12 @@ Base preparada con:
 - Usuarios y roles.
 - Configuración del negocio.
 - Categorías y productos o servicios.
+- Sucursales, áreas, mesas y asignaciones.
+- Apertura y estados de pedidos en mesa o para llevar.
 
 Validación realizada:
 
 - `npm run format`
 - `npm run build`
 - `npm test -- --watch=false`
-- 3 archivos de pruebas y 6 pruebas superadas.
+- 6 archivos de pruebas y 16 pruebas superadas.

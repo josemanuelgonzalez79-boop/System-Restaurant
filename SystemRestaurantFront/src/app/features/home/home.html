@@ -7,12 +7,15 @@
       servicios públicos en la nube.
     </p>
     <div class="hero-actions">
+      <a routerLink="/pedidos" class="primary-link">
+        <i class="pi pi-receipt"></i>
+        Abrir mesas y pedidos
+      </a>
       @if (auth.canAdminister()) {
-        <a routerLink="/catalogo" class="primary-link">
+        <a routerLink="/catalogo" class="secondary-link">
           <i class="pi pi-book"></i>
           Administrar catálogo
         </a>
-        <a routerLink="/estructura" class="secondary-link">Organizar estructura</a>
       } @else {
         <span class="secondary-link">Sesión activa: {{ auth.user()?.fullName }}</span>
       }
@@ -46,8 +49,12 @@
       <span>Usuarios, roles y sesiones seguras</span>
     </div>
     <div class="status-line">
-      <p-tag value="Nuevo" severity="info" />
+      <p-tag value="Listo" severity="success" />
       <span>Sucursales, áreas y puntos de atención</span>
+    </div>
+    <div class="status-line">
+      <p-tag value="Nuevo" severity="info" />
+      <span>Mapa de mesas y apertura de pedidos</span>
     </div>
   </p-card>
 

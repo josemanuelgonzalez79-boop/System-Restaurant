@@ -10,12 +10,12 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 
 ## Estado de la edición básica
 
-- Terminados: 3 de 12 bloques funcionales.
-- Avance medido por bloques: 25 %.
-- Avance práctico estimado: entre 25 % y 30 %, porque ya existe la base de datos, seguridad,
-  catálogo, usuarios y estructura.
-- Restan 9 bloques. Los más importantes todavía son pedidos desde tablet, comandas de cocina,
-  actualización en tiempo real, cobro, caja, reporte, respaldos e instalación en red local.
+- Terminados: 4 de 12 bloques funcionales.
+- Avance medido por bloques: 33 %.
+- Avance práctico estimado: entre 35 % y 40 %, porque ya existe la base de datos, seguridad,
+  catálogo, usuarios, estructura y apertura de pedidos desde tablets.
+- Restan 8 bloques. Los más importantes todavía son productos y modificadores dentro del pedido,
+  comandas de cocina, actualización en tiempo real, cobro, caja, reporte, respaldos e instalación.
 
 ## Bloques terminados
 
@@ -45,6 +45,20 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 4. Cada área contiene puntos de servicio como mesas, cajas o estaciones de preparación.
 5. Los usuarios se asignan a las sucursales en las que podrán operar.
 6. Las jerarquías y asignaciones se validan tanto en la API como en Angular.
+
+### Bloque 4: mesas y apertura de pedidos
+
+1. Flyway crea la tabla de pedidos y protege las relaciones con sucursal, punto y usuarios.
+2. Cada usuario operativo ve únicamente las sucursales a las que fue asignado.
+3. El mapa muestra las mesas y puntos libres u ocupados por área del restaurante.
+4. Se abren pedidos para consumo en el local o para llevar, con folio, responsable, comensales,
+   referencia del cliente y notas.
+5. Una restricción de PostgreSQL impide dos pedidos activos sobre la misma mesa, incluso cuando
+   dos tablets intentan abrirla al mismo tiempo.
+6. Los pedidos avanzan de abierto a en atención, completado o cancelado; los estados terminales
+   liberan la mesa.
+7. El control de versión detecta actualizaciones realizadas desde otro dispositivo.
+8. No se puede desactivar ni mover una mesa, área o sucursal mientras tenga pedidos abiertos.
 
 ### Roles disponibles
 
@@ -77,8 +91,8 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 | 1      | Configuración, categorías y productos o servicios                  | Terminado |
 | 2      | Usuarios, contraseñas, roles y permisos                            | Terminado |
 | 3      | Sucursales, áreas operativas y puntos de atención                  | Terminado |
-| 4      | Apertura de pedido o comanda desde mesa, barra o mostrador         | Siguiente |
-| 5      | Productos, cantidades, variantes, modificadores y notas del pedido | Pendiente |
+| 4      | Apertura de pedido o comanda desde mesa, barra o mostrador         | Terminado |
+| 5      | Productos, cantidades, variantes, modificadores y notas del pedido | Siguiente |
 | 6      | Pantalla de cocina/barra y estados por partida                     | Pendiente |
 | 7      | Notificaciones en tiempo real                                      | Pendiente |
 | 8      | Cobro y formas de pago                                             | Pendiente |
@@ -105,15 +119,16 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 - La edición básica no incluye CFDI/SAT, nube pública, inventario por receta, clientes frecuentes,
   reservaciones ni integraciones de reparto; se consideran para ediciones posteriores.
 
-## Próximo bloque: pedidos desde el restaurante
+## Próximo bloque: contenido del pedido
 
-El siguiente desarrollo debe permitir iniciar el trabajo que hará un mesero desde una tablet:
+El siguiente desarrollo completará la captura que realiza el mesero después de abrir una mesa:
 
-- Mostrar las mesas y puntos de servicio disponibles por área.
-- Abrir un pedido para una mesa, barra, mostrador o pedido para llevar.
-- Asignar folio, sucursal, punto, mesero, fecha y número de comensales.
-- Consultar pedidos abiertos y recuperar uno para continuar capturándolo.
-- Manejar los estados iniciales `OPEN`, `IN_PROGRESS`, `COMPLETED` y `CANCELLED`.
+- Entrar a un pedido abierto desde su mesa o tarjeta.
+- Buscar productos por categoría desde una interfaz cómoda para tablet.
+- Agregar cantidades, precio capturado y observaciones por partida.
+- Preparar el modelo de variantes y modificadores, por ejemplo término, tamaño o extras.
+- Calcular subtotal y total del pedido con `BigDecimal` y `NUMERIC`.
+- Evitar que se agreguen productos inactivos o no disponibles.
 
-El Bloque 5 agregará productos, cantidades, modificadores y notas; el Bloque 6 enviará las partidas
-a cocina o barra. Consulta `PLANES-Y-ALCANCE.md` para la separación propuesta de las tres ediciones.
+El Bloque 6 enviará las partidas a cocina o barra y administrará su preparación. Consulta
+`PLANES-Y-ALCANCE.md` para la separación propuesta de las tres ediciones.

@@ -54,14 +54,15 @@ Dirigida a restaurantes que requieren administración adicional e integraciones.
 
 ## Situación actual
 
-| Medida                                | Estado                                                       |
-| ------------------------------------- | ------------------------------------------------------------ |
-| Bloques terminados                    | 3 de 12                                                      |
-| Avance por bloques                    | 25 %                                                         |
-| Avance práctico estimado              | 25 % a 30 %                                                  |
-| Bloques pendientes de la opción local | 9                                                            |
-| Siguiente bloque                      | Pedidos y comandas abiertas desde mesas o puntos de servicio |
+| Medida                                | Estado                                              |
+| ------------------------------------- | --------------------------------------------------- |
+| Bloques terminados                    | 4 de 12                                             |
+| Avance por bloques                    | 33 %                                                |
+| Avance práctico estimado              | 35 % a 40 %                                         |
+| Bloques pendientes de la opción local | 8                                                   |
+| Siguiente bloque                      | Productos y modificadores dentro del pedido abierto |
 
-La prioridad inmediata no es la WAN. Es completar el circuito local del restaurante: el mesero
-abre el pedido en una tablet, cocina recibe la comanda, caja cobra y el propietario obtiene el
-reporte y el respaldo. La conexión entre sucursales se diseñará después sobre esa operación estable.
+La apertura del pedido desde una tablet ya forma parte del sistema. La prioridad inmediata no es
+la WAN: primero se completará el circuito local agregando productos al pedido, enviando la comanda
+a cocina, cobrando en caja y generando reporte y respaldo. La conexión entre sucursales se diseñará
+después sobre esa operación estable.

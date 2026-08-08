@@ -53,6 +53,11 @@ public class UserService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public UserResponse findById(Long id) {
+        return UserResponse.from(getEntity(id));
+    }
+
     @Transactional
     public UserResponse create(UserCreateRequest request) {
         if (repository.existsByUsernameIgnoreCase(request.username().trim())) {

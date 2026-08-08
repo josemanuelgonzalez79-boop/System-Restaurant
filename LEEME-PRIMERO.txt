@@ -1,4 +1,4 @@
-ESSENTIAL — BLOQUES 1, 2 Y 3
+ESSENTIAL — BLOQUES 1, 2, 3 Y 4
 
 Esta versión prepara la base de Essential para la operación de restaurantes pequeños y medianos
 mediante computadoras y tablets conectadas al Wi-Fi o red local del establecimiento.
@@ -15,6 +15,10 @@ INCLUYE
 - Usuarios, contraseñas, roles y permisos.
 - Sucursales, áreas operativas y puntos de atención.
 - Asignación de usuarios por sucursal.
+- Mapa operativo de mesas y puntos libres u ocupados.
+- Apertura de pedidos en mesa o para llevar.
+- Folio, responsable, comensales, referencia y notas del pedido.
+- Estados abierto, en atención, completado y cancelado.
 - Migraciones de PostgreSQL con Flyway.
 
 REQUISITOS
@@ -30,7 +34,7 @@ SI YA EJECUTASTE LA VERSIÓN ANTERIOR
 3. Reemplaza los archivos del proyecto con esta versión.
 4. Vuelve a colocar tu secret.yml dentro de SystemRestaurantBack.
 5. No borres la base de datos ni ejecutes de nuevo los scripts manualmente.
-6. Inicia el backend. Flyway aplicará automáticamente las migraciones pendientes, incluida V3.
+6. Inicia el backend. Flyway aplicará automáticamente las migraciones pendientes, incluida V4.
 7. Inicia Angular y abre http://localhost:4200.
 
 La primera pantalla pedirá crear al propietario inicial. Usa una contraseña de 10 a 72 caracteres
@@ -68,9 +72,12 @@ PRUEBA RECOMENDADA
 - Abrir Estructura y confirmar la sucursal principal.
 - Crear un área y un punto de atención.
 - Guardar la asignación de usuarios de la sucursal.
+- Abrir Pedidos y crear un pedido desde una mesa libre.
+- Abrir un pedido para llevar.
+- Iniciar, completar y cancelar pedidos; confirmar que la mesa vuelva a quedar libre.
 
 SIGUIENTE BLOQUE PROPUESTO
 
-Mapa de mesas y apertura de pedidos o comandas desde tablet, barra, mostrador o para llevar.
+Captura de productos, cantidades, variantes, modificadores y notas dentro del pedido abierto.
 
 Consulta AVANCE-PROYECTO.md y PLANES-Y-ALCANCE.md para ver las decisiones y las tres opciones.
