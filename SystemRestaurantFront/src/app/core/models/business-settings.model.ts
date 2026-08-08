@@ -1,7 +1,10 @@
-export interface RestaurantSettings {
+export type BusinessType = 'RESTAURANT' | 'RETAIL' | 'SERVICES' | 'OTHER';
+
+export interface BusinessSettings {
   id: number;
   businessName: string;
   displayName: string;
+  businessType: BusinessType;
   currencyCode: string;
   timezone: string;
   primaryColor: string;
@@ -12,9 +15,10 @@ export interface RestaurantSettings {
   updatedAt: string;
 }
 
-export interface RestaurantSettingsPayload {
+export interface BusinessSettingsPayload {
   businessName: string;
   displayName: string;
+  businessType: BusinessType;
   currencyCode: string;
   timezone: string;
   primaryColor: string;

@@ -1,17 +1,21 @@
 <section class="hero">
   <div>
-    <span class="eyebrow">RestaurantSystem</span>
-    <h1>El primer módulo del restaurante ya está en marcha</h1>
+    <span class="eyebrow">Essential</span>
+    <h1>Lo esencial de tu negocio, en un solo lugar</h1>
     <p>
-      Configura la identidad del negocio y registra el catálogo que utilizarán pedidos, cocina y
-      caja en los siguientes bloques.
+      Una plataforma local y modular para organizar productos, usuarios y operación sin depender de
+      servicios públicos en la nube.
     </p>
     <div class="hero-actions">
-      <a routerLink="/catalogo" class="primary-link">
-        <i class="pi pi-book"></i>
-        Administrar catálogo
-      </a>
-      <a routerLink="/configuracion" class="secondary-link">Configurar restaurante</a>
+      @if (auth.canAdminister()) {
+        <a routerLink="/catalogo" class="primary-link">
+          <i class="pi pi-book"></i>
+          Administrar catálogo
+        </a>
+        <a routerLink="/configuracion" class="secondary-link">Configurar negocio</a>
+      } @else {
+        <span class="secondary-link">Sesión activa: {{ auth.user()?.fullName }}</span>
+      }
     </div>
   </div>
 
@@ -24,7 +28,7 @@
 </section>
 
 <section class="cards">
-  <p-card header="Bloque 1 · Catálogo">
+  <p-card header="Base operativa">
     <div class="status-line">
       <p-tag value="Listo" severity="success" />
       <span>Categorías y orden de aparición</span>
@@ -35,7 +39,11 @@
     </div>
     <div class="status-line">
       <p-tag value="Listo" severity="success" />
-      <span>Destino de comanda: cocina, barra o ninguno</span>
+      <span>Configuración adaptable por giro</span>
+    </div>
+    <div class="status-line">
+      <p-tag value="Nuevo" severity="info" />
+      <span>Usuarios, roles y sesiones seguras</span>
     </div>
   </p-card>
 

@@ -1,8 +1,8 @@
 <section class="page-heading">
   <div>
     <span class="eyebrow">Administración</span>
-    <h1>Catálogo del restaurante</h1>
-    <p>Crea categorías y productos que después utilizarán meseros, cocina y caja.</p>
+    <h1>Catálogo del negocio</h1>
+    <p>Crea categorías y productos que después utilizarán ventas y operación.</p>
   </div>
   <div class="summary">
     <strong>{{ categories().length }}</strong>
@@ -120,7 +120,7 @@
           </label>
 
           <label>
-            <span>Destino de comanda</span>
+            <span>Ruta operativa</span>
             <p-select
               formControlName="destination"
               [options]="destinations"
@@ -213,7 +213,7 @@
           <th>Producto</th>
           <th>Categoría</th>
           <th>Precio</th>
-          <th>Comanda</th>
+          <th>Ruta</th>
           <th>Disponibilidad</th>
           <th class="actions-column">Acciones</th>
         </tr>

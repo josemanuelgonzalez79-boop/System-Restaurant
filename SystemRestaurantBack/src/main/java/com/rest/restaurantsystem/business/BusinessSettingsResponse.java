@@ -1,11 +1,12 @@
-package com.rest.restaurantsystem.restaurant;
+package com.rest.restaurantsystem.business;
 
 import java.time.Instant;
 
-public record RestaurantSettingsResponse(
+public record BusinessSettingsResponse(
         Long id,
         String businessName,
         String displayName,
+        BusinessType businessType,
         String currencyCode,
         String timezone,
         String primaryColor,
@@ -16,11 +17,12 @@ public record RestaurantSettingsResponse(
         Instant updatedAt
 ) {
 
-    static RestaurantSettingsResponse from(RestaurantSettings settings) {
-        return new RestaurantSettingsResponse(
+    static BusinessSettingsResponse from(BusinessSettings settings) {
+        return new BusinessSettingsResponse(
                 settings.getId(),
                 settings.getBusinessName(),
                 settings.getDisplayName(),
+                settings.getBusinessType(),
                 settings.getCurrencyCode(),
                 settings.getTimezone(),
                 settings.getPrimaryColor(),

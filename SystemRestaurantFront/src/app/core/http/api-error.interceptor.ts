@@ -10,11 +10,14 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error: HttpErrorResponse) => {
       const detail = error.error?.detail ?? error.error?.message ?? error.message;
 
-      messages.add({
-        severity: 'error',
-        summary: 'No fue posible completar la solicitud',
-        detail: typeof detail === 'string' ? detail : 'Ocurrió un error inesperado.',
-      });
+      const isSessionProbe = request.url.endsWith('/auth/me') && error.status === 401;
+      if (!isSessionProbe) {
+        messages.add({
+          severity: 'error',
+          summary: 'No fue posible completar la solicitud',
+          detail: typeof detail === 'string' ? detail : 'Ocurrió un error inesperado.',
+        });
+      }
 
       return throwError(() => error);
     }),

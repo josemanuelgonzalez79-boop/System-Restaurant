@@ -1,7 +1,7 @@
 package com.rest.restaurantsystem.catalog.product;
 
 public enum ProductDestination {
-    KITCHEN,
-    BAR,
+    PRODUCTION,
+    SERVICE,
     NONE
 }

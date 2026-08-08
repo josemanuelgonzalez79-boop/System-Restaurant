@@ -1,27 +1,48 @@
 import { Routes } from '@angular/router';
 
+import { adminGuard, authGuard, ownerGuard } from './core/guards/auth.guard';
+
 export const routes: Routes = [
+  {
+    path: 'login',
+    loadComponent: () => import('./features/auth/login/login').then((component) => component.Login),
+    title: 'Iniciar sesión | Essential',
+  },
+  {
+    path: 'setup',
+    loadComponent: () => import('./features/auth/setup/setup').then((component) => component.Setup),
+    title: 'Configurar | Essential',
+  },
   {
     path: '',
     loadComponent: () => import('./features/home/home').then((component) => component.Home),
-    title: 'Inicio | RestaurantSystem',
+    canActivate: [authGuard],
+    title: 'Inicio | Essential',
   },
   {
     path: 'catalogo',
     loadComponent: () =>
       import('./features/catalog/catalog').then((component) => component.Catalog),
-    title: 'Catálogo | RestaurantSystem',
+    canActivate: [adminGuard],
+    title: 'Catálogo | Essential',
+  },
+  {
+    path: 'usuarios',
+    loadComponent: () => import('./features/users/users').then((component) => component.Users),
+    canActivate: [ownerGuard],
+    title: 'Usuarios | Essential',
   },
   {
     path: 'configuracion',
     loadComponent: () =>
       import('./features/settings/settings').then((component) => component.Settings),
-    title: 'Configuración | RestaurantSystem',
+    canActivate: [adminGuard],
+    title: 'Configuración | Essential',
   },
   {
     path: '**',
     loadComponent: () =>
       import('./features/not-found/not-found').then((component) => component.NotFound),
-    title: 'Página no encontrada | RestaurantSystem',
+    title: 'Página no encontrada | Essential',
   },
 ];

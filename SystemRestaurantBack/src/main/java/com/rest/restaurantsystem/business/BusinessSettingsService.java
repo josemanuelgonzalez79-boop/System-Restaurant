@@ -1,4 +1,4 @@
-package com.rest.restaurantsystem.restaurant;
+package com.rest.restaurantsystem.business;
 
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
@@ -9,31 +9,31 @@ import java.time.DateTimeException;
 import java.time.ZoneId;
 
 @Service
-public class RestaurantSettingsService {
+public class BusinessSettingsService {
 
-    private final RestaurantSettingsRepository repository;
+    private final BusinessSettingsRepository repository;
 
-    public RestaurantSettingsService(RestaurantSettingsRepository repository) {
+    public BusinessSettingsService(BusinessSettingsRepository repository) {
         this.repository = repository;
     }
 
     @Transactional(readOnly = true)
-    public RestaurantSettingsResponse get() {
-        return RestaurantSettingsResponse.from(findSettings());
+    public BusinessSettingsResponse get() {
+        return BusinessSettingsResponse.from(findSettings());
     }
 
     @Transactional
-    public RestaurantSettingsResponse update(RestaurantSettingsRequest request) {
+    public BusinessSettingsResponse update(BusinessSettingsRequest request) {
         validateTimezone(request.timezone());
-        RestaurantSettings settings = findSettings();
+        BusinessSettings settings = findSettings();
         settings.update(request);
-        return RestaurantSettingsResponse.from(settings);
+        return BusinessSettingsResponse.from(settings);
     }
 
-    private RestaurantSettings findSettings() {
-        return repository.findById(RestaurantSettings.SINGLETON_ID)
+    private BusinessSettings findSettings() {
+        return repository.findById(BusinessSettings.SINGLETON_ID)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "No se encontró la configuración inicial del restaurante."
+                        "No se encontró la configuración inicial del negocio."
                 ));
     }
 

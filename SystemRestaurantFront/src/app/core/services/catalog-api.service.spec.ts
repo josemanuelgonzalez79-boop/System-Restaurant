@@ -51,7 +51,7 @@ describe('CatalogApiService', () => {
       name: 'Hamburguesa clásica',
       description: '',
       price: 129,
-      destination: 'KITCHEN',
+      destination: 'PRODUCTION',
     };
 
     service.createProduct(payload).subscribe();

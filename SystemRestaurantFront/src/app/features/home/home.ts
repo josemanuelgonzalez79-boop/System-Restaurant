@@ -8,6 +8,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 
 import { HealthStatus } from '../../core/models/health-status.model';
+import { AuthApiService } from '../../core/services/auth-api.service';
 import { HealthApiService } from '../../core/services/health-api.service';
 
 @Component({
@@ -18,6 +19,7 @@ import { HealthApiService } from '../../core/services/health-api.service';
 })
 export class Home {
   private readonly healthApi = inject(HealthApiService);
+  protected readonly auth = inject(AuthApiService);
 
   protected readonly loading = signal(false);
   protected readonly health = signal<HealthStatus | null>(null);

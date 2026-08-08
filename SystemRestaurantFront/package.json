@@ -1,7 +1,7 @@
 {
   "name": "restaurant-system-front",
   "version": "1.0.0",
-  "description": "Frontend Angular para RestaurantSystem",
+  "description": "Frontend Angular para Essential",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",

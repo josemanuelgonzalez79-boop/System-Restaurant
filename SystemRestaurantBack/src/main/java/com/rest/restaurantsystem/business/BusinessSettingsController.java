@@ -1,4 +1,4 @@
-package com.rest.restaurantsystem.restaurant;
+package com.rest.restaurantsystem.business;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,21 +9,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/settings")
-public class RestaurantSettingsController {
+public class BusinessSettingsController {
 
-    private final RestaurantSettingsService service;
+    private final BusinessSettingsService service;
 
-    public RestaurantSettingsController(RestaurantSettingsService service) {
+    public BusinessSettingsController(BusinessSettingsService service) {
         this.service = service;
     }
 
     @GetMapping
-    public RestaurantSettingsResponse get() {
+    public BusinessSettingsResponse get() {
         return service.get();
     }
 
     @PutMapping
-    public RestaurantSettingsResponse update(@Valid @RequestBody RestaurantSettingsRequest request) {
+    public BusinessSettingsResponse update(@Valid @RequestBody BusinessSettingsRequest request) {
         return service.update(request);
     }
 }

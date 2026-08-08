@@ -1,0 +1,163 @@
+<section class="page-heading">
+  <div>
+    <span class="eyebrow">Equipo</span>
+    <h1>Usuarios y accesos</h1>
+    <p>Administra quién puede entrar a Essential y cuál es su nivel de responsabilidad.</p>
+  </div>
+</section>
+
+<section class="users-layout">
+  <p-card [header]="editingId() ? 'Editar usuario' : 'Nuevo usuario'">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>Nombre completo</span>
+        <input pInputText formControlName="fullName" autocomplete="off" />
+      </label>
+
+      <label>
+        <span>Usuario</span>
+        <input pInputText formControlName="username" autocomplete="off" />
+        <small>Será utilizado para iniciar sesión.</small>
+      </label>
+
+      <label>
+        <span>Rol</span>
+        <p-select
+          formControlName="role"
+          [options]="roles"
+          optionLabel="label"
+          optionValue="value"
+          inputId="user-role"
+        />
+      </label>
+
+      @if (!editingId()) {
+        <label>
+          <span>Contraseña inicial</span>
+          <p-password
+            formControlName="password"
+            inputId="user-password"
+            autocomplete="new-password"
+            [toggleMask]="true"
+          />
+          <small>Debe contener al menos 10 caracteres.</small>
+        </label>
+      }
+
+      <div class="form-actions">
+        @if (editingId()) {
+          <p-button
+            type="button"
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="cancelEdit()"
+          />
+        }
+        <p-button
+          type="submit"
+          [label]="editingId() ? 'Guardar cambios' : 'Crear usuario'"
+          icon="pi pi-save"
+          [loading]="saving()"
+        />
+      </div>
+    </form>
+  </p-card>
+
+  <p-card header="Usuarios registrados">
+    @if (loading()) {
+      <div class="loading">Cargando usuarios…</div>
+    } @else {
+      <p-table [value]="users()" [rowHover]="true">
+        <ng-template #header>
+          <tr>
+            <th>Persona</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-user>
+          <tr [class.inactive-row]="!user.active">
+            <td>
+              <strong>{{ user.fullName }}</strong>
+              <small>{{ user.username }}</small>
+            </td>
+            <td>{{ roleLabel(user.role) }}</td>
+            <td>
+              <p-tag
+                [value]="user.active ? 'Activo' : 'Inactivo'"
+                [severity]="user.active ? 'success' : 'secondary'"
+              />
+            </td>
+            <td>
+              <div class="row-actions">
+                <p-button
+                  icon="pi pi-pencil"
+                  ariaLabel="Editar usuario"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="edit(user)"
+                />
+                <p-button
+                  icon="pi pi-key"
+                  ariaLabel="Restablecer contraseña"
+                  severity="warn"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="openPasswordReset(user)"
+                />
+                <p-button
+                  [icon]="user.active ? 'pi pi-ban' : 'pi pi-check'"
+                  [ariaLabel]="user.active ? 'Desactivar usuario' : 'Activar usuario'"
+                  [severity]="user.active ? 'danger' : 'success'"
+                  [text]="true"
+                  [rounded]="true"
+                  [disabled]="user.username === currentUsername"
+                  (onClick)="toggleActive(user)"
+                />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</section>
+
+<p-dialog
+  header="Restablecer contraseña"
+  [modal]="true"
+  [visible]="resetUser() !== null"
+  [style]="{ width: 'min(92vw, 430px)' }"
+  (visibleChange)="$event ? null : closePasswordReset()"
+>
+  @if (resetUser(); as user) {
+    <p>
+      Nueva contraseña para <strong>{{ user.fullName }}</strong
+      >.
+    </p>
+    <form [formGroup]="passwordForm" (ngSubmit)="submitPasswordReset()">
+      <label>
+        <span>Nueva contraseña</span>
+        <p-password
+          formControlName="password"
+          inputId="reset-password"
+          autocomplete="new-password"
+          [toggleMask]="true"
+        />
+        <small>Debe contener al menos 10 caracteres.</small>
+      </label>
+      <div class="form-actions">
+        <p-button
+          type="button"
+          label="Cancelar"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="closePasswordReset()"
+        />
+        <p-button type="submit" label="Cambiar contraseña" icon="pi pi-key" />
+      </div>
+    </form>
+  }
+</p-dialog>

@@ -60,9 +60,9 @@ export class Catalog implements OnInit {
   );
 
   protected readonly destinations: DestinationOption[] = [
-    { label: 'Cocina', value: 'KITCHEN' },
-    { label: 'Barra', value: 'BAR' },
-    { label: 'Sin comanda', value: 'NONE' },
+    { label: 'Producción o preparación', value: 'PRODUCTION' },
+    { label: 'Servicio o entrega', value: 'SERVICE' },
+    { label: 'Sin ruta operativa', value: 'NONE' },
   ];
 
   protected readonly categoryForm = this.formBuilder.nonNullable.group({
@@ -83,7 +83,7 @@ export class Catalog implements OnInit {
     ]),
     description: this.formBuilder.nonNullable.control('', Validators.maxLength(500)),
     price: this.formBuilder.control<number | null>(null, [Validators.required, Validators.min(0)]),
-    destination: this.formBuilder.nonNullable.control<ProductDestination>('KITCHEN', [
+    destination: this.formBuilder.nonNullable.control<ProductDestination>('PRODUCTION', [
       Validators.required,
     ]),
   });
@@ -192,7 +192,7 @@ export class Catalog implements OnInit {
       name: '',
       description: '',
       price: null,
-      destination: 'KITCHEN',
+      destination: 'PRODUCTION',
     });
   }
 

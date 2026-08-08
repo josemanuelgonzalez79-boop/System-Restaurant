@@ -1,7 +1,9 @@
-package com.rest.restaurantsystem.restaurant;
+package com.rest.restaurantsystem.business;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -9,8 +11,8 @@ import jakarta.persistence.Version;
 import java.time.Instant;
 
 @Entity
-@Table(name = "restaurant_settings")
-class RestaurantSettings {
+@Table(name = "business_settings")
+class BusinessSettings {
 
     static final long SINGLETON_ID = 1L;
 
@@ -22,6 +24,10 @@ class RestaurantSettings {
 
     @Column(name = "display_name", nullable = false, length = 80)
     private String displayName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "business_type", nullable = false, length = 30)
+    private BusinessType businessType;
 
     @Column(name = "currency_code", nullable = false, length = 3)
     private String currencyCode;
@@ -47,12 +53,13 @@ class RestaurantSettings {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected RestaurantSettings() {
+    protected BusinessSettings() {
     }
 
-    void update(RestaurantSettingsRequest request) {
+    void update(BusinessSettingsRequest request) {
         businessName = request.businessName().trim();
         displayName = request.displayName().trim();
+        businessType = request.businessType();
         currencyCode = request.currencyCode().trim().toUpperCase();
         timezone = request.timezone().trim();
         primaryColor = request.primaryColor().trim().toUpperCase();
@@ -72,6 +79,10 @@ class RestaurantSettings {
 
     String getDisplayName() {
         return displayName;
+    }
+
+    BusinessType getBusinessType() {
+        return businessType;
     }
 
     String getCurrencyCode() {

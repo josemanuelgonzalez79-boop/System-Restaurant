@@ -1,12 +1,12 @@
-# RestaurantSystem Back
+# Essential Back
 
-API REST local para el sistema de restaurante.
+API REST local y genérica para administrar negocios con Essential.
 
 ## Tecnologías
 
 - Java 21
 - Spring Boot 4.1
-- Spring Web MVC
+- Spring Web MVC y Spring Security
 - Spring Data JPA
 - Jakarta Validation
 - PostgreSQL
@@ -26,8 +26,8 @@ Crea el archivo local de credenciales a partir del ejemplo:
 Copy-Item secret.example.yml secret.yml
 ```
 
-Después actualiza la URL, el usuario y la contraseña en `secret.yml`. Este archivo está excluido
-por `.gitignore`.
+Actualiza la URL, el usuario y la contraseña en `secret.yml`. El archivo está excluido por
+`.gitignore` y no se incluye en los paquetes entregables.
 
 La base debe existir previamente:
 
@@ -35,8 +35,8 @@ La base debe existir previamente:
 CREATE DATABASE restaurant_system;
 ```
 
-Flyway crea y versiona las tablas. Hibernate se encuentra en modo `validate`; no debe utilizarse
-`ddl-auto: update` para evolucionar el esquema.
+Flyway crea y versiona las tablas. Hibernate usa `validate`; no debe utilizarse
+`ddl-auto: update` para cambiar el esquema.
 
 ## Ejecutar
 
@@ -46,30 +46,34 @@ Flyway crea y versiona las tablas. Hibernate se encuentra en modo `validate`; no
 
 La API inicia en `http://localhost:3210`.
 
-## Endpoints del bloque 1
+## Acceso inicial
 
-| Método | Ruta | Uso |
+Con una base sin usuarios, Angular abre el asistente de configuración. Este llama a
+`POST /api/v1/auth/setup` para registrar un único propietario. Después, el acceso normal usa
+sesión HTTP y protección CSRF.
+
+## Endpoints principales
+
+| Método | Ruta | Acceso |
 | --- | --- | --- |
-| `GET` | `/api/health` | Comprobar API y PostgreSQL |
-| `GET` | `/api/v1/settings` | Consultar configuración |
-| `PUT` | `/api/v1/settings` | Actualizar configuración |
-| `GET` | `/api/v1/categories` | Listar categorías |
-| `POST` | `/api/v1/categories` | Crear categoría |
-| `PUT` | `/api/v1/categories/{id}` | Editar categoría |
-| `PATCH` | `/api/v1/categories/{id}/active` | Activar o desactivar |
-| `GET` | `/api/v1/products` | Listar productos |
-| `POST` | `/api/v1/products` | Crear producto |
-| `PUT` | `/api/v1/products/{id}` | Editar producto |
-| `PATCH` | `/api/v1/products/{id}/active` | Activar o desactivar |
-| `PATCH` | `/api/v1/products/{id}/availability` | Disponible o agotado |
+| `GET` | `/api/health` | Público |
+| `GET` | `/api/v1/auth/csrf` | Público |
+| `GET` | `/api/v1/auth/setup-status` | Público |
+| `POST` | `/api/v1/auth/setup` | Solo antes del primer usuario |
+| `POST` | `/api/v1/auth/login` | Público |
+| `POST` | `/api/v1/auth/logout` | Usuario autenticado |
+| `GET` | `/api/v1/auth/me` | Usuario autenticado |
+| `GET/POST/PUT/PATCH` | `/api/v1/users` | Propietario |
+| `GET/PUT` | `/api/v1/settings` | Propietario o administrador |
+| `GET/POST/PUT/PATCH` | `/api/v1/categories` | Propietario o administrador |
+| `GET/POST/PUT/PATCH` | `/api/v1/products` | Propietario o administrador |
 
 ## Migraciones
 
-La migración inicial está en:
-
 ```text
 src/main/resources/db/migration/V1__create_restaurant_settings_and_catalog.sql
+src/main/resources/db/migration/V2__generalize_business_and_add_users.sql
 ```
 
-Cada cambio futuro de estructura debe agregarse en una migración nueva. No se deben editar
-migraciones que ya fueron ejecutadas en una instalación.
+`V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. No edites
+una migración que ya se ejecutó; cada cambio estructural debe ir en una migración nueva.

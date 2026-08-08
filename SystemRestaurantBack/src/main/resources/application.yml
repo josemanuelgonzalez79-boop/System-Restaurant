@@ -1,12 +1,12 @@
 spring:
   application:
-    name: RestaurantSystem
+    name: Essential
   config:
     import: optional:file:./secret.yml
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/restaurant_system}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:123}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: false
@@ -27,6 +27,12 @@ server:
   shutdown: graceful
   compression:
     enabled: true
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        http-only: true
+        same-site: lax
 
 app:
   cors:
