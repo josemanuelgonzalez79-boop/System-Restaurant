@@ -42,6 +42,9 @@ class OrderItemServiceTest {
     private RestaurantOrderRepository orderRepository;
 
     @Mock
+    private OrderPaymentRepository paymentRepository;
+
+    @Mock
     private OrderService orderService;
 
     @Mock
@@ -65,7 +68,7 @@ class OrderItemServiceTest {
         OrderItemModifier snapshotModifier = new OrderItemModifier(90L, option);
         ReflectionTestUtils.setField(snapshotModifier, "id", 33L);
 
-        when(orderService.getAccessibleEntity(42L, "mesero")).thenReturn(order);
+        when(orderService.getLockedAccessibleEntity(42L, "mesero")).thenReturn(order);
         when(productService.findOrderableById(8L)).thenReturn(product);
         when(modifierGroupService.findAll(8L)).thenReturn(List.of(group(option)));
         when(repository.saveAndFlush(any(OrderItem.class))).thenAnswer(invocation -> {
@@ -105,7 +108,7 @@ class OrderItemServiceTest {
     @Test
     void rejectsProductWhenRequiredModifierIsMissing() {
         RestaurantOrder order = order();
-        when(orderService.getAccessibleEntity(42L, "mesero")).thenReturn(order);
+        when(orderService.getLockedAccessibleEntity(42L, "mesero")).thenReturn(order);
         when(productService.findOrderableById(8L)).thenReturn(product());
         when(modifierGroupService.findAll(8L)).thenReturn(List.of(group(option())));
 
@@ -128,7 +131,7 @@ class OrderItemServiceTest {
         ReflectionTestUtils.setField(item, "id", 90L);
         item.onCreate();
         item.markSent(Instant.now());
-        when(orderService.getAccessibleEntity(42L, "mesero")).thenReturn(order);
+        when(orderService.getLockedAccessibleEntity(42L, "mesero")).thenReturn(order);
         when(repository.findById(90L)).thenReturn(java.util.Optional.of(item));
 
         BadRequestException exception = assertThrows(
@@ -143,6 +146,26 @@ class OrderItemServiceTest {
 
         assertThat(exception.getMessage()).contains("ya fue enviada");
         verify(repository, never()).saveAndFlush(item);
+    }
+
+    @Test
+    void rejectsAddingProductsAfterTheFirstPayment() {
+        RestaurantOrder order = order();
+        when(orderService.getLockedAccessibleEntity(42L, "mesero")).thenReturn(order);
+        when(paymentRepository.existsByOrderIdAndStatus(42L, PaymentStatus.ACTIVE))
+                .thenReturn(true);
+
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> service.add(
+                        42L,
+                        new OrderItemCreateRequest(8L, 1, null, List.of(15L), 0),
+                        "mesero"
+                )
+        );
+
+        assertThat(exception.getMessage()).contains("cobros registrados");
+        verify(repository, never()).saveAndFlush(any());
     }
 
     private RestaurantOrder order() {

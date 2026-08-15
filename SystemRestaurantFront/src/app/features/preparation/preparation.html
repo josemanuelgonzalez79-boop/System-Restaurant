@@ -10,11 +10,12 @@
     <strong>{{ activeItemCount() }}</strong>
     <span>
       partidas activas
-      <small [class.connected]="realtime.connectionState() === 'CONNECTED'">
+      <small
+        [class.connected]="realtime.connectionState() === 'CONNECTED'"
+        [class.disconnected]="realtime.connectionState() === 'DISCONNECTED'"
+      >
         <i></i>
-        {{
-          realtime.connectionState() === 'CONNECTED' ? 'Actualización inmediata' : 'Reconectando'
-        }}
+        {{ realtimeLabel(realtime.connectionState()) }}
       </small>
     </span>
   </div>

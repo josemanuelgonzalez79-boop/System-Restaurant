@@ -57,6 +57,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
 - Tablero de preparación por sucursal, ruta y estado de cada partida.
 - Avisos STOMP/WebSocket por sucursal y actualización inmediata desde REST.
 - Reconexión automática e indicador visible del canal en tiempo real.
+- Cobro completo o dividido, cambio en efectivo e historial de movimientos.
+- Anulación auditable, cierre pagado de la cuenta y comprobante interno imprimible.
 
 Rutas:
 
@@ -65,6 +67,7 @@ Rutas:
 /setup
 /
 /pedidos
+/pedidos/:id/cobro
 /preparacion
 /catalogo
 /estructura

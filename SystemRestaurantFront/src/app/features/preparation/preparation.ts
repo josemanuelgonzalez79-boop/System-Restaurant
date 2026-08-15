@@ -15,6 +15,7 @@ import { Branch } from '../../core/models/structure.model';
 import { OrderApiService } from '../../core/services/order-api.service';
 import { PreparationApiService } from '../../core/services/preparation-api.service';
 import { RealtimeService } from '../../core/services/realtime.service';
+import { RealtimeConnectionState } from '../../core/models/realtime.model';
 
 type DestinationFilter = 'ALL' | 'PRODUCTION' | 'SERVICE';
 
@@ -199,6 +200,17 @@ export class PreparationPage implements OnInit, OnDestroy {
       return 'Marcar lista';
     }
     return 'Entregada';
+  }
+
+  protected realtimeLabel(state: RealtimeConnectionState): string {
+    const labels: Record<RealtimeConnectionState, string> = {
+      IDLE: this.branches().length === 0 ? 'Sin sucursal asignada' : 'Canal en espera',
+      CONNECTING: 'Conectando…',
+      CONNECTED: 'Actualización inmediata',
+      RECONNECTING: 'Reconectando…',
+      DISCONNECTED: 'Sin conexión',
+    };
+    return labels[state];
   }
 
   protected advance(item: PreparationItem): void {

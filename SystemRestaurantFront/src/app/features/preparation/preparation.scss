@@ -83,6 +83,10 @@ h1 {
   color: var(--p-green-600);
 }
 
+.heading-counter small.disconnected {
+  color: var(--p-red-600);
+}
+
 .preparation-toolbar {
   flex-wrap: wrap;
   gap: 0.8rem;

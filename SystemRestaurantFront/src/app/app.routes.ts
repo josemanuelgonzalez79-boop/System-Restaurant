@@ -20,6 +20,13 @@ export const routes: Routes = [
     title: 'Inicio | Essential',
   },
   {
+    path: 'pedidos/:id/cobro',
+    loadComponent: () =>
+      import('./features/payment/payment').then((component) => component.PaymentPage),
+    canActivate: [authGuard],
+    title: 'Cobro del pedido | Essential',
+  },
+  {
     path: 'pedidos/:id',
     loadComponent: () =>
       import('./features/order-detail/order-detail').then((component) => component.OrderDetailPage),

@@ -204,6 +204,14 @@
           [disabled]="!canEdit() || pendingDispatchCount() === 0"
           (onClick)="dispatch()"
         />
+        <p-button
+          label="Cobrar cuenta"
+          icon="pi pi-credit-card"
+          severity="success"
+          [outlined]="true"
+          [disabled]="current.items.length === 0"
+          (onClick)="openPayment()"
+        />
         @if (current.items.length > 0 && pendingDispatchCount() === 0) {
           <small class="dispatch-help">
             <i class="pi pi-check-circle"></i>

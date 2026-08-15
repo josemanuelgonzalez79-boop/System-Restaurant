@@ -40,6 +40,7 @@ export class RealtimeService {
         if (current.observers <= 0) {
           current.subscription?.unsubscribe();
           this.watchedBranches.delete(branchId);
+          this.disconnectWhenUnused();
         }
       };
     });
@@ -106,6 +107,21 @@ export class RealtimeService {
 
   private clearBrokerSubscriptions(): void {
     this.watchedBranches.forEach((watch) => (watch.subscription = undefined));
+  }
+
+  private disconnectWhenUnused(): void {
+    queueMicrotask(() => {
+      if (this.watchedBranches.size > 0 || !this.client.active) {
+        return;
+      }
+      void this.client.deactivate().finally(() => {
+        if (this.watchedBranches.size === 0) {
+          this.state.set('IDLE');
+        } else {
+          this.ensureConnected();
+        }
+      });
+    });
   }
 
   private websocketUrl(): string {

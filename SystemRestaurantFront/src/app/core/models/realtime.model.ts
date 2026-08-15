@@ -3,7 +3,8 @@ export type RealtimeEventType =
   | 'ORDER_UPDATED'
   | 'ORDER_ITEMS_CHANGED'
   | 'PREPARATION_DISPATCHED'
-  | 'PREPARATION_ITEM_CHANGED';
+  | 'PREPARATION_ITEM_CHANGED'
+  | 'PAYMENT_CHANGED';
 
 export type RealtimeConnectionState =
   'IDLE' | 'CONNECTING' | 'CONNECTED' | 'RECONNECTING' | 'DISCONNECTED';
@@ -24,6 +25,7 @@ const eventTypes = new Set<RealtimeEventType>([
   'ORDER_ITEMS_CHANGED',
   'PREPARATION_DISPATCHED',
   'PREPARATION_ITEM_CHANGED',
+  'PAYMENT_CHANGED',
 ]);
 
 export function isRealtimeEvent(value: unknown): value is RealtimeEvent {

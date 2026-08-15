@@ -222,8 +222,8 @@ export class Orders implements OnInit, OnDestroy {
     this.performStatusChange(order, 'IN_PROGRESS');
   }
 
-  protected completeOrder(order: RestaurantOrder): void {
-    this.performStatusChange(order, 'COMPLETED');
+  protected openPayment(order: RestaurantOrder): void {
+    void this.router.navigate(['/pedidos', order.id, 'cobro']);
   }
 
   protected cancelOrder(order: RestaurantOrder): void {

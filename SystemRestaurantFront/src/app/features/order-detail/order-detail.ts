@@ -343,6 +343,10 @@ export class OrderDetailPage implements OnInit, OnDestroy {
     void this.router.navigate(['/pedidos']);
   }
 
+  protected openPayment(): void {
+    void this.router.navigate(['/pedidos', this.orderId, 'cobro']);
+  }
+
   private loadAll(): void {
     this.loading.set(true);
     forkJoin({

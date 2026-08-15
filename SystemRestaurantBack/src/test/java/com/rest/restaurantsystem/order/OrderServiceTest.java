@@ -37,10 +37,10 @@ class OrderServiceTest {
     private RestaurantOrderRepository repository;
 
     @Mock
-    private OrderItemRepository itemRepository;
+    private PreparationItemRepository preparationItemRepository;
 
     @Mock
-    private PreparationItemRepository preparationItemRepository;
+    private OrderPaymentRepository paymentRepository;
 
     @Mock
     private BranchService branchService;
@@ -108,7 +108,7 @@ class OrderServiceTest {
     @Test
     void movesOpenOrderToInProgress() {
         RestaurantOrder order = persistedOrder();
-        when(repository.findById(42L)).thenReturn(Optional.of(order));
+        when(repository.findLockedById(42L)).thenReturn(Optional.of(order));
         when(userService.currentUser("mesero")).thenReturn(user(10L, "mesero", "Mesero"));
         when(assignmentService.isAssigned(1L, 10L)).thenReturn(true);
         when(branchService.findById(1L)).thenReturn(branch(1L));
@@ -130,7 +130,7 @@ class OrderServiceTest {
     void doesNotReopenCompletedOrder() {
         RestaurantOrder order = persistedOrder();
         order.changeStatus(OrderStatus.COMPLETED);
-        when(repository.findById(42L)).thenReturn(Optional.of(order));
+        when(repository.findLockedById(42L)).thenReturn(Optional.of(order));
         when(userService.currentUser("mesero")).thenReturn(user(10L, "mesero", "Mesero"));
         when(assignmentService.isAssigned(1L, 10L)).thenReturn(true);
 
@@ -145,33 +145,12 @@ class OrderServiceTest {
     }
 
     @Test
-    void rejectsCompletingAnEmptyOrder() {
+    void rejectsDirectCompletionBecausePaymentFlowOwnsTheClose() {
         RestaurantOrder order = persistedOrder();
         order.changeStatus(OrderStatus.IN_PROGRESS);
-        when(repository.findById(42L)).thenReturn(Optional.of(order));
+        when(repository.findLockedById(42L)).thenReturn(Optional.of(order));
         when(userService.currentUser("mesero")).thenReturn(user(10L, "mesero", "Mesero"));
         when(assignmentService.isAssigned(1L, 10L)).thenReturn(true);
-        when(itemRepository.countByOrderId(42L)).thenReturn(0L);
-
-        assertThrows(
-                BadRequestException.class,
-                () -> service.changeStatus(
-                        42L,
-                        new OrderStatusRequest(OrderStatus.COMPLETED, 0),
-                        "mesero"
-                )
-        );
-    }
-
-    @Test
-    void rejectsCompletingWhilePreparationIsActive() {
-        RestaurantOrder order = persistedOrder();
-        order.changeStatus(OrderStatus.IN_PROGRESS);
-        when(repository.findById(42L)).thenReturn(Optional.of(order));
-        when(userService.currentUser("mesero")).thenReturn(user(10L, "mesero", "Mesero"));
-        when(assignmentService.isAssigned(1L, 10L)).thenReturn(true);
-        when(itemRepository.countByOrderId(42L)).thenReturn(1L);
-        when(preparationItemRepository.existsActiveByOrderId(42L)).thenReturn(true);
 
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
@@ -182,7 +161,50 @@ class OrderServiceTest {
                 )
         );
 
-        assertThat(exception.getMessage()).contains("partidas pendientes");
+        assertThat(exception.getMessage()).contains("Cobro");
+    }
+
+    @Test
+    void rejectsCancellingWhilePreparationIsActive() {
+        RestaurantOrder order = persistedOrder();
+        order.changeStatus(OrderStatus.IN_PROGRESS);
+        when(repository.findLockedById(42L)).thenReturn(Optional.of(order));
+        when(userService.currentUser("mesero")).thenReturn(user(10L, "mesero", "Mesero"));
+        when(assignmentService.isAssigned(1L, 10L)).thenReturn(true);
+        when(preparationItemRepository.existsActiveByOrderId(42L)).thenReturn(true);
+
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> service.changeStatus(
+                        42L,
+                        new OrderStatusRequest(OrderStatus.CANCELLED, 0),
+                        "mesero"
+                )
+        );
+
+        assertThat(exception.getMessage()).contains("Cancela primero");
+    }
+
+    @Test
+    void rejectsCancellingWhileAnActivePaymentExists() {
+        RestaurantOrder order = persistedOrder();
+        order.changeStatus(OrderStatus.IN_PROGRESS);
+        when(repository.findLockedById(42L)).thenReturn(Optional.of(order));
+        when(userService.currentUser("mesero")).thenReturn(user(10L, "mesero", "Mesero"));
+        when(assignmentService.isAssigned(1L, 10L)).thenReturn(true);
+        when(paymentRepository.existsByOrderIdAndStatus(42L, PaymentStatus.ACTIVE))
+                .thenReturn(true);
+
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> service.changeStatus(
+                        42L,
+                        new OrderStatusRequest(OrderStatus.CANCELLED, 0),
+                        "mesero"
+                )
+        );
+
+        assertThat(exception.getMessage()).contains("Anula primero");
     }
 
     private void mockValidUsersAndBranch() {

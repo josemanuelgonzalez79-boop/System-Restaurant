@@ -1,0 +1,373 @@
+<p-confirmDialog />
+
+@if (loading()) {
+  <div class="loading">Preparando el cobro…</div>
+} @else if (summary(); as current) {
+  <section class="payment-heading">
+    <div class="payment-identity">
+      <p-button
+        icon="pi pi-arrow-left"
+        ariaLabel="Volver al pedido"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="backToOrder()"
+      />
+      <div>
+        <span class="eyebrow">Cobro del pedido</span>
+        <h1>{{ current.orderDetail.order.servicePointName || 'Para llevar' }}</h1>
+        <p>
+          {{ current.orderDetail.order.folio }} · {{ current.orderDetail.order.branchName }} ·
+          {{ current.orderDetail.order.assignedUserName }}
+        </p>
+      </div>
+    </div>
+    <div class="heading-actions no-print">
+      <p-button
+        label="Imprimir"
+        icon="pi pi-print"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="printReceipt()"
+      />
+      <p-button
+        label="Actualizar"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="refreshing()"
+        (onClick)="refresh()"
+      />
+    </div>
+  </section>
+
+  <section class="amount-summary">
+    <article>
+      <span>Total de la cuenta</span>
+      <strong>{{ current.total | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</strong>
+    </article>
+    <article class="paid">
+      <span>Cobrado</span>
+      <strong>{{ current.paid | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</strong>
+    </article>
+    <article [class.settled]="current.settled">
+      <span>Saldo pendiente</span>
+      <strong>{{ current.balance | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</strong>
+    </article>
+  </section>
+
+  @if (current.settled) {
+    <div class="settled-banner">
+      <i class="pi pi-check-circle"></i>
+      <div>
+        <strong>Cuenta totalmente pagada</strong>
+        <span>Los cobros suman exactamente el total del pedido.</span>
+      </div>
+    </div>
+  }
+
+  <section class="payment-layout">
+    <article class="payment-card no-print">
+      <header>
+        <span class="eyebrow">Nuevo movimiento</span>
+        <h2>Registrar cobro</h2>
+        <p>Puedes dividir la cuenta entre varias formas de pago.</p>
+      </header>
+
+      @if (!orderActive()) {
+        <div class="info-note">
+          <i class="pi pi-lock"></i>
+          El pedido está cerrado; sus cobros permanecen disponibles para consulta e impresión.
+        </div>
+      } @else if (current.settled) {
+        <div class="info-note success">
+          <i class="pi pi-check-circle"></i>
+          No hace falta registrar otro cobro.
+        </div>
+      } @else {
+        <form [formGroup]="paymentForm" (ngSubmit)="submitPayment()">
+          <label>
+            <span>Importe que se aplicará</span>
+            <div class="amount-field">
+              <p-inputnumber
+                formControlName="amount"
+                mode="currency"
+                currency="MXN"
+                locale="es-MX"
+                [min]="0.01"
+                [max]="current.balance"
+              />
+              <p-button
+                type="button"
+                label="Usar saldo"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="applyBalance()"
+              />
+            </div>
+          </label>
+
+          <label>
+            <span>Forma de pago</span>
+            <p-select
+              formControlName="method"
+              [options]="methodOptions"
+              optionLabel="label"
+              optionValue="value"
+            >
+              <ng-template #selectedItem let-selected>
+                <span class="method-option"
+                  ><i [class]="selected.icon"></i>{{ selected.label }}</span
+                >
+              </ng-template>
+              <ng-template #item let-method>
+                <span class="method-option"><i [class]="method.icon"></i>{{ method.label }}</span>
+              </ng-template>
+            </p-select>
+          </label>
+
+          @if (selectedMethod() === 'CASH') {
+            <label>
+              <span>Efectivo recibido</span>
+              <p-inputnumber
+                formControlName="tenderedAmount"
+                mode="currency"
+                currency="MXN"
+                locale="es-MX"
+                [min]="paymentForm.controls.amount.value"
+              />
+            </label>
+            <div class="change-preview">
+              <span>Cambio a entregar</span>
+              <strong>{{
+                cashChange() | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+              }}</strong>
+            </div>
+          }
+
+          @if (selectedMethod() === 'OTHER') {
+            <label>
+              <span>Nombre de la forma de pago</span>
+              <input pInputText formControlName="methodLabel" placeholder="Ej. Vale o monedero" />
+            </label>
+          }
+
+          <label>
+            <span>Referencia</span>
+            <input
+              pInputText
+              formControlName="reference"
+              placeholder="Autorización, folio o últimos dígitos (opcional)"
+            />
+          </label>
+
+          <label>
+            <span>Nota</span>
+            <textarea
+              pTextarea
+              formControlName="notes"
+              rows="2"
+              placeholder="Observación opcional del cobro"
+            ></textarea>
+          </label>
+
+          <p-button
+            type="submit"
+            label="Registrar cobro"
+            icon="pi pi-wallet"
+            [loading]="saving()"
+            [disabled]="paymentForm.invalid"
+          />
+        </form>
+      }
+    </article>
+
+    <article class="history-card">
+      <header>
+        <div>
+          <span class="eyebrow">Auditoría</span>
+          <h2>Historial de cobros</h2>
+        </div>
+        <p-tag [value]="current.payments.length + ' movimiento(s)'" severity="secondary" />
+      </header>
+
+      <section class="account-lines">
+        <div class="account-lines-heading">
+          <strong>Detalle de la cuenta</strong>
+          <span>{{ current.orderDetail.totalUnits }} producto(s)</span>
+        </div>
+        @for (item of current.orderDetail.items; track item.id) {
+          <article>
+            <b>{{ item.quantity }} ×</b>
+            <div>
+              <strong>{{ item.productName }}</strong>
+              @if (item.modifiers.length > 0) {
+                <small>
+                  @for (modifier of item.modifiers; track modifier.id; let last = $last) {
+                    {{ modifier.optionName }}{{ last ? '' : ', ' }}
+                  }
+                </small>
+              }
+              @if (item.notes) {
+                <small>{{ item.notes }}</small>
+              }
+            </div>
+            <strong>{{
+              item.lineTotal | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}</strong>
+          </article>
+        }
+        <footer>
+          <span>Total</span>
+          <strong>{{
+            current.total | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+          }}</strong>
+        </footer>
+      </section>
+
+      <div class="payment-list">
+        @for (payment of current.payments; track payment.id) {
+          <article class="payment-row" [class.voided]="payment.status === 'VOIDED'">
+            <div class="payment-icon">
+              <i
+                [class]="
+                  payment.method === 'CASH'
+                    ? 'pi pi-money-bill'
+                    : payment.method === 'CARD'
+                      ? 'pi pi-credit-card'
+                      : payment.method === 'TRANSFER'
+                        ? 'pi pi-arrow-right-arrow-left'
+                        : 'pi pi-wallet'
+                "
+              ></i>
+            </div>
+            <div class="payment-description">
+              <strong>{{ paymentMethodLabel(payment) }}</strong>
+              <span>{{ payment.folio }} · {{ payment.receivedAt | date: 'short' }}</span>
+              <small>Registró: {{ payment.receivedByUserName }}</small>
+              @if (payment.reference) {
+                <small>Referencia: {{ payment.reference }}</small>
+              }
+              @if (payment.notes) {
+                <small>{{ payment.notes }}</small>
+              }
+              @if (payment.changeAmount > 0) {
+                <small class="change-detail">
+                  Recibido
+                  {{
+                    payment.tenderedAmount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                  }}
+                  · cambio
+                  {{ payment.changeAmount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+                </small>
+              }
+              @if (payment.status === 'VOIDED') {
+                <small class="void-detail">
+                  Anuló {{ payment.voidedByUserName }} · {{ payment.voidedAt | date: 'short' }} ·
+                  {{ payment.voidReason }}
+                </small>
+              }
+            </div>
+            <div class="payment-amount">
+              <strong>{{
+                payment.amount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+              }}</strong>
+              <p-tag
+                [value]="payment.status === 'ACTIVE' ? 'Aplicado' : 'Anulado'"
+                [severity]="payment.status === 'ACTIVE' ? 'success' : 'danger'"
+              />
+              @if (payment.status === 'ACTIVE' && canVoid() && orderActive()) {
+                <p-button
+                  class="no-print"
+                  label="Anular"
+                  icon="pi pi-ban"
+                  severity="danger"
+                  size="small"
+                  [text]="true"
+                  (onClick)="openVoid(payment)"
+                />
+              }
+            </div>
+          </article>
+        } @empty {
+          <div class="empty-payments">
+            <i class="pi pi-wallet"></i>
+            <strong>Todavía no hay cobros</strong>
+            <span>El primer movimiento aparecerá aquí y no se eliminará físicamente.</span>
+          </div>
+        }
+      </div>
+
+      <footer class="close-panel no-print" [class.ready]="current.canClose">
+        <div>
+          <strong>{{
+            current.canClose ? 'Listo para cerrar' : 'El pedido permanece abierto'
+          }}</strong>
+          <span>{{
+            current.canClose ? 'La mesa se liberará al confirmar.' : current.closeBlockingReason
+          }}</span>
+        </div>
+        <p-button
+          label="Cerrar pedido"
+          icon="pi pi-check-circle"
+          severity="success"
+          [loading]="closing()"
+          [disabled]="!current.canClose"
+          (onClick)="closeOrder()"
+        />
+      </footer>
+    </article>
+  </section>
+}
+
+<p-dialog
+  header="Anular cobro"
+  [modal]="true"
+  [visible]="voidDialogVisible()"
+  [style]="{ width: 'min(94vw, 500px)' }"
+  (visibleChange)="$event ? null : closeVoidDialog()"
+>
+  @if (selectedPayment(); as payment) {
+    <form [formGroup]="voidForm" (ngSubmit)="submitVoid()" class="void-form">
+      <div class="void-summary">
+        <i class="pi pi-exclamation-triangle"></i>
+        <div>
+          <strong>{{ payment.folio }}</strong>
+          <span>
+            {{ payment.amount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }} ·
+            {{ paymentMethodLabel(payment) }}
+          </span>
+        </div>
+      </div>
+      <p>
+        El movimiento no se borrará: quedará marcado como anulado junto con tu usuario, fecha y
+        motivo.
+      </p>
+      <label>
+        <span>Motivo de anulación</span>
+        <textarea
+          pTextarea
+          formControlName="reason"
+          rows="3"
+          placeholder="Ej. se seleccionó una forma de pago incorrecta"
+        ></textarea>
+      </label>
+      <div class="dialog-actions">
+        <p-button
+          type="button"
+          label="Conservar cobro"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="closeVoidDialog()"
+        />
+        <p-button
+          type="submit"
+          label="Anular cobro"
+          icon="pi pi-ban"
+          severity="danger"
+          [loading]="voiding()"
+          [disabled]="voidForm.invalid"
+        />
+      </div>
+    </form>
+  }
+</p-dialog>

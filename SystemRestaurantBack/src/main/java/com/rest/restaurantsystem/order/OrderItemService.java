@@ -29,6 +29,7 @@ public class OrderItemService {
     private final OrderItemRepository repository;
     private final OrderItemModifierRepository modifierRepository;
     private final RestaurantOrderRepository orderRepository;
+    private final OrderPaymentRepository paymentRepository;
     private final OrderService orderService;
     private final ProductService productService;
     private final ModifierGroupService modifierGroupService;
@@ -38,6 +39,7 @@ public class OrderItemService {
             OrderItemRepository repository,
             OrderItemModifierRepository modifierRepository,
             RestaurantOrderRepository orderRepository,
+            OrderPaymentRepository paymentRepository,
             OrderService orderService,
             ProductService productService,
             ModifierGroupService modifierGroupService,
@@ -46,6 +48,7 @@ public class OrderItemService {
         this.repository = repository;
         this.modifierRepository = modifierRepository;
         this.orderRepository = orderRepository;
+        this.paymentRepository = paymentRepository;
         this.orderService = orderService;
         this.productService = productService;
         this.modifierGroupService = modifierGroupService;
@@ -142,9 +145,14 @@ public class OrderItemService {
     }
 
     private RestaurantOrder editableOrder(Long orderId, long version, String currentUsername) {
-        RestaurantOrder order = orderService.getAccessibleEntity(orderId, currentUsername);
+        RestaurantOrder order = orderService.getLockedAccessibleEntity(orderId, currentUsername);
         if (order.getStatus() != OrderStatus.OPEN && order.getStatus() != OrderStatus.IN_PROGRESS) {
             throw new BadRequestException("El pedido ya está cerrado y no puede modificarse.");
+        }
+        if (paymentRepository.existsByOrderIdAndStatus(orderId, PaymentStatus.ACTIVE)) {
+            throw new BadRequestException(
+                    "La cuenta tiene cobros registrados. Anúlalos antes de modificar productos."
+            );
         }
         if (order.getVersion() != version) {
             throw new ConflictException(

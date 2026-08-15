@@ -73,7 +73,8 @@ sesión HTTP y protección CSRF.
 | `GET/POST/PATCH`     | `/api/v1/orders`                                | Usuario autenticado y asignado a la sucursal |
 | `POST`               | `/api/v1/orders/{id}/dispatch`                  | Usuario autenticado y asignado a la sucursal |
 | `GET/PATCH`          | `/api/v1/preparation`                           | Usuario autenticado y asignado a la sucursal |
-| WebSocket/STOMP      | `/ws`                                            | Usuario autenticado                          |
+| `GET/POST/PATCH`     | `/api/v1/orders/{id}/payments`                  | Usuario autenticado y asignado a la sucursal |
+| WebSocket/STOMP      | `/ws`                                           | Usuario autenticado                          |
 
 ## Tiempo real
 
@@ -94,10 +95,12 @@ src/main/resources/db/migration/V3__create_operational_structure.sql
 src/main/resources/db/migration/V4__create_restaurant_orders.sql
 src/main/resources/db/migration/V5__create_order_items_and_modifiers.sql
 src/main/resources/db/migration/V6__create_preparation_tickets.sql
+src/main/resources/db/migration/V7__create_order_payments.sql
 ```
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. `V4` incorpora
 los pedidos y la protección contra dos pedidos activos en la misma mesa. `V5` agrega las partidas,
 modificadores y totales; `V6` agrega comandas, snapshots y estados de preparación. El Bloque 7 no
-necesita una migración porque incorpora comunicación en tiempo real. No edites una
+necesita una migración porque incorpora comunicación en tiempo real. `V7` agrega cobros, formas de
+pago, referencias y auditoría de anulaciones. No edites una
 migración que ya se ejecutó; cada cambio estructural debe ir en una migración nueva.

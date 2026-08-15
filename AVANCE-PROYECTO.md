@@ -10,11 +10,11 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 
 ## Estado de la edición básica
 
-- Terminados: 7 de 12 bloques funcionales.
-- Avance medido por bloques: 58 %.
-- Avance práctico estimado: alrededor de 65 %, porque el flujo operativo ya llega desde abrir una
-  mesa y capturar su pedido hasta enviar comandas y coordinar meseros y preparación en tiempo real.
-- Restan 5 bloques: cobro, caja, reporte, respaldos e instalación.
+- Terminados: 8 de 12 bloques funcionales.
+- Avance medido por bloques: 67 %.
+- Avance práctico estimado: alrededor de 75 %, porque el flujo operativo ya cubre desde abrir una
+  mesa hasta cobrar, cerrar el pedido y liberarla.
+- Restan 4 bloques: caja, reporte, respaldos e instalación.
 
 ## Bloques terminados
 
@@ -84,7 +84,7 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 8. El tablero se actualiza automáticamente cada 15 segundos y permite actualización manual.
 9. El historial conserva las comandas entregadas o canceladas.
 10. El control de versión evita que dos pantallas sobrescriban el estado de una partida.
-11. No puede completarse un pedido con partidas sin enviar o todavía activas en preparación.
+11. No puede cerrarse un pedido con partidas sin enviar o todavía activas en preparación.
 
 ### Bloque 7: actualización en tiempo real
 
@@ -100,6 +100,22 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 9. Angular reconecta automáticamente después de una pérdida momentánea de Wi-Fi.
 10. La barra superior y Preparación muestran el estado de la conexión en tiempo real.
 11. Preparación conserva una consulta de respaldo cada 60 segundos.
+
+### Bloque 8: cobro y formas de pago
+
+1. La pantalla de cobro muestra total, importe cobrado y saldo pendiente calculados por el backend.
+2. Una cuenta acepta uno o varios cobros en efectivo, tarjeta, transferencia u otra forma descrita.
+3. El efectivo registra importe recibido y calcula el cambio; los otros métodos admiten referencia.
+4. El importe aplicado nunca puede superar el saldo pendiente.
+5. Cada intento usa un identificador de operación para no duplicar el cobro al reintentar.
+6. El pedido se bloquea durante el cobro para impedir sobrepagos desde dos cajas o tablets.
+7. Después del primer cobro, los productos no se modifican hasta anular todos los cobros activos.
+8. Las anulaciones conservan movimiento, usuario, fecha y motivo para auditoría.
+9. Solo propietario, administrador, gerente o cajero puede anular un cobro.
+10. El historial sirve como comprobante interno y puede imprimirse desde el navegador.
+11. El pedido se cierra y la mesa se libera solo cuando el saldo es cero, todas las partidas fueron
+    enviadas y preparación ya no tiene trabajo activo.
+12. Los cambios de cobro notifican a las demás tablets mediante el canal en tiempo real.
 
 ### Roles disponibles
 
@@ -136,8 +152,8 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 | 5      | Productos, cantidades, variantes, modificadores y notas del pedido | Terminado |
 | 6      | Pantalla de cocina/barra y estados por partida                     | Terminado |
 | 7      | Notificaciones en tiempo real                                      | Terminado |
-| 8      | Cobro y formas de pago                                             | Siguiente |
-| 9      | Apertura y cierre básico de caja                                   | Pendiente |
+| 8      | Cobro y formas de pago                                             | Terminado |
+| 9      | Apertura y cierre básico de caja                                   | Siguiente |
 | 10     | Reporte diario                                                     | Pendiente |
 | 11     | Respaldos y restauración                                           | Pendiente |
 | 12     | Instalación en la red local                                        | Pendiente |
@@ -160,15 +176,14 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 - La edición básica no incluye CFDI/SAT, nube pública, inventario por receta, clientes frecuentes,
   reservaciones ni integraciones de reparto; se consideran para ediciones posteriores.
 
-## Próximo bloque: cobro y formas de pago
+## Próximo bloque: apertura y cierre básico de caja
 
-El siguiente desarrollo cerrará el circuito operativo de un pedido:
+El siguiente desarrollo organizará los movimientos de cobro dentro de un turno de caja:
 
-- Registrar uno o varios pagos hasta cubrir el total calculado por el backend.
-- Incluir efectivo, tarjeta y otros métodos configurables sin integrar todavía una terminal bancaria.
-- Calcular cambio y saldo pendiente sin usar operaciones decimales inseguras.
-- Evitar cobros duplicados desde dos cajas o tablets.
-- Conservar un comprobante interno e historial de pagos.
-- Completar y liberar la mesa únicamente cuando el pedido esté totalmente pagado.
+- Abrir una caja con fondo inicial y usuario responsable.
+- Asociar cobros del turno con la caja abierta de la sucursal.
+- Registrar entradas y salidas manuales con concepto y responsable.
+- Realizar corte esperado contra conteo real y guardar diferencias.
+- Consultar el historial de aperturas y cierres sin borrar movimientos.
 
 Consulta `PLANES-Y-ALCANCE.md` para la separación propuesta de las tres ediciones.

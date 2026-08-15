@@ -142,13 +142,12 @@
                 />
               } @else {
                 <p-button
-                  label="Completar"
-                  icon="pi pi-check"
+                  label="Cobrar"
+                  icon="pi pi-credit-card"
                   size="small"
                   severity="success"
                   [disabled]="refreshing()"
-                  [loading]="changingStatusId() === order.id"
-                  (onClick)="completeOrder(order)"
+                  (onClick)="openPayment(order)"
                 />
               }
               <p-button
@@ -225,13 +224,12 @@
                 />
               } @else {
                 <p-button
-                  icon="pi pi-check"
-                  ariaLabel="Completar pedido"
+                  icon="pi pi-credit-card"
+                  ariaLabel="Cobrar pedido"
                   severity="success"
                   size="small"
                   [disabled]="refreshing()"
-                  [loading]="changingStatusId() === order.id"
-                  (onClick)="completeOrder(order)"
+                  (onClick)="openPayment(order)"
                 />
               }
               <p-button

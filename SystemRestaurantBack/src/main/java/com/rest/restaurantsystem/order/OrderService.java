@@ -1,6 +1,5 @@
 package com.rest.restaurantsystem.order;
 
-import com.rest.restaurantsystem.catalog.product.ProductDestination;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
@@ -26,12 +25,9 @@ public class OrderService {
 
     private static final Set<OrderStatus> ACTIVE_STATUSES =
             EnumSet.of(OrderStatus.OPEN, OrderStatus.IN_PROGRESS);
-    private static final Set<ProductDestination> ROUTED_DESTINATIONS =
-            EnumSet.of(ProductDestination.PRODUCTION, ProductDestination.SERVICE);
-
     private final RestaurantOrderRepository repository;
-    private final OrderItemRepository itemRepository;
     private final PreparationItemRepository preparationItemRepository;
+    private final OrderPaymentRepository paymentRepository;
     private final BranchService branchService;
     private final ServicePointService servicePointService;
     private final UserService userService;
@@ -40,8 +36,8 @@ public class OrderService {
 
     public OrderService(
             RestaurantOrderRepository repository,
-            OrderItemRepository itemRepository,
             PreparationItemRepository preparationItemRepository,
+            OrderPaymentRepository paymentRepository,
             BranchService branchService,
             ServicePointService servicePointService,
             UserService userService,
@@ -49,8 +45,8 @@ public class OrderService {
             RealtimeEventPublisher realtimeEventPublisher
     ) {
         this.repository = repository;
-        this.itemRepository = itemRepository;
         this.preparationItemRepository = preparationItemRepository;
+        this.paymentRepository = paymentRepository;
         this.branchService = branchService;
         this.servicePointService = servicePointService;
         this.userService = userService;
@@ -145,7 +141,7 @@ public class OrderService {
             OrderStatusRequest request,
             String currentUsername
     ) {
-        RestaurantOrder order = getEntity(id);
+        RestaurantOrder order = getLockedEntity(id);
         ensureCurrentUserAssigned(order.getBranchId(), currentUsername);
         if (order.getVersion() != request.version()) {
             throw new ConflictException(
@@ -155,30 +151,22 @@ public class OrderService {
         if (order.getStatus() == request.status()) {
             return toResponse(order);
         }
+        if (request.status() == OrderStatus.COMPLETED) {
+            throw new BadRequestException(
+                    "Cobra y cierra el pedido desde la pantalla de Cobro."
+            );
+        }
         validateTransition(order.getStatus(), request.status());
-        if (request.status() == OrderStatus.COMPLETED
-                && itemRepository.countByOrderId(order.getId()) == 0) {
-            throw new BadRequestException("Agrega al menos un producto antes de completar el pedido.");
-        }
-        if (request.status() == OrderStatus.COMPLETED
-                && itemRepository.existsByOrderIdAndSentAtIsNullAndDestinationIn(
-                        order.getId(),
-                        ROUTED_DESTINATIONS
-                )) {
-            throw new BadRequestException(
-                    "Envía todas las partidas de cocina o servicio antes de completar el pedido."
-            );
-        }
-        if (request.status() == OrderStatus.COMPLETED
-                && preparationItemRepository.existsActiveByOrderId(order.getId())) {
-            throw new BadRequestException(
-                    "Aún hay partidas pendientes, en preparación o listas por entregar."
-            );
-        }
         if (request.status() == OrderStatus.CANCELLED
                 && preparationItemRepository.existsActiveByOrderId(order.getId())) {
             throw new BadRequestException(
                     "Cancela primero las partidas activas desde la pantalla de Preparación."
+            );
+        }
+        if (request.status() == OrderStatus.CANCELLED
+                && paymentRepository.existsByOrderIdAndStatus(order.getId(), PaymentStatus.ACTIVE)) {
+            throw new BadRequestException(
+                    "Anula primero los cobros activos antes de cancelar el pedido."
             );
         }
         order.changeStatus(request.status());
@@ -257,12 +245,23 @@ public class OrderService {
         return order;
     }
 
+    RestaurantOrder getLockedAccessibleEntity(Long id, String currentUsername) {
+        RestaurantOrder order = getLockedEntity(id);
+        ensureCurrentUserAssigned(order.getBranchId(), currentUsername);
+        return order;
+    }
+
     void ensureAccessibleBranch(Long branchId, String currentUsername) {
         ensureCurrentUserAssigned(branchId, currentUsername);
     }
 
     private RestaurantOrder getEntity(Long id) {
         return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el pedido solicitado."));
+    }
+
+    private RestaurantOrder getLockedEntity(Long id) {
+        return repository.findLockedById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el pedido solicitado."));
     }
 
