@@ -1,0 +1,197 @@
+<p-confirmDialog />
+
+<section class="preparation-heading">
+  <div>
+    <span class="eyebrow">Operación en tiempo real</span>
+    <h1>Preparación y comandas</h1>
+    <p>Cocina, barra y servicio avanzan cada partida sin perder el orden del pedido.</p>
+  </div>
+  <div class="heading-counter">
+    <strong>{{ activeItemCount() }}</strong>
+    <span>partidas activas</span>
+  </div>
+</section>
+
+<section class="preparation-toolbar" aria-label="Filtros de preparación">
+  <label>
+    <span>Sucursal</span>
+    <select [value]="selectedBranchId() ?? ''" (change)="selectBranch($any($event.target).value)">
+      @for (branch of branches(); track branch.id) {
+        <option [value]="branch.id">{{ branch.name }}</option>
+      }
+    </select>
+  </label>
+
+  <div class="route-tabs" role="group" aria-label="Ruta operativa">
+    <button
+      type="button"
+      [class.active]="destination() === 'ALL'"
+      (click)="selectDestination('ALL')"
+    >
+      Todas
+    </button>
+    <button
+      type="button"
+      [class.active]="destination() === 'PRODUCTION'"
+      (click)="selectDestination('PRODUCTION')"
+    >
+      <i class="pi pi-shop"></i> Cocina
+    </button>
+    <button
+      type="button"
+      [class.active]="destination() === 'SERVICE'"
+      (click)="selectDestination('SERVICE')"
+    >
+      <i class="pi pi-glass"></i> Barra / servicio
+    </button>
+  </div>
+
+  <div class="toolbar-actions">
+    <p-button
+      [label]="showHistory() ? 'Ocultar historial' : 'Ver historial'"
+      icon="pi pi-history"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="toggleHistory()"
+    />
+    <p-button
+      label="Actualizar"
+      icon="pi pi-refresh"
+      severity="secondary"
+      [outlined]="true"
+      [loading]="refreshing()"
+      (onClick)="refresh()"
+    />
+  </div>
+</section>
+
+@if (loading()) {
+  <div class="loading">Cargando comandas…</div>
+} @else if (branches().length === 0) {
+  <section class="empty-board">
+    <i class="pi pi-building"></i>
+    <h2>Tu usuario no tiene sucursales asignadas</h2>
+    <p>Solicita al administrador una asignación antes de operar preparación.</p>
+  </section>
+} @else {
+  <section class="kitchen-board">
+    @for (column of columns; track column.status) {
+      <section class="board-column" [attr.data-status]="column.status">
+        <header>
+          <div>
+            <i [class]="column.icon"></i>
+            <span>
+              <strong>{{ column.title }}</strong>
+              <small>{{ column.subtitle }}</small>
+            </span>
+          </div>
+          <b>{{ columnCount(column.status) }}</b>
+        </header>
+
+        <div class="column-content">
+          @for (ticket of tickets(); track ticket.id) {
+            @if (itemsForStatus(ticket, column.status); as visibleItems) {
+              @if (visibleItems.length > 0) {
+                <article class="command-card" [class.delayed]="isDelayed(ticket.sentAt)">
+                  <header>
+                    <div>
+                      <strong>{{ pointLabel(ticket) }}</strong>
+                      <span>{{ ticket.order.folio }} · envío {{ ticket.sequenceNumber }}</span>
+                    </div>
+                    <span class="elapsed">
+                      <i class="pi pi-stopwatch"></i> {{ elapsedLabel(ticket.sentAt) }}
+                    </span>
+                  </header>
+
+                  <div class="command-meta">
+                    <p-tag
+                      [value]="destinationLabel(ticket)"
+                      [severity]="ticket.destination === 'PRODUCTION' ? 'warn' : 'info'"
+                    />
+                    <span>{{ ticket.order.assignedUserName }}</span>
+                  </div>
+
+                  <div class="command-items">
+                    @for (item of visibleItems; track item.id) {
+                      <section class="command-item">
+                        <div class="item-title">
+                          <b>{{ item.quantity }}</b>
+                          <strong>{{ item.productName }}</strong>
+                        </div>
+                        @for (modifier of item.modifiers; track modifier.id) {
+                          <span class="modifier">
+                            {{ modifier.groupName }}: {{ modifier.optionName }}
+                          </span>
+                        }
+                        @if (item.notes) {
+                          <p><i class="pi pi-comment"></i> {{ item.notes }}</p>
+                        }
+                        <div class="item-actions">
+                          @if (
+                            item.status === 'PENDING' ||
+                            item.status === 'IN_PREPARATION' ||
+                            item.status === 'READY'
+                          ) {
+                            <p-button
+                              label="Cancelar"
+                              icon="pi pi-times"
+                              severity="danger"
+                              [text]="true"
+                              [disabled]="changingIds().has(item.id)"
+                              (onClick)="cancel(item)"
+                            />
+                          }
+                          <p-button
+                            [label]="actionLabel(item.status)"
+                            [icon]="item.status === 'READY' ? 'pi pi-send' : 'pi pi-check'"
+                            [loading]="changingIds().has(item.id)"
+                            (onClick)="advance(item)"
+                          />
+                        </div>
+                      </section>
+                    }
+                  </div>
+                </article>
+              }
+            }
+          }
+
+          @if (columnCount(column.status) === 0) {
+            <div class="empty-column">
+              <i class="pi pi-check"></i>
+              <span>Sin partidas en esta etapa</span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  </section>
+
+  @if (showHistory()) {
+    <section class="history-panel">
+      <header>
+        <div>
+          <span class="eyebrow">Consulta</span>
+          <h2>Entregadas y canceladas</h2>
+        </div>
+        <span>El historial se conserva por comanda.</span>
+      </header>
+      <div class="history-list">
+        @for (ticket of tickets(); track ticket.id) {
+          @for (item of historyItems(ticket); track item.id) {
+            <article>
+              <i [class]="item.status === 'DELIVERED' ? 'pi pi-check-circle' : 'pi pi-ban'"></i>
+              <span>
+                <strong>{{ item.quantity }} × {{ item.productName }}</strong>
+                <small>
+                  {{ pointLabel(ticket) }} · {{ ticket.order.folio }} ·
+                  {{ item.status === 'DELIVERED' ? 'Entregada' : 'Cancelada' }}
+                </small>
+              </span>
+            </article>
+          }
+        }
+      </div>
+    </section>
+  }
+}

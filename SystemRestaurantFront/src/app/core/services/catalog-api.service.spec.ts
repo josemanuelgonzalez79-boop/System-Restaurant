@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { Category, ProductPayload } from '../models/catalog.model';
+import { Category, ModifierGroupPayload, ProductPayload } from '../models/catalog.model';
 import { CatalogApiService } from './catalog-api.service';
 
 describe('CatalogApiService', () => {
@@ -69,5 +69,22 @@ describe('CatalogApiService', () => {
       updatedAt: '2026-07-29T00:00:00Z',
       ...payload,
     });
+  });
+
+  it('should create a modifier group with its selection rules', () => {
+    const payload: ModifierGroupPayload = {
+      productId: 8,
+      name: 'Término',
+      minSelections: 1,
+      maxSelections: 1,
+      sortOrder: 0,
+    };
+
+    service.createModifierGroup(payload).subscribe();
+
+    const request = httpController.expectOne('/api/v1/modifier-groups');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(payload);
+    request.flush({ id: 3, productName: 'Corte', active: true, options: [], ...payload });
   });
 });

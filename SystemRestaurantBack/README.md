@@ -71,6 +71,8 @@ sesión HTTP y protección CSRF.
 | `POST/PUT/PATCH`     | `/api/v1/branches`, `/areas`, `/service-points` | Propietario o administrador                  |
 | `GET/PUT`            | `/api/v1/branches/{id}/assignments`             | Propietario o administrador                  |
 | `GET/POST/PATCH`     | `/api/v1/orders`                                | Usuario autenticado y asignado a la sucursal |
+| `POST`               | `/api/v1/orders/{id}/dispatch`                  | Usuario autenticado y asignado a la sucursal |
+| `GET/PATCH`          | `/api/v1/preparation`                           | Usuario autenticado y asignado a la sucursal |
 
 ## Migraciones
 
@@ -79,8 +81,11 @@ src/main/resources/db/migration/V1__create_restaurant_settings_and_catalog.sql
 src/main/resources/db/migration/V2__generalize_business_and_add_users.sql
 src/main/resources/db/migration/V3__create_operational_structure.sql
 src/main/resources/db/migration/V4__create_restaurant_orders.sql
+src/main/resources/db/migration/V5__create_order_items_and_modifiers.sql
+src/main/resources/db/migration/V6__create_preparation_tickets.sql
 ```
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. `V4` incorpora
-los pedidos y la protección contra dos pedidos activos en la misma mesa. No edites una migración
-que ya se ejecutó; cada cambio estructural debe ir en una migración nueva.
+los pedidos y la protección contra dos pedidos activos en la misma mesa. `V5` agrega las partidas,
+modificadores y totales; `V6` agrega comandas, snapshots y estados de preparación. No edites una
+migración que ya se ejecutó; cada cambio estructural debe ir en una migración nueva.

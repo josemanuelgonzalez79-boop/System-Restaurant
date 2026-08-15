@@ -1,4 +1,4 @@
-ESSENTIAL — BLOQUES 1, 2, 3 Y 4
+ESSENTIAL — BLOQUES 1, 2, 3, 4, 5 Y 6
 
 Esta versión prepara la base de Essential para la operación de restaurantes pequeños y medianos
 mediante computadoras y tablets conectadas al Wi-Fi o red local del establecimiento.
@@ -19,6 +19,15 @@ INCLUYE
 - Apertura de pedidos en mesa o para llevar.
 - Folio, responsable, comensales, referencia y notas del pedido.
 - Estados abierto, en atención, completado y cancelado.
+- Captura táctil de productos por categoría y búsqueda.
+- Cantidades, indicaciones y edición de partidas.
+- Variantes y modificadores con reglas mínimas y máximas.
+- Precio histórico, subtotales, extras y total calculado por el backend.
+- Envío de comandas separadas para cocina y barra o servicio.
+- Bloqueo de partidas enviadas y captura de comandas adicionales.
+- Pantalla táctil de preparación por sucursal y ruta.
+- Estados pendiente, en preparación, lista, entregada y cancelada por partida.
+- Historial y actualización automática del tablero cada 15 segundos.
 - Migraciones de PostgreSQL con Flyway.
 
 REQUISITOS
@@ -34,7 +43,7 @@ SI YA EJECUTASTE LA VERSIÓN ANTERIOR
 3. Reemplaza los archivos del proyecto con esta versión.
 4. Vuelve a colocar tu secret.yml dentro de SystemRestaurantBack.
 5. No borres la base de datos ni ejecutes de nuevo los scripts manualmente.
-6. Inicia el backend. Flyway aplicará automáticamente las migraciones pendientes, incluida V4.
+6. Inicia el backend. Flyway aplicará automáticamente las migraciones pendientes, incluida V6.
 7. Inicia Angular y abre http://localhost:4200.
 
 La primera pantalla pedirá crear al propietario inicial. Usa una contraseña de 10 a 72 caracteres
@@ -74,10 +83,15 @@ PRUEBA RECOMENDADA
 - Guardar la asignación de usuarios de la sucursal.
 - Abrir Pedidos y crear un pedido desde una mesa libre.
 - Abrir un pedido para llevar.
-- Iniciar, completar y cancelar pedidos; confirmar que la mesa vuelva a quedar libre.
+- Entrar a Capturar, agregar productos, modificadores y notas.
+- Editar y retirar partidas; comprobar el total.
+- Enviar una comanda y comprobar que las partidas enviadas queden bloqueadas.
+- Abrir Preparación y avanzar una partida hasta entregada.
+- Agregar otro producto al mismo pedido y comprobar que genere un segundo envío.
+- Completar el pedido y confirmar que la mesa vuelva a quedar libre.
 
-SIGUIENTE BLOQUE PROPUESTO
+SIGUIENTE BLOQUE
 
-Captura de productos, cantidades, variantes, modificadores y notas dentro del pedido abierto.
+Actualización inmediata mediante WebSocket entre meseros, cocina y mapa de mesas.
 
 Consulta AVANCE-PROYECTO.md y PLANES-Y-ALCANCE.md para ver las decisiones y las tres opciones.

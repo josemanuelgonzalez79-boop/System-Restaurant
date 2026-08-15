@@ -13,10 +13,13 @@ Base preparada con:
 - Categorías y productos o servicios.
 - Sucursales, áreas, mesas y asignaciones.
 - Apertura y estados de pedidos en mesa o para llevar.
+- Captura, modificadores, total y bloqueo de partidas enviadas.
+- Comandas separadas y tablero de preparación.
 
-Validación realizada:
+Validación que debe ejecutarse antes de publicar la rama:
 
-- `npm run format`
+- `npm run format:check`
 - `npm run build`
 - `npm test -- --watch=false`
-- 6 archivos de pruebas y 16 pruebas superadas.
+
+La guía funcional completa está en `../PRUEBA-BLOQUE-6.md`.

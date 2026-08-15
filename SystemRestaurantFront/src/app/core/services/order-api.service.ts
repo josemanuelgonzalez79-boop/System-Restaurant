@@ -5,6 +5,10 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   OrderCreatePayload,
+  OrderDetail,
+  OrderDispatchResponse,
+  OrderItemCreatePayload,
+  OrderItemUpdatePayload,
   OrderOperator,
   OrderStatus,
   RestaurantOrder,
@@ -41,6 +45,35 @@ export class OrderApiService {
     return this.http.patch<RestaurantOrder>(`${this.ordersUrl}/${id}/status`, {
       status,
       version,
+    });
+  }
+
+  findDetail(id: number): Observable<OrderDetail> {
+    return this.http.get<OrderDetail>(`${this.ordersUrl}/${id}/detail`);
+  }
+
+  addItem(orderId: number, payload: OrderItemCreatePayload): Observable<OrderDetail> {
+    return this.http.post<OrderDetail>(`${this.ordersUrl}/${orderId}/items`, payload);
+  }
+
+  updateItem(
+    orderId: number,
+    itemId: number,
+    payload: OrderItemUpdatePayload,
+  ): Observable<OrderDetail> {
+    return this.http.put<OrderDetail>(`${this.ordersUrl}/${orderId}/items/${itemId}`, payload);
+  }
+
+  removeItem(orderId: number, itemId: number, orderVersion: number): Observable<OrderDetail> {
+    const params = new HttpParams().set('orderVersion', orderVersion.toString());
+    return this.http.delete<OrderDetail>(`${this.ordersUrl}/${orderId}/items/${itemId}`, {
+      params,
+    });
+  }
+
+  dispatch(orderId: number, orderVersion: number): Observable<OrderDispatchResponse> {
+    return this.http.post<OrderDispatchResponse>(`${this.ordersUrl}/${orderId}/dispatch`, {
+      orderVersion,
     });
   }
 }

@@ -35,6 +35,12 @@ class OrderServiceTest {
     private RestaurantOrderRepository repository;
 
     @Mock
+    private OrderItemRepository itemRepository;
+
+    @Mock
+    private PreparationItemRepository preparationItemRepository;
+
+    @Mock
     private BranchService branchService;
 
     @Mock
@@ -124,6 +130,47 @@ class OrderServiceTest {
                         "mesero"
                 )
         );
+    }
+
+    @Test
+    void rejectsCompletingAnEmptyOrder() {
+        RestaurantOrder order = persistedOrder();
+        order.changeStatus(OrderStatus.IN_PROGRESS);
+        when(repository.findById(42L)).thenReturn(Optional.of(order));
+        when(userService.currentUser("mesero")).thenReturn(user(10L, "mesero", "Mesero"));
+        when(assignmentService.isAssigned(1L, 10L)).thenReturn(true);
+        when(itemRepository.countByOrderId(42L)).thenReturn(0L);
+
+        assertThrows(
+                BadRequestException.class,
+                () -> service.changeStatus(
+                        42L,
+                        new OrderStatusRequest(OrderStatus.COMPLETED, 0),
+                        "mesero"
+                )
+        );
+    }
+
+    @Test
+    void rejectsCompletingWhilePreparationIsActive() {
+        RestaurantOrder order = persistedOrder();
+        order.changeStatus(OrderStatus.IN_PROGRESS);
+        when(repository.findById(42L)).thenReturn(Optional.of(order));
+        when(userService.currentUser("mesero")).thenReturn(user(10L, "mesero", "Mesero"));
+        when(assignmentService.isAssigned(1L, 10L)).thenReturn(true);
+        when(itemRepository.countByOrderId(42L)).thenReturn(1L);
+        when(preparationItemRepository.existsActiveByOrderId(42L)).thenReturn(true);
+
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> service.changeStatus(
+                        42L,
+                        new OrderStatusRequest(OrderStatus.COMPLETED, 0),
+                        "mesero"
+                )
+        );
+
+        assertThat(exception.getMessage()).contains("partidas pendientes");
     }
 
     private void mockValidUsersAndBranch() {

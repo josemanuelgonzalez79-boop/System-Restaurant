@@ -84,6 +84,10 @@ small,
   gap: 0.45rem;
 }
 
+.card-actions {
+  flex-wrap: wrap;
+}
+
 .area-filter {
   display: flex;
   gap: 0.45rem;

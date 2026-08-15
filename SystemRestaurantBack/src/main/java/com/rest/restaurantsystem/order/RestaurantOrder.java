@@ -88,6 +88,10 @@ class RestaurantOrder {
                 : null;
     }
 
+    void touch() {
+        updatedAt = Instant.now();
+    }
+
     Long getId() {
         return id;
     }

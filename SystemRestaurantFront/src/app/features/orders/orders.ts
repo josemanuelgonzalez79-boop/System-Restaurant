@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -49,6 +50,7 @@ export class Orders implements OnInit {
   private readonly auth = inject(AuthApiService);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
+  private readonly router = inject(Router);
 
   protected readonly loading = signal(true);
   protected readonly refreshing = signal(false);
@@ -196,7 +198,12 @@ export class Orders implements OnInit {
           summary: 'Pedido abierto',
           detail: `${order.folio} quedó listo para capturar productos.`,
         });
+        void this.router.navigate(['/pedidos', order.id]);
       });
+  }
+
+  protected openCapture(order: RestaurantOrder): void {
+    void this.router.navigate(['/pedidos', order.id]);
   }
 
   protected startOrder(order: RestaurantOrder): void {

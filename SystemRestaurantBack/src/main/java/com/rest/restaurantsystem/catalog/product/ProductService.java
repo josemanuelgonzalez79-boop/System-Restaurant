@@ -37,6 +37,28 @@ public class ProductService {
         return ProductResponse.from(getEntity(id));
     }
 
+    @Transactional(readOnly = true)
+    public ProductResponse findOrderableById(Long id) {
+        Product product = getEntity(id);
+        if (!product.isActive() || !product.isAvailable() || !product.getCategory().isActive()) {
+            throw new BadRequestException(
+                    "El producto o su categoría están inactivos o no disponibles."
+            );
+        }
+        return ProductResponse.from(product);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductResponse findConfigurableById(Long id) {
+        Product product = getEntity(id);
+        if (!product.isActive() || !product.getCategory().isActive()) {
+            throw new BadRequestException(
+                    "El producto y su categoría deben estar activos para agregar modificadores."
+            );
+        }
+        return ProductResponse.from(product);
+    }
+
     @Transactional
     public ProductResponse create(ProductRequest request) {
         validateUniqueSku(request.sku(), null);

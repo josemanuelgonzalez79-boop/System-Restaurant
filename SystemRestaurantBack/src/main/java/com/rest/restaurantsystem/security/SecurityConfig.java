@@ -40,6 +40,10 @@ public class SecurityConfig {
                         .hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(
                                 HttpMethod.GET,
+                                "/api/v1/categories/**",
+                                "/api/v1/products/**",
+                                "/api/v1/modifier-groups/**",
+                                "/api/v1/modifier-options/**",
                                 "/api/v1/branches/**",
                                 "/api/v1/areas/**",
                                 "/api/v1/service-points/**"
@@ -48,6 +52,8 @@ public class SecurityConfig {
                                 "/api/v1/settings/**",
                                 "/api/v1/categories/**",
                                 "/api/v1/products/**",
+                                "/api/v1/modifier-groups/**",
+                                "/api/v1/modifier-options/**",
                                 "/api/v1/branches/**",
                                 "/api/v1/areas/**",
                                 "/api/v1/service-points/**"

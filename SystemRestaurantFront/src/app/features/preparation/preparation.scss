@@ -1,0 +1,443 @@
+:host {
+  display: block;
+}
+
+.preparation-heading,
+.preparation-toolbar,
+.toolbar-actions,
+.route-tabs,
+.heading-counter,
+.board-column > header,
+.board-column > header > div,
+.command-card > header,
+.command-meta,
+.item-title,
+.item-actions,
+.history-panel > header,
+.history-list article {
+  display: flex;
+  align-items: center;
+}
+
+.preparation-heading {
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.15rem;
+}
+
+.eyebrow {
+  color: var(--p-primary-color);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0.2rem 0;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+}
+
+.preparation-heading p,
+.history-panel > header > span {
+  margin: 0;
+  color: var(--p-text-muted-color);
+}
+
+.heading-counter {
+  flex: 0 0 auto;
+  gap: 0.55rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.8rem;
+  background: var(--p-content-background);
+}
+
+.heading-counter strong {
+  color: var(--p-primary-color);
+  font-size: 1.45rem;
+}
+
+.heading-counter span {
+  color: var(--p-text-muted-color);
+  font-size: 0.8rem;
+}
+
+.preparation-toolbar {
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.85rem;
+  background: var(--p-content-background);
+}
+
+.preparation-toolbar label {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 190px;
+}
+
+.preparation-toolbar label span {
+  color: var(--p-text-muted-color);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.preparation-toolbar select {
+  width: 100%;
+  min-height: 2.55rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--p-form-field-border-color);
+  border-radius: var(--p-form-field-border-radius);
+  color: var(--p-text-color);
+  background: var(--p-form-field-background);
+}
+
+.route-tabs {
+  flex: 1 1 420px;
+  gap: 0.35rem;
+}
+
+.route-tabs button {
+  min-height: 2.55rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.65rem;
+  color: var(--p-text-muted-color);
+  font: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.route-tabs button.active {
+  border-color: var(--p-primary-color);
+  color: var(--p-primary-color);
+  font-weight: 750;
+  background: color-mix(in srgb, var(--p-primary-color) 11%, transparent);
+}
+
+.toolbar-actions {
+  gap: 0.45rem;
+}
+
+.kitchen-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 0.8rem;
+}
+
+.board-column {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.9rem;
+  background: var(--p-content-hover-background);
+}
+
+.board-column > header {
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+  background: var(--p-content-background);
+}
+
+.board-column > header > div {
+  min-width: 0;
+  gap: 0.55rem;
+}
+
+.board-column > header i {
+  color: var(--p-primary-color);
+  font-size: 1.15rem;
+}
+
+.board-column > header strong,
+.board-column > header small {
+  display: block;
+}
+
+.board-column > header small {
+  margin-top: 0.12rem;
+  overflow: hidden;
+  color: var(--p-text-muted-color);
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-column > header b {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  color: var(--p-primary-contrast-color);
+  background: var(--p-primary-color);
+  place-items: center;
+}
+
+.column-content {
+  display: grid;
+  gap: 0.7rem;
+  max-height: calc(100vh - 310px);
+  min-height: 220px;
+  padding: 0.7rem;
+  overflow-y: auto;
+}
+
+.command-card {
+  overflow: hidden;
+  border: 1px solid var(--p-content-border-color);
+  border-left: 4px solid var(--p-primary-color);
+  border-radius: 0.75rem;
+  background: var(--p-content-background);
+  box-shadow: 0 5px 15px color-mix(in srgb, #000 6%, transparent);
+}
+
+.command-card.delayed {
+  border-left-color: var(--p-red-500);
+}
+
+.command-card > header {
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.command-card > header strong,
+.command-card > header span {
+  display: block;
+}
+
+.command-card > header strong {
+  font-size: 1.05rem;
+}
+
+.command-card > header div > span {
+  margin-top: 0.15rem;
+  color: var(--p-text-muted-color);
+  font-size: 0.72rem;
+}
+
+.elapsed {
+  flex: 0 0 auto;
+  color: var(--p-text-muted-color);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.delayed .elapsed {
+  color: var(--p-red-500);
+}
+
+.command-meta {
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--p-text-muted-color);
+  font-size: 0.72rem;
+}
+
+.command-items {
+  display: grid;
+}
+
+.command-item {
+  min-width: 0;
+  padding: 0.75rem;
+  border-top: 1px dashed var(--p-content-border-color);
+}
+
+.command-item:first-child {
+  border-top: 0;
+}
+
+.item-title {
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.item-title b {
+  display: grid;
+  flex: 0 0 auto;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 0.5rem;
+  color: var(--p-primary-color);
+  background: color-mix(in srgb, var(--p-primary-color) 12%, transparent);
+  place-items: center;
+}
+
+.item-title strong {
+  padding-top: 0.3rem;
+}
+
+.modifier {
+  display: block;
+  margin: 0.25rem 0 0 2.35rem;
+  color: var(--p-text-muted-color);
+  font-size: 0.75rem;
+}
+
+.command-item p {
+  margin: 0.5rem 0 0 2.35rem;
+  padding: 0.45rem;
+  border-radius: 0.45rem;
+  color: var(--p-orange-800);
+  font-size: 0.78rem;
+  font-weight: 650;
+  background: var(--p-orange-50);
+}
+
+.item-actions {
+  justify-content: flex-end;
+  gap: 0.25rem;
+  margin-top: 0.65rem;
+}
+
+.empty-column,
+.empty-board,
+.loading {
+  display: grid;
+  color: var(--p-text-muted-color);
+  text-align: center;
+  place-items: center;
+  align-content: center;
+}
+
+.empty-column {
+  min-height: 175px;
+  gap: 0.4rem;
+}
+
+.empty-column i {
+  color: var(--p-green-500);
+  font-size: 1.6rem;
+}
+
+.empty-board,
+.loading {
+  min-height: 380px;
+  padding: 2rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.9rem;
+  background: var(--p-content-background);
+}
+
+.empty-board i {
+  color: var(--p-primary-color);
+  font-size: 2.2rem;
+}
+
+.empty-board h2 {
+  margin-bottom: 0;
+}
+
+.history-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.9rem;
+  background: var(--p-content-background);
+}
+
+.history-panel > header {
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.history-panel h2 {
+  margin: 0.15rem 0 0;
+}
+
+.history-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+}
+
+.history-list article {
+  gap: 0.55rem;
+  padding: 0.65rem;
+  border-radius: 0.6rem;
+  background: var(--p-content-hover-background);
+}
+
+.history-list article > i {
+  color: var(--p-primary-color);
+}
+
+.history-list strong,
+.history-list small {
+  display: block;
+}
+
+.history-list small {
+  margin-top: 0.1rem;
+  color: var(--p-text-muted-color);
+}
+
+@media (max-width: 1100px) {
+  .kitchen-board {
+    grid-template-columns: 1fr;
+  }
+
+  .column-content {
+    max-height: none;
+    min-height: 130px;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    align-items: start;
+  }
+
+  .empty-column {
+    grid-column: 1 / -1;
+    min-height: 100px;
+  }
+}
+
+@media (max-width: 700px) {
+  .preparation-heading,
+  .history-panel > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .heading-counter {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .route-tabs,
+  .toolbar-actions {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .route-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .route-tabs button {
+    padding: 0 0.35rem;
+    font-size: 0.78rem;
+  }
+
+  .toolbar-actions {
+    justify-content: stretch;
+  }
+
+  :host ::ng-deep .toolbar-actions .p-button {
+    flex: 1;
+  }
+
+  .column-content {
+    grid-template-columns: 1fr;
+  }
+}

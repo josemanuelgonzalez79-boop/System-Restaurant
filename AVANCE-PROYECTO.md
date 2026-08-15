@@ -10,12 +10,11 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 
 ## Estado de la edición básica
 
-- Terminados: 4 de 12 bloques funcionales.
-- Avance medido por bloques: 33 %.
-- Avance práctico estimado: entre 35 % y 40 %, porque ya existe la base de datos, seguridad,
-  catálogo, usuarios, estructura y apertura de pedidos desde tablets.
-- Restan 8 bloques. Los más importantes todavía son productos y modificadores dentro del pedido,
-  comandas de cocina, actualización en tiempo real, cobro, caja, reporte, respaldos e instalación.
+- Terminados: 6 de 12 bloques funcionales.
+- Avance medido por bloques: 50 %.
+- Avance práctico estimado: entre 55 % y 60 %, porque el flujo operativo ya llega desde abrir
+  una mesa y capturar su pedido hasta enviar comandas y completar el trabajo de cocina o servicio.
+- Restan 6 bloques: actualización en tiempo real, cobro, caja, reporte, respaldos e instalación.
 
 ## Bloques terminados
 
@@ -60,6 +59,33 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 7. El control de versión detecta actualizaciones realizadas desde otro dispositivo.
 8. No se puede desactivar ni mover una mesa, área o sucursal mientras tenga pedidos abiertos.
 
+### Bloque 5: contenido y total del pedido
+
+1. El mesero entra a la captura desde una mesa ocupada o un pedido para llevar.
+2. El catálogo táctil permite filtrar por categoría y buscar por nombre o SKU.
+3. Cada partida guarda cantidad, indicaciones, precio y ruta operativa históricos.
+4. El catálogo administra grupos y opciones para tamaño, término, guarniciones o extras.
+5. Los grupos definen selecciones mínimas y máximas, validadas por Angular y por la API.
+6. El backend calcula subtotal de productos, extras y total mediante `BigDecimal`.
+7. Las partidas pueden editarse o retirarse mientras el pedido esté activo.
+8. El control de versión evita sobrescribir cambios realizados desde otra tablet.
+9. El primer producto mueve el pedido a en atención y un pedido vacío no puede completarse.
+
+### Bloque 6: comandas y preparación
+
+1. El mesero envía únicamente las partidas nuevas con ruta de cocina o servicio.
+2. Un mismo envío genera comandas independientes para `PRODUCTION` y `SERVICE`.
+3. Nombre, cantidad, modificadores e indicaciones quedan congelados al enviar.
+4. Una partida enviada no puede editarse ni retirarse desde la cuenta.
+5. Los productos agregados después generan una comanda adicional sin duplicar los anteriores.
+6. La pantalla de preparación filtra por sucursal y por ruta operativa.
+7. Cada partida avanza por pendiente, en preparación, lista y entregada, o se cancela de forma
+   controlada.
+8. El tablero se actualiza automáticamente cada 15 segundos y permite actualización manual.
+9. El historial conserva las comandas entregadas o canceladas.
+10. El control de versión evita que dos pantallas sobrescriban el estado de una partida.
+11. No puede completarse un pedido con partidas sin enviar o todavía activas en preparación.
+
 ### Roles disponibles
 
 | Rol        | Uso previsto                                                     |
@@ -92,9 +118,9 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 | 2      | Usuarios, contraseñas, roles y permisos                            | Terminado |
 | 3      | Sucursales, áreas operativas y puntos de atención                  | Terminado |
 | 4      | Apertura de pedido o comanda desde mesa, barra o mostrador         | Terminado |
-| 5      | Productos, cantidades, variantes, modificadores y notas del pedido | Siguiente |
-| 6      | Pantalla de cocina/barra y estados por partida                     | Pendiente |
-| 7      | Notificaciones en tiempo real                                      | Pendiente |
+| 5      | Productos, cantidades, variantes, modificadores y notas del pedido | Terminado |
+| 6      | Pantalla de cocina/barra y estados por partida                     | Terminado |
+| 7      | Notificaciones en tiempo real                                      | Siguiente |
 | 8      | Cobro y formas de pago                                             | Pendiente |
 | 9      | Apertura y cierre básico de caja                                   | Pendiente |
 | 10     | Reporte diario                                                     | Pendiente |
@@ -119,16 +145,14 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 - La edición básica no incluye CFDI/SAT, nube pública, inventario por receta, clientes frecuentes,
   reservaciones ni integraciones de reparto; se consideran para ediciones posteriores.
 
-## Próximo bloque: contenido del pedido
+## Próximo bloque: actualización en tiempo real
 
-El siguiente desarrollo completará la captura que realiza el mesero después de abrir una mesa:
+El siguiente desarrollo eliminará la espera del sondeo periódico entre tablets y preparación:
 
-- Entrar a un pedido abierto desde su mesa o tarjeta.
-- Buscar productos por categoría desde una interfaz cómoda para tablet.
-- Agregar cantidades, precio capturado y observaciones por partida.
-- Preparar el modelo de variantes y modificadores, por ejemplo término, tamaño o extras.
-- Calcular subtotal y total del pedido con `BigDecimal` y `NUMERIC`.
-- Evitar que se agreguen productos inactivos o no disponibles.
+- Notificar por WebSocket una comanda nueva sin recargar la pantalla.
+- Reflejar inmediatamente los cambios de estado en mesas, meseros y cocina.
+- Reconectar automáticamente cuando una tablet pierde momentáneamente el Wi-Fi.
+- Mantener REST y PostgreSQL como fuente de verdad; WebSocket solo transportará avisos.
+- Señalar de manera visible el estado de conexión de cada pantalla.
 
-El Bloque 6 enviará las partidas a cocina o barra y administrará su preparación. Consulta
-`PLANES-Y-ALCANCE.md` para la separación propuesta de las tres ediciones.
+Consulta `PLANES-Y-ALCANCE.md` para la separación propuesta de las tres ediciones.

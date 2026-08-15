@@ -1,0 +1,317 @@
+<p-confirmDialog />
+
+@if (loading()) {
+  <div class="loading">Abriendo el pedido…</div>
+} @else if (detail(); as current) {
+  <section class="order-heading">
+    <div class="order-identity">
+      <p-button
+        icon="pi pi-arrow-left"
+        ariaLabel="Volver a mesas"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="backToOrders()"
+      />
+      <div>
+        <span class="eyebrow">Captura del pedido</span>
+        <h1>{{ current.order.servicePointName || 'Para llevar' }}</h1>
+        <p>
+          {{ current.order.folio }} · {{ current.order.branchName }} ·
+          {{ current.order.assignedUserName }}
+        </p>
+      </div>
+    </div>
+    <div class="heading-actions">
+      <p-tag
+        [value]="current.order.status === 'IN_PROGRESS' ? 'En atención' : 'Abierto'"
+        [severity]="current.order.status === 'IN_PROGRESS' ? 'warn' : 'info'"
+      />
+      <p-button
+        label="Actualizar"
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="refreshing()"
+        (onClick)="refresh()"
+      />
+    </div>
+  </section>
+
+  @if (!canEdit()) {
+    <div class="closed-note">
+      <i class="pi pi-lock"></i>
+      Este pedido ya está cerrado. Puedes consultar sus productos, pero no modificarlos.
+    </div>
+  }
+
+  <section class="capture-layout">
+    <section class="catalog-panel">
+      <div class="catalog-toolbar">
+        <label>
+          <i class="pi pi-search"></i>
+          <input
+            pInputText
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            placeholder="Buscar producto o SKU"
+          />
+        </label>
+      </div>
+
+      <nav class="category-tabs" aria-label="Categorías del catálogo">
+        <button
+          type="button"
+          [class.active]="selectedCategoryId() === null"
+          (click)="chooseCategory(null)"
+        >
+          Todos
+        </button>
+        @for (category of activeCategories(); track category.id) {
+          <button
+            type="button"
+            [class.active]="selectedCategoryId() === category.id"
+            (click)="chooseCategory(category.id)"
+          >
+            {{ category.name }}
+          </button>
+        }
+      </nav>
+
+      <div class="product-grid">
+        @for (product of visibleProducts(); track product.id) {
+          <button
+            type="button"
+            class="product-card"
+            [disabled]="!canEdit()"
+            (click)="openProduct(product)"
+          >
+            <span class="product-category">{{ product.categoryName }}</span>
+            <strong>{{ product.name }}</strong>
+            <small>{{ product.description || 'Toca para agregar al pedido' }}</small>
+            <span class="product-footer">
+              <b>{{ product.price | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</b>
+              <i class="pi pi-plus"></i>
+            </span>
+          </button>
+        } @empty {
+          <div class="empty-products">
+            <i class="pi pi-search"></i>
+            <strong>No encontramos productos disponibles</strong>
+            <span>Prueba otra categoría o cambia la búsqueda.</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <aside class="ticket-panel">
+      <header>
+        <div>
+          <span class="eyebrow">Cuenta actual</span>
+          <h2>{{ current.totalUnits }} unidad(es)</h2>
+        </div>
+        <strong>{{ current.total | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</strong>
+      </header>
+
+      <div class="ticket-items">
+        @for (item of current.items; track item.id) {
+          <article class="ticket-item">
+            <div class="item-quantity">{{ item.quantity }}</div>
+            <div class="item-description">
+              <strong>{{ item.productName }}</strong>
+              <span class="dispatch-state" [class.sent]="item.sentAt">
+                <i [class]="item.sentAt ? 'pi pi-check-circle' : 'pi pi-clock'"></i>
+                {{ item.sentAt ? 'Enviada' : destinationLabel(item) }}
+              </span>
+              <span>
+                {{ item.unitPrice | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }} c/u
+              </span>
+              @for (modifier of item.modifiers; track modifier.id) {
+                <small>
+                  {{ modifier.groupName }}: {{ modifier.optionName }}
+                  @if (modifier.priceDelta !== 0) {
+                    ({{
+                      modifier.priceDelta | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                    }})
+                  }
+                </small>
+              }
+              @if (item.notes) {
+                <em><i class="pi pi-comment"></i> {{ item.notes }}</em>
+              }
+            </div>
+            <div class="item-total">
+              <strong>
+                {{ item.lineTotal | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+              </strong>
+              @if (canEdit() && !item.sentAt) {
+                <span>
+                  <p-button
+                    icon="pi pi-pencil"
+                    ariaLabel="Editar producto"
+                    size="small"
+                    [text]="true"
+                    (onClick)="editItem(item)"
+                  />
+                  <p-button
+                    icon="pi pi-trash"
+                    ariaLabel="Retirar producto"
+                    size="small"
+                    severity="danger"
+                    [text]="true"
+                    [loading]="deletingItemId() === item.id"
+                    (onClick)="removeItem(item)"
+                  />
+                </span>
+              }
+            </div>
+          </article>
+        } @empty {
+          <div class="empty-ticket">
+            <i class="pi pi-receipt"></i>
+            <strong>El pedido está vacío</strong>
+            <span>Toca un producto del catálogo para comenzar.</span>
+          </div>
+        }
+      </div>
+
+      <footer class="totals">
+        <div>
+          <span>Productos</span
+          ><strong>{{
+            current.productSubtotal | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+          }}</strong>
+        </div>
+        @if (current.modifierSubtotal !== 0) {
+          <div>
+            <span>Extras</span
+            ><strong>{{
+              current.modifierSubtotal | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}</strong>
+          </div>
+        }
+        <div class="grand-total">
+          <span>Total</span
+          ><strong>{{
+            current.total | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+          }}</strong>
+        </div>
+        <p-button
+          label="Enviar comanda"
+          [badge]="pendingDispatchCount().toString()"
+          icon="pi pi-send"
+          severity="success"
+          [loading]="dispatching()"
+          [disabled]="!canEdit() || pendingDispatchCount() === 0"
+          (onClick)="dispatch()"
+        />
+        @if (current.items.length > 0 && pendingDispatchCount() === 0) {
+          <small class="dispatch-help">
+            <i class="pi pi-check-circle"></i>
+            No hay partidas nuevas pendientes de envío.
+          </small>
+        }
+        <p-button
+          label="Volver a mesas"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="backToOrders()"
+        />
+      </footer>
+    </aside>
+  </section>
+}
+
+<p-dialog
+  [header]="editingItem() ? 'Editar producto' : 'Agregar producto'"
+  [modal]="true"
+  [visible]="editorVisible()"
+  [style]="{ width: 'min(94vw, 650px)' }"
+  (visibleChange)="$event ? null : closeEditor()"
+>
+  @if (selectedProduct(); as product) {
+    <form [formGroup]="itemForm" (ngSubmit)="submitItem()" class="item-form">
+      <div class="selected-product-summary">
+        <div>
+          <small>{{ product.categoryName }}</small>
+          <strong>{{ product.name }}</strong>
+          <span>{{ product.description || 'Sin descripción' }}</span>
+        </div>
+        <b>{{ product.price | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</b>
+      </div>
+
+      <label>
+        <span>Cantidad</span>
+        <p-inputnumber
+          formControlName="quantity"
+          [min]="1"
+          [max]="99"
+          [showButtons]="true"
+          [useGrouping]="false"
+        />
+      </label>
+
+      @for (group of editorGroups(); track group.id) {
+        <fieldset class="modifier-group">
+          <legend>
+            <span>{{ group.name }}</span>
+            <small [class.rule-pending]="selectedCount(group) < group.minSelections">
+              {{ modifierRule(group) }} · {{ selectedCount(group) }} seleccionado(s)
+            </small>
+          </legend>
+          <div class="option-grid">
+            @for (option of group.options; track option.id) {
+              @if (option.active) {
+                <button
+                  type="button"
+                  [class.selected]="isOptionSelected(option.id)"
+                  (click)="toggleOption(group, option)"
+                >
+                  <span>
+                    <i
+                      [class]="isOptionSelected(option.id) ? 'pi pi-check-circle' : 'pi pi-circle'"
+                    ></i>
+                    {{ option.name }}
+                  </span>
+                  @if (option.priceDelta !== 0) {
+                    <strong>
+                      +{{
+                        option.priceDelta | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                      }}
+                    </strong>
+                  }
+                </button>
+              }
+            }
+          </div>
+        </fieldset>
+      }
+
+      <label>
+        <span>Indicaciones para cocina o servicio</span>
+        <textarea
+          pTextarea
+          formControlName="notes"
+          rows="3"
+          placeholder="Ej. sin cebolla, salsa aparte o alergia informada"
+        ></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <p-button
+          type="button"
+          label="Cancelar"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="closeEditor()"
+        />
+        <p-button
+          type="submit"
+          [label]="editingItem() ? 'Guardar cambios' : 'Agregar al pedido'"
+          icon="pi pi-check"
+          [loading]="saving()"
+        />
+      </div>
+    </form>
+  }
+</p-dialog>

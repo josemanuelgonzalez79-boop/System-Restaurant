@@ -122,11 +122,20 @@
             }
 
             <footer class="card-actions">
+              <p-button
+                label="Capturar"
+                icon="pi pi-receipt"
+                size="small"
+                [disabled]="refreshing()"
+                (onClick)="openCapture(order)"
+              />
               @if (order.status === 'OPEN') {
                 <p-button
-                  label="Iniciar atención"
+                  ariaLabel="Iniciar atención"
                   icon="pi pi-play"
                   size="small"
+                  severity="secondary"
+                  [outlined]="true"
                   [disabled]="refreshing()"
                   [loading]="changingStatusId() === order.id"
                   (onClick)="startOrder(order)"
@@ -199,6 +208,12 @@
             </div>
             <p-tag [value]="statusLabel(order.status)" [severity]="statusSeverity(order.status)" />
             <div class="card-actions">
+              <p-button
+                icon="pi pi-receipt"
+                ariaLabel="Capturar productos"
+                size="small"
+                (onClick)="openCapture(order)"
+              />
               @if (order.status === 'OPEN') {
                 <p-button
                   icon="pi pi-play"

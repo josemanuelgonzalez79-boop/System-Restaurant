@@ -41,3 +41,47 @@ export interface ProductPayload {
   price: number;
   destination: ProductDestination;
 }
+
+export interface ModifierOption {
+  id: number;
+  groupId: number;
+  groupName: string;
+  productId: number;
+  name: string;
+  priceDelta: number;
+  sortOrder: number;
+  active: boolean;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ModifierGroup {
+  id: number;
+  productId: number;
+  productName: string;
+  name: string;
+  minSelections: number;
+  maxSelections: number;
+  sortOrder: number;
+  active: boolean;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  options: ModifierOption[];
+}
+
+export interface ModifierGroupPayload {
+  productId: number;
+  name: string;
+  minSelections: number;
+  maxSelections: number;
+  sortOrder: number;
+}
+
+export interface ModifierOptionPayload {
+  groupId: number;
+  name: string;
+  priceDelta: number;
+  sortOrder: number;
+}

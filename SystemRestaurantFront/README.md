@@ -52,6 +52,9 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
 - Mapa de mesas libres y ocupadas por área.
 - Apertura de pedidos en el local o para llevar.
 - Folio, responsable, comensales, notas y estados del pedido.
+- Captura táctil con variantes, notas y total.
+- Envío de comandas nuevas a cocina o servicio.
+- Tablero de preparación por sucursal, ruta y estado de cada partida.
 
 Rutas:
 
@@ -60,6 +63,7 @@ Rutas:
 /setup
 /
 /pedidos
+/preparacion
 /catalogo
 /estructura
 /configuracion

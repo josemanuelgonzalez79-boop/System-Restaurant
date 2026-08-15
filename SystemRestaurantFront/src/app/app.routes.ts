@@ -20,10 +20,24 @@ export const routes: Routes = [
     title: 'Inicio | Essential',
   },
   {
+    path: 'pedidos/:id',
+    loadComponent: () =>
+      import('./features/order-detail/order-detail').then((component) => component.OrderDetailPage),
+    canActivate: [authGuard],
+    title: 'Capturar pedido | Essential',
+  },
+  {
     path: 'pedidos',
     loadComponent: () => import('./features/orders/orders').then((component) => component.Orders),
     canActivate: [authGuard],
     title: 'Mesas y pedidos | Essential',
+  },
+  {
+    path: 'preparacion',
+    loadComponent: () =>
+      import('./features/preparation/preparation').then((component) => component.PreparationPage),
+    canActivate: [authGuard],
+    title: 'Preparación | Essential',
   },
   {
     path: 'catalogo',

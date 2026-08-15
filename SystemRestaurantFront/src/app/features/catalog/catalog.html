@@ -9,6 +9,8 @@
     <span>categorías</span>
     <strong>{{ products().length }}</strong>
     <span>productos</span>
+    <strong>{{ modifierGroups().length }}</strong>
+    <span>grupos de opciones</span>
   </div>
 </section>
 
@@ -276,4 +278,221 @@
       </ng-template>
     </p-table>
   </p-card>
+
+  <section id="modifier-editor" class="modifier-section">
+    <div class="section-heading">
+      <span class="eyebrow">Personalización</span>
+      <h2>Modificadores de productos</h2>
+      <p>
+        Configura tamaños, términos, guarniciones o extras. Las reglas se validan al capturar el
+        pedido.
+      </p>
+    </div>
+
+    <section class="editor-grid modifier-editors">
+      <p-card [header]="editingModifierGroupId() ? 'Editar grupo' : 'Nuevo grupo'">
+        @if (activeProducts().length === 0) {
+          <div class="empty-note">
+            <i class="pi pi-info-circle"></i>
+            Crea o activa un producto antes de registrar grupos.
+          </div>
+        }
+        <form [formGroup]="modifierGroupForm" (ngSubmit)="submitModifierGroup()">
+          <label>
+            <span>Producto</span>
+            <p-select
+              formControlName="productId"
+              [options]="activeProducts()"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Selecciona un producto"
+            />
+          </label>
+          <label>
+            <span>Nombre del grupo</span>
+            <input pInputText formControlName="name" placeholder="Ej. Tamaño o término" />
+          </label>
+          <div class="three-columns">
+            <label>
+              <span>Mínimo</span>
+              <p-inputnumber formControlName="minSelections" [min]="0" [max]="20" />
+            </label>
+            <label>
+              <span>Máximo</span>
+              <p-inputnumber formControlName="maxSelections" [min]="1" [max]="20" />
+            </label>
+            <label>
+              <span>Orden</span>
+              <p-inputnumber formControlName="sortOrder" [min]="0" />
+            </label>
+          </div>
+          <small class="form-help"
+            >Usa mínimo 0 para un extra opcional y 1 para una elección obligatoria.</small
+          >
+          <div class="form-actions">
+            @if (editingModifierGroupId()) {
+              <p-button
+                type="button"
+                label="Cancelar"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="cancelModifierGroupEdit()"
+              />
+            }
+            <p-button
+              type="submit"
+              [label]="editingModifierGroupId() ? 'Guardar grupo' : 'Crear grupo'"
+              icon="pi pi-save"
+              [loading]="savingModifierGroup()"
+              [disabled]="activeProducts().length === 0"
+            />
+          </div>
+        </form>
+      </p-card>
+
+      <p-card [header]="editingModifierOptionId() ? 'Editar opción' : 'Nueva opción'">
+        @if (activeModifierGroups().length === 0) {
+          <div class="empty-note">
+            <i class="pi pi-info-circle"></i>
+            Crea o activa un grupo antes de registrar sus opciones.
+          </div>
+        }
+        <form [formGroup]="modifierOptionForm" (ngSubmit)="submitModifierOption()">
+          <label>
+            <span>Grupo</span>
+            <p-select
+              formControlName="groupId"
+              [options]="activeModifierGroups()"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Selecciona un grupo"
+            >
+              <ng-template #selectedItem let-group>
+                {{ group.productName }} · {{ group.name }}
+              </ng-template>
+              <ng-template #item let-group>
+                {{ group.productName }} · {{ group.name }}
+              </ng-template>
+            </p-select>
+          </label>
+          <label>
+            <span>Nombre de la opción</span>
+            <input pInputText formControlName="name" placeholder="Ej. Grande o término medio" />
+          </label>
+          <div class="two-columns">
+            <label>
+              <span>Cambio de precio</span>
+              <p-inputnumber
+                formControlName="priceDelta"
+                mode="currency"
+                currency="MXN"
+                locale="es-MX"
+                [min]="0"
+              />
+            </label>
+            <label>
+              <span>Orden</span>
+              <p-inputnumber formControlName="sortOrder" [min]="0" />
+            </label>
+          </div>
+          <small class="form-help">Puede ser $0.00; por ejemplo, los términos de cocción.</small>
+          <div class="form-actions">
+            @if (editingModifierOptionId()) {
+              <p-button
+                type="button"
+                label="Cancelar"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="cancelModifierOptionEdit()"
+              />
+            }
+            <p-button
+              type="submit"
+              [label]="editingModifierOptionId() ? 'Guardar opción' : 'Crear opción'"
+              icon="pi pi-save"
+              [loading]="savingModifierOption()"
+              [disabled]="activeModifierGroups().length === 0"
+            />
+          </div>
+        </form>
+      </p-card>
+    </section>
+
+    <div class="modifier-groups">
+      @for (group of modifierGroups(); track group.id) {
+        <p-card styleClass="modifier-group-card">
+          <ng-template #header>
+            <div class="modifier-card-header">
+              <div>
+                <small>{{ group.productName }}</small>
+                <h3>{{ group.name }}</h3>
+                <span>{{ selectionRule(group) }} · orden {{ group.sortOrder }}</span>
+              </div>
+              <p-tag
+                [value]="group.active ? 'Activo' : 'Inactivo'"
+                [severity]="group.active ? 'success' : 'secondary'"
+              />
+            </div>
+          </ng-template>
+
+          <div class="modifier-options">
+            @for (option of group.options; track option.id) {
+              <div [class.inactive-option]="!option.active">
+                <span>
+                  <strong>{{ option.name }}</strong>
+                  <small>
+                    {{ option.priceDelta | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+                  </small>
+                </span>
+                <div class="row-actions">
+                  <p-button
+                    icon="pi pi-pencil"
+                    ariaLabel="Editar opción"
+                    [text]="true"
+                    [rounded]="true"
+                    (onClick)="editModifierOption(option)"
+                  />
+                  <p-button
+                    [icon]="option.active ? 'pi pi-ban' : 'pi pi-check'"
+                    [ariaLabel]="option.active ? 'Desactivar opción' : 'Activar opción'"
+                    [severity]="option.active ? 'danger' : 'success'"
+                    [text]="true"
+                    [rounded]="true"
+                    (onClick)="toggleModifierOption(option)"
+                  />
+                </div>
+              </div>
+            } @empty {
+              <p class="empty-options">Este grupo todavía no tiene opciones.</p>
+            }
+          </div>
+
+          <ng-template #footer>
+            <div class="form-actions">
+              <p-button
+                label="Editar grupo"
+                icon="pi pi-pencil"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="editModifierGroup(group)"
+              />
+              <p-button
+                [label]="group.active ? 'Desactivar' : 'Activar'"
+                [icon]="group.active ? 'pi pi-ban' : 'pi pi-check'"
+                [severity]="group.active ? 'danger' : 'success'"
+                [outlined]="true"
+                (onClick)="toggleModifierGroup(group)"
+              />
+            </div>
+          </ng-template>
+        </p-card>
+      } @empty {
+        <div class="empty-modifiers">
+          <i class="pi pi-sliders-h"></i>
+          <strong>No hay modificadores configurados</strong>
+          <span>Son opcionales; los productos también pueden venderse sin ellos.</span>
+        </div>
+      }
+    </div>
+  </section>
 }
