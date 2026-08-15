@@ -8,6 +8,7 @@ public record PaymentResponse(
         Long id,
         String folio,
         UUID operationId,
+        Long cashRegisterSessionId,
         BigDecimal amount,
         BigDecimal tenderedAmount,
         BigDecimal changeAmount,

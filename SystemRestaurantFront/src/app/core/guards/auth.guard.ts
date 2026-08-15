@@ -51,3 +51,20 @@ export const ownerGuard: CanActivateFn = () => {
     }),
   );
 };
+
+export const cashierGuard: CanActivateFn = () => {
+  const auth = inject(AuthApiService);
+  const router = inject(Router);
+
+  return auth.ensureInitialized().pipe(
+    map(() => {
+      if (auth.setupRequired()) {
+        return router.createUrlTree(['/setup']);
+      }
+      if (!auth.authenticated()) {
+        return router.createUrlTree(['/login']);
+      }
+      return auth.canOperateCash() ? true : router.createUrlTree(['/']);
+    }),
+  );
+};

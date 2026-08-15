@@ -7,6 +7,7 @@ export interface OrderPayment {
   id: number;
   folio: string;
   operationId: string;
+  cashRegisterSessionId: number | null;
   amount: number;
   tenderedAmount: number;
   changeAmount: number;
@@ -33,6 +34,8 @@ export interface PaymentSummary {
   settled: boolean;
   canClose: boolean;
   closeBlockingReason: string | null;
+  openCashRegisterSessionId: number | null;
+  openCashRegisterSessionFolio: string | null;
 }
 
 export interface PaymentCreatePayload {

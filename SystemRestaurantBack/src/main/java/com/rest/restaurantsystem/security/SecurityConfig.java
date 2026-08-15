@@ -36,6 +36,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/login"
                         ).permitAll()
                         .requestMatchers("/api/v1/users/**").hasRole("OWNER")
+                        .requestMatchers("/api/v1/cash-registers/**")
+                        .hasAnyRole("OWNER", "ADMIN", "MANAGER", "CASHIER")
                         .requestMatchers("/api/v1/branches/*/assignments")
                         .hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers(

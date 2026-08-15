@@ -1,6 +1,8 @@
 package com.rest.restaurantsystem.order;
 
 import com.rest.restaurantsystem.catalog.product.ProductDestination;
+import com.rest.restaurantsystem.cash.CashRegisterReference;
+import com.rest.restaurantsystem.cash.CashRegisterService;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
@@ -34,6 +36,7 @@ public class PaymentService {
     private final OrderService orderService;
     private final OrderItemService orderItemService;
     private final UserService userService;
+    private final CashRegisterService cashRegisterService;
     private final RealtimeEventPublisher realtimeEventPublisher;
 
     public PaymentService(
@@ -44,6 +47,7 @@ public class PaymentService {
             OrderService orderService,
             OrderItemService orderItemService,
             UserService userService,
+            CashRegisterService cashRegisterService,
             RealtimeEventPublisher realtimeEventPublisher
     ) {
         this.paymentRepository = paymentRepository;
@@ -53,6 +57,7 @@ public class PaymentService {
         this.orderService = orderService;
         this.orderItemService = orderItemService;
         this.userService = userService;
+        this.cashRegisterService = cashRegisterService;
         this.realtimeEventPublisher = realtimeEventPublisher;
     }
 
@@ -95,10 +100,14 @@ public class PaymentService {
 
         BigDecimal tenderedAmount = validateTenderedAmount(request);
         String methodLabel = validateMethodLabel(request);
+        CashRegisterReference cashRegister = cashRegisterService.lockOpenForPayment(
+                order.getBranchId()
+        );
         paymentRepository.saveAndFlush(
                 new OrderPayment(
                         request.operationId(),
                         orderId,
+                        cashRegister.id(),
                         request.amount(),
                         tenderedAmount,
                         request.method(),
@@ -135,6 +144,7 @@ public class PaymentService {
         if (payment.getStatus() == PaymentStatus.VOIDED) {
             throw new BadRequestException("El cobro ya fue anulado.");
         }
+        cashRegisterService.ensurePaymentSessionOpen(payment.getCashRegisterSessionId());
         payment.voidPayment(currentUser.id(), request.reason());
         paymentRepository.saveAndFlush(payment);
         order.touch();
@@ -247,6 +257,9 @@ public class PaymentService {
         boolean settled = detail.total().compareTo(BigDecimal.ZERO) > 0
                 && balance.compareTo(BigDecimal.ZERO) == 0;
         String blockingReason = closeBlockingReason(order, detail, settled, balance);
+        CashRegisterReference openCashRegister = cashRegisterService
+                .findOpenReference(order.getBranchId())
+                .orElse(null);
 
         return new OrderPaymentSummaryResponse(
                 detail,
@@ -256,7 +269,9 @@ public class PaymentService {
                 balance,
                 settled,
                 blockingReason == null,
-                blockingReason
+                blockingReason,
+                openCashRegister == null ? null : openCashRegister.id(),
+                openCashRegister == null ? null : openCashRegister.folio()
         );
     }
 
@@ -296,6 +311,7 @@ public class PaymentService {
                 payment.getId(),
                 "PAG-%06d".formatted(payment.getId()),
                 payment.getOperationId(),
+                payment.getCashRegisterSessionId(),
                 payment.getAmount(),
                 payment.getTenderedAmount(),
                 payment.getChangeAmount(),

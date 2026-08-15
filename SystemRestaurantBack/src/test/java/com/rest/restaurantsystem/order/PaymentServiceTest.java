@@ -1,6 +1,8 @@
 package com.rest.restaurantsystem.order;
 
 import com.rest.restaurantsystem.exception.BadRequestException;
+import com.rest.restaurantsystem.cash.CashRegisterReference;
+import com.rest.restaurantsystem.cash.CashRegisterService;
 import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
 import com.rest.restaurantsystem.realtime.RealtimeEventType;
 import com.rest.restaurantsystem.user.UserResponse;
@@ -52,6 +54,9 @@ class PaymentServiceTest {
     private UserService userService;
 
     @Mock
+    private CashRegisterService cashRegisterService;
+
+    @Mock
     private RealtimeEventPublisher realtimeEventPublisher;
 
     @InjectMocks
@@ -77,6 +82,8 @@ class PaymentServiceTest {
                 .thenReturn(Optional.empty());
         when(orderItemService.buildDetail(order)).thenReturn(detail);
         when(paymentRepository.sumActiveByOrderId(42L)).thenReturn(BigDecimal.ZERO);
+        when(cashRegisterService.lockOpenForPayment(1L))
+                .thenReturn(new CashRegisterReference(12L, "CAJ-000012"));
         when(paymentRepository.saveAndFlush(any(OrderPayment.class))).thenAnswer(invocation -> {
             OrderPayment payment = invocation.getArgument(0);
             ReflectionTestUtils.setField(payment, "id", 80L);
@@ -151,6 +158,7 @@ class PaymentServiceTest {
         OrderPayment payment = new OrderPayment(
                 UUID.randomUUID(),
                 42L,
+                12L,
                 new BigDecimal("100.00"),
                 new BigDecimal("100.00"),
                 PaymentMethod.CARD,

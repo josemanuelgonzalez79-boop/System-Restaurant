@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { adminGuard, authGuard, ownerGuard } from './core/guards/auth.guard';
+import { adminGuard, authGuard, cashierGuard, ownerGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -45,6 +45,15 @@ export const routes: Routes = [
       import('./features/preparation/preparation').then((component) => component.PreparationPage),
     canActivate: [authGuard],
     title: 'Preparación | Essential',
+  },
+  {
+    path: 'caja',
+    loadComponent: () =>
+      import('./features/cash-register/cash-register').then(
+        (component) => component.CashRegisterPage,
+      ),
+    canActivate: [cashierGuard],
+    title: 'Caja | Essential',
   },
   {
     path: 'catalogo',

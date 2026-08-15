@@ -1,5 +1,6 @@
 package com.rest.restaurantsystem.structure;
 
+import com.rest.restaurantsystem.cash.CashRegisterOccupancyService;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
@@ -16,10 +17,16 @@ public class BranchService {
 
     private final BranchRepository repository;
     private final OrderOccupancyService occupancyService;
+    private final CashRegisterOccupancyService cashRegisterOccupancyService;
 
-    public BranchService(BranchRepository repository, OrderOccupancyService occupancyService) {
+    public BranchService(
+            BranchRepository repository,
+            OrderOccupancyService occupancyService,
+            CashRegisterOccupancyService cashRegisterOccupancyService
+    ) {
         this.repository = repository;
         this.occupancyService = occupancyService;
+        this.cashRegisterOccupancyService = cashRegisterOccupancyService;
     }
 
     @Transactional(readOnly = true)
@@ -66,6 +73,11 @@ public class BranchService {
         if (!active && branch.isActive() && occupancyService.hasActiveOrdersForBranch(id)) {
             throw new BadRequestException(
                     "Completa o cancela los pedidos abiertos antes de desactivar la sucursal."
+            );
+        }
+        if (!active && branch.isActive() && cashRegisterOccupancyService.hasOpenSession(id)) {
+            throw new BadRequestException(
+                    "Cierra la caja de la sucursal antes de desactivarla."
             );
         }
         branch.setActive(active);

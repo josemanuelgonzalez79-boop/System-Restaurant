@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-interface OrderPaymentRepository extends JpaRepository<OrderPayment, Long> {
+public interface OrderPaymentRepository extends JpaRepository<OrderPayment, Long> {
 
     List<OrderPayment> findByOrderIdOrderByReceivedAtAscIdAsc(Long orderId);
 
@@ -27,4 +27,31 @@ interface OrderPaymentRepository extends JpaRepository<OrderPayment, Long> {
             nativeQuery = true
     )
     BigDecimal sumActiveByOrderId(@Param("orderId") Long orderId);
+
+    @Query("""
+            SELECT COALESCE(SUM(payment.amount), 0)
+            FROM OrderPayment payment
+            WHERE payment.cashRegisterSessionId = :sessionId
+              AND payment.status = com.rest.restaurantsystem.order.PaymentStatus.ACTIVE
+              AND payment.method = :method
+            """)
+    BigDecimal sumActiveByCashRegisterAndMethod(
+            @Param("sessionId") Long sessionId,
+            @Param("method") PaymentMethod method
+    );
+
+    @Query(
+            value = """
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM order_payments payment
+                        JOIN restaurant_orders orders ON orders.id = payment.order_id
+                        WHERE payment.cash_register_session_id = :sessionId
+                          AND payment.status = 'ACTIVE'
+                          AND orders.status IN ('OPEN', 'IN_PROGRESS')
+                    )
+                    """,
+            nativeQuery = true
+    )
+    boolean existsUnclosedOrderWithActivePayment(@Param("sessionId") Long sessionId);
 }

@@ -25,4 +25,18 @@ describe('RealtimeEvent', () => {
       }),
     ).toBe(false);
   });
+
+  it('should accept a cash register event without an order', () => {
+    expect(
+      isRealtimeEvent({
+        eventId: 'e1ef06f3-0292-476b-a811-56cf9f73778c',
+        type: 'CASH_REGISTER_CHANGED',
+        branchId: 3,
+        orderId: null,
+        ticketId: null,
+        preparationItemId: null,
+        occurredAt: '2026-08-15T18:00:00Z',
+      }),
+    ).toBe(true);
+  });
 });

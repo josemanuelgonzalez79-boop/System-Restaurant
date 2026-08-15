@@ -28,6 +28,9 @@ class OrderPayment {
     @Column(name = "order_id", nullable = false, updatable = false)
     private Long orderId;
 
+    @Column(name = "cash_register_session_id", updatable = false)
+    private Long cashRegisterSessionId;
+
     @Column(nullable = false, precision = 12, scale = 2, updatable = false)
     private BigDecimal amount;
 
@@ -72,6 +75,7 @@ class OrderPayment {
     OrderPayment(
             UUID operationId,
             Long orderId,
+            Long cashRegisterSessionId,
             BigDecimal amount,
             BigDecimal tenderedAmount,
             PaymentMethod method,
@@ -82,6 +86,7 @@ class OrderPayment {
     ) {
         this.operationId = operationId;
         this.orderId = orderId;
+        this.cashRegisterSessionId = cashRegisterSessionId;
         this.amount = amount;
         this.tenderedAmount = tenderedAmount;
         this.method = method;
@@ -113,6 +118,10 @@ class OrderPayment {
 
     Long getOrderId() {
         return orderId;
+    }
+
+    Long getCashRegisterSessionId() {
+        return cashRegisterSessionId;
     }
 
     BigDecimal getAmount() {

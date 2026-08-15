@@ -11,6 +11,8 @@ public record OrderPaymentSummaryResponse(
         BigDecimal balance,
         boolean settled,
         boolean canClose,
-        String closeBlockingReason
+        String closeBlockingReason,
+        Long openCashRegisterSessionId,
+        String openCashRegisterSessionFolio
 ) {
 }

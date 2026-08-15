@@ -59,6 +59,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
 - Reconexión automática e indicador visible del canal en tiempo real.
 - Cobro completo o dividido, cambio en efectivo e historial de movimientos.
 - Anulación auditable, cierre pagado de la cuenta y comprobante interno imprimible.
+- Apertura de caja por sucursal, movimientos manuales y totales por forma de pago.
+- Arqueo con efectivo esperado, conteo real, diferencia e historial imprimible.
 
 Rutas:
 
@@ -69,6 +71,7 @@ Rutas:
 /pedidos
 /pedidos/:id/cobro
 /preparacion
+/caja
 /catalogo
 /estructura
 /configuracion

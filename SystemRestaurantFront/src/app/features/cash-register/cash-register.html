@@ -1,0 +1,523 @@
+<section class="cash-heading">
+  <div>
+    <span class="eyebrow">Control del turno</span>
+    <h1>Caja</h1>
+    <p>Controla el fondo, los cobros, las entradas y salidas de efectivo y el corte.</p>
+  </div>
+  <div class="heading-actions no-print">
+    <p-button
+      [label]="showHistory() ? 'Ocultar historial' : 'Ver historial'"
+      icon="pi pi-history"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="toggleHistory()"
+    />
+    <p-button
+      label="Actualizar"
+      icon="pi pi-refresh"
+      severity="secondary"
+      [outlined]="true"
+      [loading]="refreshing()"
+      [disabled]="selectedBranchId() === null"
+      (onClick)="refresh()"
+    />
+  </div>
+</section>
+
+<section class="branch-toolbar no-print">
+  <label>
+    <span>Sucursal</span>
+    <select [value]="selectedBranchId() ?? ''" (change)="selectBranch($any($event.target).value)">
+      @for (branch of branches(); track branch.id) {
+        <option [value]="branch.id">{{ branch.name }}</option>
+      }
+    </select>
+  </label>
+  <div class="branch-state">
+    <i [class]="current() ? 'pi pi-lock-open' : 'pi pi-lock'"></i>
+    <span>
+      <strong>{{ current() ? 'Caja abierta' : 'Sin caja abierta' }}</strong>
+      <small>{{ current()?.session?.folio || 'Los cobros esperan un turno activo' }}</small>
+    </span>
+  </div>
+</section>
+
+@if (loading()) {
+  <div class="loading">Consultando la caja…</div>
+} @else if (branches().length === 0) {
+  <section class="empty-state">
+    <i class="pi pi-building"></i>
+    <h2>Tu usuario no tiene sucursales asignadas</h2>
+    <p>Un propietario o administrador debe asignarte desde Estructura.</p>
+  </section>
+} @else if (current(); as summary) {
+  <section class="session-strip">
+    <div>
+      <span>Turno abierto</span>
+      <strong>{{ summary.session.folio }} · {{ summary.session.branchName }}</strong>
+      <small>
+        Abrió {{ summary.session.openedByUserName }} ·
+        {{ summary.session.openedAt | date: 'short' }}
+      </small>
+    </div>
+    <div class="session-actions no-print">
+      <p-button
+        label="Imprimir corte"
+        icon="pi pi-print"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="printCut()"
+      />
+      <p-button
+        label="Cerrar caja"
+        icon="pi pi-lock"
+        severity="danger"
+        [disabled]="!summary.canClose"
+        (onClick)="openCloseDialog()"
+      />
+    </div>
+  </section>
+
+  <section class="cash-summary">
+    <article class="expected">
+      <span>Efectivo esperado</span>
+      <strong>{{
+        summary.expectedCash | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      <small>Fondo + ventas + entradas − salidas</small>
+    </article>
+    <article>
+      <span>Ventas en efectivo</span>
+      <strong>{{
+        summary.cashPayments | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      <small>Aplicadas a pedidos</small>
+    </article>
+    <article>
+      <span>Pagos electrónicos</span>
+      <strong>{{
+        electronicPayments() | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      <small>Tarjeta, transferencia y otros</small>
+    </article>
+    <article>
+      <span>Movimientos manuales</span>
+      <strong>{{
+        netManualMovements() | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      <small>Entradas menos salidas</small>
+    </article>
+  </section>
+
+  <section class="cash-layout">
+    <article class="breakdown-card">
+      <header>
+        <span class="eyebrow">Resumen</span>
+        <h2>Composición del turno</h2>
+      </header>
+      <dl>
+        <div>
+          <dt>Fondo inicial</dt>
+          <dd>
+            {{
+              summary.session.openingAmount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>Efectivo cobrado</dt>
+          <dd>
+            {{ summary.cashPayments | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+          </dd>
+        </div>
+        <div>
+          <dt>Tarjetas</dt>
+          <dd>
+            {{ summary.cardPayments | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+          </dd>
+        </div>
+        <div>
+          <dt>Transferencias</dt>
+          <dd>
+            {{ summary.transferPayments | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+          </dd>
+        </div>
+        <div>
+          <dt>Otros pagos</dt>
+          <dd>
+            {{ summary.otherPayments | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+          </dd>
+        </div>
+        <div class="positive">
+          <dt>Entradas manuales</dt>
+          <dd>+{{ summary.cashIn | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</dd>
+        </div>
+        <div class="negative">
+          <dt>Salidas manuales</dt>
+          <dd>−{{ summary.cashOut | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</dd>
+        </div>
+      </dl>
+      @if (summary.session.openingNotes) {
+        <p class="session-note"><i class="pi pi-comment"></i>{{ summary.session.openingNotes }}</p>
+      }
+      <div class="manual-actions no-print">
+        <p-button
+          label="Registrar entrada"
+          icon="pi pi-plus-circle"
+          severity="success"
+          [outlined]="true"
+          (onClick)="openMovement('CASH_IN')"
+        />
+        <p-button
+          label="Registrar salida"
+          icon="pi pi-minus-circle"
+          severity="danger"
+          [outlined]="true"
+          (onClick)="openMovement('CASH_OUT')"
+        />
+      </div>
+      @if (!summary.canClose) {
+        <div class="blocking-note">
+          <i class="pi pi-info-circle"></i>
+          {{ summary.closeBlockingReason }}
+        </div>
+      }
+    </article>
+
+    <article class="movements-card">
+      <header>
+        <div>
+          <span class="eyebrow">Auditoría</span>
+          <h2>Entradas y salidas</h2>
+        </div>
+        <p-tag [value]="summary.movements.length + ' movimiento(s)'" severity="secondary" />
+      </header>
+      <div class="movement-list">
+        @for (movement of summary.movements; track movement.id) {
+          <article [class.voided]="movement.status === 'VOIDED'">
+            <div class="movement-icon" [class.out]="movement.movementType === 'CASH_OUT'">
+              <i
+                [class]="
+                  movement.movementType === 'CASH_IN'
+                    ? 'pi pi-arrow-down-left'
+                    : 'pi pi-arrow-up-right'
+                "
+              ></i>
+            </div>
+            <div class="movement-description">
+              <strong>{{ movement.concept }}</strong>
+              <span>
+                {{ movement.folio }} · {{ movementLabel(movement.movementType) }} ·
+                {{ movement.recordedAt | date: 'short' }}
+              </span>
+              <small>Registró: {{ movement.recordedByUserName }}</small>
+              @if (movement.status === 'VOIDED') {
+                <small class="void-detail">
+                  Anuló {{ movement.voidedByUserName }} · {{ movement.voidedAt | date: 'short' }} ·
+                  {{ movement.voidReason }}
+                </small>
+              }
+            </div>
+            <div class="movement-amount">
+              <strong [class.out]="movement.movementType === 'CASH_OUT'">
+                {{ movement.movementType === 'CASH_IN' ? '+' : '−'
+                }}{{ movement.amount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+              </strong>
+              <p-tag
+                [value]="movement.status === 'ACTIVE' ? 'Aplicado' : 'Anulado'"
+                [severity]="movement.status === 'ACTIVE' ? 'success' : 'danger'"
+              />
+              @if (movement.status === 'ACTIVE') {
+                <p-button
+                  class="no-print"
+                  label="Anular"
+                  icon="pi pi-ban"
+                  severity="danger"
+                  size="small"
+                  [text]="true"
+                  (onClick)="openVoid(movement)"
+                />
+              }
+            </div>
+          </article>
+        } @empty {
+          <div class="empty-movements">
+            <i class="pi pi-receipt"></i>
+            <strong>Sin entradas o salidas manuales</strong>
+            <span>Los cobros de pedidos ya están incluidos automáticamente en el resumen.</span>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
+} @else {
+  <section class="open-layout">
+    <article class="open-card no-print">
+      <header>
+        <span class="eyebrow">Inicio del turno</span>
+        <h2>Abrir caja</h2>
+        <p>Registra cuánto efectivo existe físicamente antes del primer cobro.</p>
+      </header>
+      <form [formGroup]="openForm" (ngSubmit)="submitOpen()">
+        <label>
+          <span>Fondo inicial</span>
+          <p-inputnumber
+            formControlName="openingAmount"
+            mode="currency"
+            currency="MXN"
+            locale="es-MX"
+            [min]="0"
+          />
+          <small>Puede ser $0.00 si el turno inicia sin fondo.</small>
+        </label>
+        <label>
+          <span>Nota de apertura</span>
+          <textarea
+            pTextarea
+            formControlName="notes"
+            rows="3"
+            placeholder="Ej. turno matutino o fondo entregado por gerencia"
+          ></textarea>
+        </label>
+        <p-button
+          type="submit"
+          label="Abrir caja"
+          icon="pi pi-lock-open"
+          [loading]="saving()"
+          [disabled]="openForm.invalid"
+        />
+      </form>
+    </article>
+    <article class="open-explanation">
+      <i class="pi pi-shield"></i>
+      <h2>Una caja por sucursal</h2>
+      <p>
+        Todas las tablets asignadas podrán cobrar sobre este mismo turno. Essential separará
+        efectivo, tarjeta, transferencia y movimientos manuales para realizar el corte.
+      </p>
+      <ul>
+        <li>Los cobros no pueden registrarse sin una caja abierta.</li>
+        <li>Las entradas y salidas requieren importe, concepto y responsable.</li>
+        <li>El turno no cierra si existen cuentas parcialmente cobradas.</li>
+      </ul>
+    </article>
+  </section>
+}
+
+@if (showHistory() && history().length > 0) {
+  <section class="history-card">
+    <header>
+      <div>
+        <span class="eyebrow">Últimos 30 turnos</span>
+        <h2>Historial de caja</h2>
+      </div>
+      <p-button
+        class="no-print"
+        label="Imprimir"
+        icon="pi pi-print"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="printCut()"
+      />
+    </header>
+    <div class="history-table">
+      <div class="history-row history-head">
+        <span>Turno</span>
+        <span>Apertura</span>
+        <span>Cierre</span>
+        <span>Esperado</span>
+        <span>Contado</span>
+        <span>Diferencia</span>
+        <span>Estado</span>
+      </div>
+      @for (item of history(); track item.session.id) {
+        <div class="history-row">
+          <span
+            ><strong>{{ item.session.folio }}</strong
+            ><small>{{ item.session.openedByUserName }}</small></span
+          >
+          <span>{{ item.session.openedAt | date: 'short' }}</span>
+          <span>{{ item.session.closedAt ? (item.session.closedAt | date: 'short') : '—' }}</span>
+          <span>{{
+            item.expectedCash | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+          }}</span>
+          <span>{{
+            item.session.countedCashAtClose === null
+              ? '—'
+              : (item.session.countedCashAtClose
+                | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX')
+          }}</span>
+          <span>{{
+            item.session.differenceAtClose === null
+              ? '—'
+              : (item.session.differenceAtClose
+                | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX')
+          }}</span>
+          <span>
+            <p-tag
+              [value]="item.session.status === 'OPEN' ? 'Abierta' : 'Cerrada'"
+              [severity]="item.session.status === 'OPEN' ? 'success' : 'secondary'"
+            />
+          </span>
+        </div>
+      }
+    </div>
+  </section>
+}
+
+<p-dialog
+  header="Movimiento de efectivo"
+  [modal]="true"
+  [visible]="movementDialogVisible()"
+  [style]="{ width: 'min(94vw, 520px)' }"
+  (visibleChange)="$event ? null : closeMovementDialog()"
+>
+  <form [formGroup]="movementForm" (ngSubmit)="submitMovement()" class="dialog-form">
+    <label>
+      <span>Tipo</span>
+      <p-select
+        formControlName="movementType"
+        [options]="movementTypes"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </label>
+    <label>
+      <span>Importe</span>
+      <p-inputnumber
+        formControlName="amount"
+        mode="currency"
+        currency="MXN"
+        locale="es-MX"
+        [min]="0.01"
+      />
+    </label>
+    <label>
+      <span>Concepto</span>
+      <input pInputText formControlName="concept" placeholder="Ej. compra de hielo" />
+    </label>
+    <div class="dialog-actions">
+      <p-button
+        type="button"
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="closeMovementDialog()"
+      />
+      <p-button
+        type="submit"
+        label="Guardar movimiento"
+        icon="pi pi-save"
+        [loading]="saving()"
+        [disabled]="movementForm.invalid"
+      />
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog
+  header="Cerrar caja"
+  [modal]="true"
+  [visible]="closeDialogVisible()"
+  [style]="{ width: 'min(94vw, 560px)' }"
+  (visibleChange)="$event ? null : closeCloseDialog()"
+>
+  @if (current(); as summary) {
+    <form [formGroup]="closeForm" (ngSubmit)="submitClose()" class="dialog-form">
+      <div class="cut-preview">
+        <span>Efectivo esperado</span>
+        <strong>{{
+          summary.expectedCash | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+        }}</strong>
+      </div>
+      <label>
+        <span>Efectivo contado físicamente</span>
+        <p-inputnumber
+          formControlName="countedCash"
+          mode="currency"
+          currency="MXN"
+          locale="es-MX"
+          [min]="0"
+        />
+      </label>
+      <div
+        class="difference-preview"
+        [class.negative]="countedDifference() < 0"
+        [class.positive]="countedDifference() > 0"
+      >
+        <span>Diferencia del corte</span>
+        <strong>{{
+          countedDifference() | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+        }}</strong>
+      </div>
+      <label>
+        <span>Nota de cierre</span>
+        <textarea
+          pTextarea
+          formControlName="notes"
+          rows="3"
+          placeholder="Explica cualquier diferencia u observación"
+        ></textarea>
+      </label>
+      <div class="dialog-actions">
+        <p-button
+          type="button"
+          label="Conservar abierta"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="closeCloseDialog()"
+        />
+        <p-button
+          type="submit"
+          label="Confirmar cierre"
+          icon="pi pi-lock"
+          severity="danger"
+          [loading]="saving()"
+          [disabled]="closeForm.invalid"
+        />
+      </div>
+    </form>
+  }
+</p-dialog>
+
+<p-dialog
+  header="Anular movimiento"
+  [modal]="true"
+  [visible]="voidDialogVisible()"
+  [style]="{ width: 'min(94vw, 500px)' }"
+  (visibleChange)="$event ? null : closeVoidDialog()"
+>
+  @if (selectedMovement(); as movement) {
+    <form [formGroup]="voidForm" (ngSubmit)="submitVoid()" class="dialog-form">
+      <div class="void-summary">
+        <i class="pi pi-exclamation-triangle"></i>
+        <div>
+          <strong>{{ movement.folio }} · {{ movement.concept }}</strong>
+          <span>{{ movement.amount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</span>
+        </div>
+      </div>
+      <p>El movimiento permanecerá visible con el usuario, fecha y motivo de anulación.</p>
+      <label>
+        <span>Motivo</span>
+        <textarea pTextarea formControlName="reason" rows="3"></textarea>
+      </label>
+      <div class="dialog-actions">
+        <p-button
+          type="button"
+          label="Conservar"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="closeVoidDialog()"
+        />
+        <p-button
+          type="submit"
+          label="Anular movimiento"
+          icon="pi pi-ban"
+          severity="danger"
+          [loading]="saving()"
+          [disabled]="voidForm.invalid"
+        />
+      </div>
+    </form>
+  }
+</p-dialog>

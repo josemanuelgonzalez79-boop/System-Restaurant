@@ -10,11 +10,11 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 
 ## Estado de la edición básica
 
-- Terminados: 8 de 12 bloques funcionales.
-- Avance medido por bloques: 67 %.
-- Avance práctico estimado: alrededor de 75 %, porque el flujo operativo ya cubre desde abrir una
-  mesa hasta cobrar, cerrar el pedido y liberarla.
-- Restan 4 bloques: caja, reporte, respaldos e instalación.
+- Terminados: 9 de 12 bloques funcionales.
+- Avance medido por bloques: 75 %.
+- Avance práctico estimado: alrededor de 84 %, porque el flujo operativo ya cubre desde abrir una
+  mesa hasta cobrar, cerrar el pedido, liberar la mesa y realizar el corte de caja.
+- Restan 3 bloques: reporte diario, respaldos e instalación.
 
 ## Bloques terminados
 
@@ -117,6 +117,23 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
     enviadas y preparación ya no tiene trabajo activo.
 12. Los cambios de cobro notifican a las demás tablets mediante el canal en tiempo real.
 
+### Bloque 9: apertura y cierre básico de caja
+
+1. Cada sucursal mantiene como máximo un turno de caja abierto, compartido por las tablets del
+   local.
+2. Propietario, administrador, gerente o cajero abre la caja con fondo inicial y observaciones.
+3. Todo cobro nuevo queda asociado al turno abierto; sin caja abierta no se registran pagos.
+4. Efectivo, tarjeta, transferencia y otros métodos se totalizan por separado.
+5. Entradas y salidas manuales guardan importe, concepto, responsable y hora.
+6. Una salida no puede superar el efectivo esperado.
+7. Los movimientos anulados permanecen en el historial con responsable, fecha y motivo.
+8. El efectivo esperado combina fondo inicial, cobros en efectivo y movimientos manuales activos.
+9. El cierre registra efectivo contado, esperado, diferencia, responsable y notas.
+10. No se permite cerrar caja mientras una cuenta cobrada parcial o totalmente siga abierta.
+11. Tampoco se puede desactivar una sucursal mientras su caja esté abierta.
+12. Los cambios de caja y cobro se reflejan en las demás tablets mediante el canal en tiempo real.
+13. La pantalla conserva los últimos 30 turnos y ofrece un corte imprimible desde el navegador.
+
 ### Roles disponibles
 
 | Rol        | Uso previsto                                                     |
@@ -124,7 +141,7 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 | `OWNER`    | Propietario de la instalación; controla usuarios y configuración |
 | `ADMIN`    | Administración de configuración y catálogo                       |
 | `MANAGER`  | Supervisión operativa                                            |
-| `CASHIER`  | Caja y cobros futuros                                            |
+| `CASHIER`  | Apertura, movimientos y cierre de caja                           |
 | `OPERATOR` | Operación diaria                                                 |
 
 ## Reglas incorporadas
@@ -153,8 +170,8 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 | 6      | Pantalla de cocina/barra y estados por partida                     | Terminado |
 | 7      | Notificaciones en tiempo real                                      | Terminado |
 | 8      | Cobro y formas de pago                                             | Terminado |
-| 9      | Apertura y cierre básico de caja                                   | Siguiente |
-| 10     | Reporte diario                                                     | Pendiente |
+| 9      | Apertura y cierre básico de caja                                   | Terminado |
+| 10     | Reporte diario                                                     | Siguiente |
 | 11     | Respaldos y restauración                                           | Pendiente |
 | 12     | Instalación en la red local                                        | Pendiente |
 
@@ -176,14 +193,14 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 - La edición básica no incluye CFDI/SAT, nube pública, inventario por receta, clientes frecuentes,
   reservaciones ni integraciones de reparto; se consideran para ediciones posteriores.
 
-## Próximo bloque: apertura y cierre básico de caja
+## Próximo bloque: reporte diario
 
-El siguiente desarrollo organizará los movimientos de cobro dentro de un turno de caja:
+El siguiente desarrollo convertirá la operación guardada en un resumen útil para el propietario:
 
-- Abrir una caja con fondo inicial y usuario responsable.
-- Asociar cobros del turno con la caja abierta de la sucursal.
-- Registrar entradas y salidas manuales con concepto y responsable.
-- Realizar corte esperado contra conteo real y guardar diferencias.
-- Consultar el historial de aperturas y cierres sin borrar movimientos.
+- Consultar ventas por fecha, sucursal y turno de caja.
+- Separar efectivo, tarjeta, transferencia y otros métodos.
+- Mostrar pedidos, productos, cancelaciones y anulaciones del día.
+- Presentar totales claros sin sustituir la información contable o fiscal.
+- Imprimir o descargar un resumen operativo diario.
 
 Consulta `PLANES-Y-ALCANCE.md` para la separación propuesta de las tres ediciones.

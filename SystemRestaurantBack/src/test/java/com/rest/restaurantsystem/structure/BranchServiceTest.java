@@ -1,5 +1,6 @@
 package com.rest.restaurantsystem.structure;
 
+import com.rest.restaurantsystem.cash.CashRegisterOccupancyService;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.order.OrderOccupancyService;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,9 @@ class BranchServiceTest {
 
     @Mock
     private OrderOccupancyService occupancyService;
+
+    @Mock
+    private CashRegisterOccupancyService cashRegisterOccupancyService;
 
     @InjectMocks
     private BranchService service;
@@ -54,6 +58,16 @@ class BranchServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(branch));
         when(repository.countByActiveTrue()).thenReturn(2L);
         when(occupancyService.hasActiveOrdersForBranch(1L)).thenReturn(true);
+
+        assertThrows(BadRequestException.class, () -> service.changeActive(1L, false));
+    }
+
+    @Test
+    void rejectsDeactivationWithOpenCashRegister() {
+        Branch branch = new Branch(validRequest());
+        when(repository.findById(1L)).thenReturn(Optional.of(branch));
+        when(repository.countByActiveTrue()).thenReturn(2L);
+        when(cashRegisterOccupancyService.hasOpenSession(1L)).thenReturn(true);
 
         assertThrows(BadRequestException.class, () -> service.changeActive(1L, false));
     }

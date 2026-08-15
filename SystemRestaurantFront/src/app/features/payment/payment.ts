@@ -45,7 +45,7 @@ export class PaymentPage implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly paymentApi = inject(PaymentApiService);
   private readonly realtime = inject(RealtimeService);
-  private readonly auth = inject(AuthApiService);
+  protected readonly auth = inject(AuthApiService);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
   private realtimeSubscription?: Subscription;
@@ -88,6 +88,9 @@ export class PaymentPage implements OnInit, OnDestroy {
     const status = this.summary()?.orderDetail.order.status;
     return status === 'OPEN' || status === 'IN_PROGRESS';
   });
+  protected readonly cashRegisterOpen = computed(
+    () => this.summary()?.openCashRegisterSessionId !== null,
+  );
 
   protected readonly paymentForm = this.formBuilder.nonNullable.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
@@ -264,6 +267,10 @@ export class PaymentPage implements OnInit, OnDestroy {
 
   protected refresh(): void {
     this.load(false);
+  }
+
+  protected openCashRegister(): void {
+    void this.router.navigate(['/caja']);
   }
 
   private bindFormSignals(): void {

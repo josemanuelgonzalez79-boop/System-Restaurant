@@ -98,6 +98,30 @@ h2 {
   background: var(--p-green-50);
 }
 
+.cash-required {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  color: var(--p-orange-900);
+  background: var(--p-orange-50);
+}
+
+.cash-required > div {
+  flex: 1;
+}
+
+.cash-required strong,
+.cash-required span {
+  display: block;
+}
+
+.cash-required span {
+  margin-top: 0.1rem;
+}
+
 .settled-banner i {
   font-size: 1.4rem;
 }
@@ -380,7 +404,8 @@ h2 {
 
 @media (max-width: 680px) {
   .payment-heading,
-  .close-panel {
+  .close-panel,
+  .cash-required {
     align-items: stretch;
     flex-direction: column;
   }

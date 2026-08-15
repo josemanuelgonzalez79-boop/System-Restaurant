@@ -35,6 +35,10 @@ export class AuthApiService {
     const role = this.currentUser()?.role;
     return role === 'OWNER' || role === 'ADMIN';
   });
+  readonly canOperateCash = computed(() => {
+    const role = this.currentUser()?.role;
+    return role === 'OWNER' || role === 'ADMIN' || role === 'MANAGER' || role === 'CASHIER';
+  });
 
   ensureInitialized(): Observable<boolean> {
     if (this.initialized()) {
