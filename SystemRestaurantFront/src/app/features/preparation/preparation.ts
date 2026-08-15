@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { finalize, interval, Subscription } from 'rxjs';
+import { auditTime, finalize, interval, Subscription } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -14,6 +14,7 @@ import {
 import { Branch } from '../../core/models/structure.model';
 import { OrderApiService } from '../../core/services/order-api.service';
 import { PreparationApiService } from '../../core/services/preparation-api.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 
 type DestinationFilter = 'ALL' | 'PRODUCTION' | 'SERVICE';
 
@@ -27,9 +28,13 @@ type DestinationFilter = 'ALL' | 'PRODUCTION' | 'SERVICE';
 export class PreparationPage implements OnInit, OnDestroy {
   private readonly orderApi = inject(OrderApiService);
   private readonly preparationApi = inject(PreparationApiService);
+  protected readonly realtime = inject(RealtimeService);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
-  private refreshSubscription?: Subscription;
+  private fallbackSubscription?: Subscription;
+  private realtimeSubscription?: Subscription;
+  private pendingRealtimeRefresh = false;
+  private ticketsRequestActive = false;
 
   protected readonly loading = signal(true);
   protected readonly refreshing = signal(false);
@@ -70,9 +75,8 @@ export class PreparationPage implements OnInit, OnDestroy {
     this.tickets().reduce(
       (total, ticket) =>
         total +
-        ticket.items.filter((item) =>
-          ['PENDING', 'IN_PREPARATION', 'READY'].includes(item.status),
-        ).length,
+        ticket.items.filter((item) => ['PENDING', 'IN_PREPARATION', 'READY'].includes(item.status))
+          .length,
       0,
     ),
   );
@@ -86,22 +90,35 @@ export class PreparationPage implements OnInit, OnDestroy {
         this.loading.set(false);
         return;
       }
+      this.watchBranch(firstBranch);
       this.loadTickets(false);
     });
-    this.refreshSubscription = interval(15_000).subscribe(() => {
-      if (!this.loading() && !this.refreshing() && this.changingIds().size === 0) {
+    this.fallbackSubscription = interval(60_000).subscribe(() => {
+      if (
+        !this.loading() &&
+        !this.refreshing() &&
+        !this.ticketsRequestActive &&
+        this.changingIds().size === 0
+      ) {
         this.loadTickets(true);
       }
     });
   }
 
   ngOnDestroy(): void {
-    this.refreshSubscription?.unsubscribe();
+    this.fallbackSubscription?.unsubscribe();
+    this.realtimeSubscription?.unsubscribe();
   }
 
   protected selectBranch(value: string): void {
     const branchId = Number(value);
     this.selectedBranchId.set(Number.isInteger(branchId) && branchId > 0 ? branchId : null);
+    this.realtimeSubscription?.unsubscribe();
+    this.realtimeSubscription = undefined;
+    this.pendingRealtimeRefresh = false;
+    if (this.selectedBranchId() !== null) {
+      this.watchBranch(this.selectedBranchId() as number);
+    }
     this.loadTickets(false);
   }
 
@@ -204,7 +221,9 @@ export class PreparationPage implements OnInit, OnDestroy {
   }
 
   protected historyItems(ticket: PreparationTicket): PreparationItem[] {
-    return ticket.items.filter((item) => item.status === 'DELIVERED' || item.status === 'CANCELLED');
+    return ticket.items.filter(
+      (item) => item.status === 'DELIVERED' || item.status === 'CANCELLED',
+    );
   }
 
   private loadTickets(silent: boolean): void {
@@ -214,6 +233,11 @@ export class PreparationPage implements OnInit, OnDestroy {
       this.loading.set(false);
       return;
     }
+    if (this.ticketsRequestActive) {
+      this.pendingRealtimeRefresh = true;
+      return;
+    }
+    this.ticketsRequestActive = true;
     if (!silent) {
       this.refreshing.set(true);
     }
@@ -223,13 +247,45 @@ export class PreparationPage implements OnInit, OnDestroy {
       .findTickets(branchId, destination, !this.showHistory())
       .pipe(
         finalize(() => {
+          this.ticketsRequestActive = false;
           this.loading.set(false);
           if (!silent) {
             this.refreshing.set(false);
           }
+          this.flushRealtimeRefresh();
         }),
       )
       .subscribe((tickets) => this.tickets.set(tickets));
+  }
+
+  private watchBranch(branchId: number): void {
+    this.realtimeSubscription = this.realtime
+      .watchBranch(branchId)
+      .pipe(auditTime(200))
+      .subscribe(() => {
+        if (this.selectedBranchId() !== branchId) {
+          return;
+        }
+        if (this.refreshing() || this.ticketsRequestActive || this.changingIds().size > 0) {
+          this.pendingRealtimeRefresh = true;
+          return;
+        }
+        this.loadTickets(true);
+      });
+  }
+
+  private flushRealtimeRefresh(): void {
+    const branchId = this.selectedBranchId();
+    if (
+      this.pendingRealtimeRefresh &&
+      branchId !== null &&
+      !this.refreshing() &&
+      !this.ticketsRequestActive &&
+      this.changingIds().size === 0
+    ) {
+      this.pendingRealtimeRefresh = false;
+      this.loadTickets(true);
+    }
   }
 
   private changeStatus(item: PreparationItem, status: PreparationStatus): void {
@@ -243,6 +299,7 @@ export class PreparationPage implements OnInit, OnDestroy {
             next.delete(item.id);
             return next;
           });
+          this.flushRealtimeRefresh();
         }),
       )
       .subscribe((updatedTicket) => {
@@ -255,9 +312,7 @@ export class PreparationPage implements OnInit, OnDestroy {
           if (!hasVisibleItems) {
             return tickets.filter((ticket) => ticket.id !== updatedTicket.id);
           }
-          return tickets.map((ticket) =>
-            ticket.id === updatedTicket.id ? updatedTicket : ticket,
-          );
+          return tickets.map((ticket) => (ticket.id === updatedTicket.id ? updatedTicket : ticket));
         });
         this.messages.add({
           severity: status === 'CANCELLED' ? 'warn' : 'success',

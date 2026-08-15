@@ -7,6 +7,8 @@ import com.rest.restaurantsystem.catalog.product.ProductDestination;
 import com.rest.restaurantsystem.catalog.product.ProductResponse;
 import com.rest.restaurantsystem.catalog.product.ProductService;
 import com.rest.restaurantsystem.exception.BadRequestException;
+import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
+import com.rest.restaurantsystem.realtime.RealtimeEventType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -48,6 +50,9 @@ class OrderItemServiceTest {
     @Mock
     private ModifierGroupService modifierGroupService;
 
+    @Mock
+    private RealtimeEventPublisher realtimeEventPublisher;
+
     @InjectMocks
     private OrderItemService service;
 
@@ -88,6 +93,13 @@ class OrderItemServiceTest {
         assertThat(result.modifierSubtotal()).isEqualByComparingTo("50.00");
         assertThat(result.total()).isEqualByComparingTo("250.00");
         assertThat(result.order().status()).isEqualTo(OrderStatus.IN_PROGRESS);
+        verify(realtimeEventPublisher).publish(
+                RealtimeEventType.ORDER_ITEMS_CHANGED,
+                1L,
+                42L,
+                null,
+                null
+        );
     }
 
     @Test

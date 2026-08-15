@@ -15,7 +15,7 @@ npm ci
 npm start
 ```
 
-La aplicación abre en `http://localhost:4200`. `proxy.conf.json` redirige `/api` hacia el
+La aplicación abre en `http://localhost:4200`. `proxy.conf.json` redirige `/api` y `/ws` hacia el
 backend local.
 
 ## Compilar
@@ -55,6 +55,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
 - Captura táctil con variantes, notas y total.
 - Envío de comandas nuevas a cocina o servicio.
 - Tablero de preparación por sucursal, ruta y estado de cada partida.
+- Avisos STOMP/WebSocket por sucursal y actualización inmediata desde REST.
+- Reconexión automática e indicador visible del canal en tiempo real.
 
 Rutas:
 

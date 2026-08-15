@@ -4,6 +4,8 @@ import com.rest.restaurantsystem.catalog.product.ProductDestination;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
+import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
+import com.rest.restaurantsystem.realtime.RealtimeEventType;
 import com.rest.restaurantsystem.user.UserResponse;
 import com.rest.restaurantsystem.user.UserService;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -41,6 +43,7 @@ public class PreparationService {
     private final OrderService orderService;
     private final OrderItemService orderItemService;
     private final UserService userService;
+    private final RealtimeEventPublisher realtimeEventPublisher;
 
     public PreparationService(
             PreparationTicketRepository ticketRepository,
@@ -51,7 +54,8 @@ public class PreparationService {
             RestaurantOrderRepository orderRepository,
             OrderService orderService,
             OrderItemService orderItemService,
-            UserService userService
+            UserService userService,
+            RealtimeEventPublisher realtimeEventPublisher
     ) {
         this.ticketRepository = ticketRepository;
         this.preparationItemRepository = preparationItemRepository;
@@ -62,6 +66,7 @@ public class PreparationService {
         this.orderService = orderService;
         this.orderItemService = orderItemService;
         this.userService = userService;
+        this.realtimeEventPublisher = realtimeEventPublisher;
     }
 
     @Transactional
@@ -165,10 +170,18 @@ public class PreparationService {
                     "Otra tablet modificó el pedido durante el envío. Actualiza e intenta nuevamente."
             );
         }
-        return new OrderDispatchResponse(
+        OrderDispatchResponse response = new OrderDispatchResponse(
                 orderItemService.buildDetail(order),
                 buildResponses(createdTickets)
         );
+        realtimeEventPublisher.publish(
+                RealtimeEventType.PREPARATION_DISPATCHED,
+                order.getBranchId(),
+                order.getId(),
+                null,
+                null
+        );
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -233,7 +246,15 @@ public class PreparationService {
                     "La partida cambió en otra pantalla. Actualiza e intenta nuevamente."
             );
         }
-        return buildResponses(List.of(ticket)).getFirst();
+        PreparationTicketResponse response = buildResponses(List.of(ticket)).getFirst();
+        realtimeEventPublisher.publish(
+                RealtimeEventType.PREPARATION_ITEM_CHANGED,
+                ticket.getBranchId(),
+                ticket.getOrderId(),
+                ticket.getId(),
+                item.getId()
+        );
+        return response;
     }
 
     private void ensureEditable(RestaurantOrder order) {

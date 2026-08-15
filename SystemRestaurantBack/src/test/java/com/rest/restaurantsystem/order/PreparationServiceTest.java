@@ -3,6 +3,8 @@ package com.rest.restaurantsystem.order;
 import com.rest.restaurantsystem.catalog.product.ProductDestination;
 import com.rest.restaurantsystem.catalog.product.ProductResponse;
 import com.rest.restaurantsystem.exception.BadRequestException;
+import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
+import com.rest.restaurantsystem.realtime.RealtimeEventType;
 import com.rest.restaurantsystem.user.UserResponse;
 import com.rest.restaurantsystem.user.UserRole;
 import com.rest.restaurantsystem.user.UserService;
@@ -24,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,6 +58,9 @@ class PreparationServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private RealtimeEventPublisher realtimeEventPublisher;
 
     @InjectMocks
     private PreparationService service;
@@ -109,6 +115,13 @@ class PreparationServiceTest {
                 .containsExactly(ProductDestination.PRODUCTION, ProductDestination.SERVICE);
         assertThat(kitchenItem.getSentAt()).isNotNull();
         assertThat(serviceItem.getSentAt()).isNotNull();
+        verify(realtimeEventPublisher).publish(
+                RealtimeEventType.PREPARATION_DISPATCHED,
+                1L,
+                42L,
+                null,
+                null
+        );
     }
 
     @Test

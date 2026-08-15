@@ -10,11 +10,11 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 
 ## Estado de la edición básica
 
-- Terminados: 6 de 12 bloques funcionales.
-- Avance medido por bloques: 50 %.
-- Avance práctico estimado: entre 55 % y 60 %, porque el flujo operativo ya llega desde abrir
-  una mesa y capturar su pedido hasta enviar comandas y completar el trabajo de cocina o servicio.
-- Restan 6 bloques: actualización en tiempo real, cobro, caja, reporte, respaldos e instalación.
+- Terminados: 7 de 12 bloques funcionales.
+- Avance medido por bloques: 58 %.
+- Avance práctico estimado: alrededor de 65 %, porque el flujo operativo ya llega desde abrir una
+  mesa y capturar su pedido hasta enviar comandas y coordinar meseros y preparación en tiempo real.
+- Restan 5 bloques: cobro, caja, reporte, respaldos e instalación.
 
 ## Bloques terminados
 
@@ -86,6 +86,21 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 10. El control de versión evita que dos pantallas sobrescriban el estado de una partida.
 11. No puede completarse un pedido con partidas sin enviar o todavía activas en preparación.
 
+### Bloque 7: actualización en tiempo real
+
+1. Spring Boot expone un canal STOMP sobre WebSocket en `/ws`.
+2. Los avisos se separan por sucursal mediante `/topic/branches/{branchId}`.
+3. Solo un usuario activo y asignado puede suscribirse al canal de una sucursal.
+4. Los clientes no pueden publicar eventos operativos en el broker.
+5. Los eventos se emiten después de confirmar la transacción de PostgreSQL.
+6. Pedidos, captura y preparación vuelven a consultar REST al recibir un aviso; WebSocket no
+   reemplaza la fuente de verdad.
+7. Una comanda nueva aparece en preparación sin esperar el antiguo sondeo de 15 segundos.
+8. Los cambios de pedido, mesa, partidas y preparación se reflejan en las demás tablets.
+9. Angular reconecta automáticamente después de una pérdida momentánea de Wi-Fi.
+10. La barra superior y Preparación muestran el estado de la conexión en tiempo real.
+11. Preparación conserva una consulta de respaldo cada 60 segundos.
+
 ### Roles disponibles
 
 | Rol        | Uso previsto                                                     |
@@ -120,8 +135,8 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 | 4      | Apertura de pedido o comanda desde mesa, barra o mostrador         | Terminado |
 | 5      | Productos, cantidades, variantes, modificadores y notas del pedido | Terminado |
 | 6      | Pantalla de cocina/barra y estados por partida                     | Terminado |
-| 7      | Notificaciones en tiempo real                                      | Siguiente |
-| 8      | Cobro y formas de pago                                             | Pendiente |
+| 7      | Notificaciones en tiempo real                                      | Terminado |
+| 8      | Cobro y formas de pago                                             | Siguiente |
 | 9      | Apertura y cierre básico de caja                                   | Pendiente |
 | 10     | Reporte diario                                                     | Pendiente |
 | 11     | Respaldos y restauración                                           | Pendiente |
@@ -138,21 +153,22 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 - Una instalación y base de datos por restaurante durante la primera edición; dentro de ella se
   comparten catálogo y usuarios.
 - Angular y Spring Boot se desarrollan mediante funciones completas.
-- REST realiza las operaciones y WebSocket se agregará para avisos en tiempo real.
+- REST realiza las operaciones y WebSocket transporta avisos en tiempo real.
 - PostgreSQL siempre será la fuente de verdad.
 - El modelo interno conserva conceptos reutilizables, pero la experiencia de usuario prioriza
   restaurantes: mesas, pedidos, comandas, cocina, cobro y caja.
 - La edición básica no incluye CFDI/SAT, nube pública, inventario por receta, clientes frecuentes,
   reservaciones ni integraciones de reparto; se consideran para ediciones posteriores.
 
-## Próximo bloque: actualización en tiempo real
+## Próximo bloque: cobro y formas de pago
 
-El siguiente desarrollo eliminará la espera del sondeo periódico entre tablets y preparación:
+El siguiente desarrollo cerrará el circuito operativo de un pedido:
 
-- Notificar por WebSocket una comanda nueva sin recargar la pantalla.
-- Reflejar inmediatamente los cambios de estado en mesas, meseros y cocina.
-- Reconectar automáticamente cuando una tablet pierde momentáneamente el Wi-Fi.
-- Mantener REST y PostgreSQL como fuente de verdad; WebSocket solo transportará avisos.
-- Señalar de manera visible el estado de conexión de cada pantalla.
+- Registrar uno o varios pagos hasta cubrir el total calculado por el backend.
+- Incluir efectivo, tarjeta y otros métodos configurables sin integrar todavía una terminal bancaria.
+- Calcular cambio y saldo pendiente sin usar operaciones decimales inseguras.
+- Evitar cobros duplicados desde dos cajas o tablets.
+- Conservar un comprobante interno e historial de pagos.
+- Completar y liberar la mesa únicamente cuando el pedido esté totalmente pagado.
 
 Consulta `PLANES-Y-ALCANCE.md` para la separación propuesta de las tres ediciones.

@@ -4,6 +4,8 @@ import com.rest.restaurantsystem.catalog.product.ProductDestination;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
+import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
+import com.rest.restaurantsystem.realtime.RealtimeEventType;
 import com.rest.restaurantsystem.structure.BranchAssignmentService;
 import com.rest.restaurantsystem.structure.BranchResponse;
 import com.rest.restaurantsystem.structure.BranchService;
@@ -34,6 +36,7 @@ public class OrderService {
     private final ServicePointService servicePointService;
     private final UserService userService;
     private final BranchAssignmentService assignmentService;
+    private final RealtimeEventPublisher realtimeEventPublisher;
 
     public OrderService(
             RestaurantOrderRepository repository,
@@ -42,7 +45,8 @@ public class OrderService {
             BranchService branchService,
             ServicePointService servicePointService,
             UserService userService,
-            BranchAssignmentService assignmentService
+            BranchAssignmentService assignmentService,
+            RealtimeEventPublisher realtimeEventPublisher
     ) {
         this.repository = repository;
         this.itemRepository = itemRepository;
@@ -51,6 +55,7 @@ public class OrderService {
         this.servicePointService = servicePointService;
         this.userService = userService;
         this.assignmentService = assignmentService;
+        this.realtimeEventPublisher = realtimeEventPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -119,7 +124,16 @@ public class OrderService {
 
         RestaurantOrder order = new RestaurantOrder(request, currentUser.id());
         try {
-            return toResponse(repository.saveAndFlush(order));
+            RestaurantOrder saved = repository.saveAndFlush(order);
+            OrderResponse response = toResponse(saved);
+            realtimeEventPublisher.publish(
+                    RealtimeEventType.ORDER_CREATED,
+                    saved.getBranchId(),
+                    saved.getId(),
+                    null,
+                    null
+            );
+            return response;
         } catch (DataIntegrityViolationException exception) {
             throw new ConflictException("El punto seleccionado ya tiene un pedido abierto.");
         }
@@ -168,7 +182,16 @@ public class OrderService {
             );
         }
         order.changeStatus(request.status());
-        return toResponse(repository.saveAndFlush(order));
+        RestaurantOrder saved = repository.saveAndFlush(order);
+        OrderResponse response = toResponse(saved);
+        realtimeEventPublisher.publish(
+                RealtimeEventType.ORDER_UPDATED,
+                saved.getBranchId(),
+                saved.getId(),
+                null,
+                null
+        );
+        return response;
     }
 
     private void validateServicePoint(OrderCreateRequest request) {

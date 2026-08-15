@@ -2,6 +2,8 @@ package com.rest.restaurantsystem.order;
 
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
+import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
+import com.rest.restaurantsystem.realtime.RealtimeEventType;
 import com.rest.restaurantsystem.structure.BranchAssignmentService;
 import com.rest.restaurantsystem.structure.BranchResponse;
 import com.rest.restaurantsystem.structure.BranchService;
@@ -52,6 +54,9 @@ class OrderServiceTest {
     @Mock
     private BranchAssignmentService assignmentService;
 
+    @Mock
+    private RealtimeEventPublisher realtimeEventPublisher;
+
     @InjectMocks
     private OrderService service;
 
@@ -73,6 +78,13 @@ class OrderServiceTest {
         assertThat(result.folio()).isEqualTo("PED-000042");
         assertThat(result.servicePointName()).isEqualTo("Mesa 1");
         assertThat(result.status()).isEqualTo(OrderStatus.OPEN);
+        verify(realtimeEventPublisher).publish(
+                RealtimeEventType.ORDER_CREATED,
+                1L,
+                42L,
+                null,
+                null
+        );
     }
 
     @Test

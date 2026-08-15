@@ -8,7 +8,15 @@
   </div>
   <div class="heading-counter">
     <strong>{{ activeItemCount() }}</strong>
-    <span>partidas activas</span>
+    <span>
+      partidas activas
+      <small [class.connected]="realtime.connectionState() === 'CONNECTED'">
+        <i></i>
+        {{
+          realtime.connectionState() === 'CONNECTED' ? 'Actualización inmediata' : 'Reconectando'
+        }}
+      </small>
+    </span>
   </div>
 </section>
 

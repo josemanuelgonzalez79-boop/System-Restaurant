@@ -6,7 +6,7 @@ API REST local y genérica para administrar negocios con Essential.
 
 - Java 21
 - Spring Boot 4.1
-- Spring Web MVC y Spring Security
+- Spring Web MVC, WebSocket/STOMP y Spring Security
 - Spring Data JPA
 - Jakarta Validation
 - PostgreSQL
@@ -73,6 +73,17 @@ sesión HTTP y protección CSRF.
 | `GET/POST/PATCH`     | `/api/v1/orders`                                | Usuario autenticado y asignado a la sucursal |
 | `POST`               | `/api/v1/orders/{id}/dispatch`                  | Usuario autenticado y asignado a la sucursal |
 | `GET/PATCH`          | `/api/v1/preparation`                           | Usuario autenticado y asignado a la sucursal |
+| WebSocket/STOMP      | `/ws`                                            | Usuario autenticado                          |
+
+## Tiempo real
+
+El endpoint `/ws` comparte la sesión HTTP de Essential. Los clientes se suscriben únicamente al
+canal `/topic/branches/{branchId}` de una sucursal a la que el usuario esté asignado. Los avisos se
+publican después de confirmar la transacción y hacen que Angular vuelva a consultar la API REST.
+
+Para usar tablets mediante otra dirección de la LAN, agrega cada origen de Angular a
+`app.cors.allowed-origins` dentro de `secret.yml`, por ejemplo
+`http://192.168.1.50:4200`. No expongas `/ws`, la API ni PostgreSQL directamente a internet.
 
 ## Migraciones
 
@@ -87,5 +98,6 @@ src/main/resources/db/migration/V6__create_preparation_tickets.sql
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. `V4` incorpora
 los pedidos y la protección contra dos pedidos activos en la misma mesa. `V5` agrega las partidas,
-modificadores y totales; `V6` agrega comandas, snapshots y estados de preparación. No edites una
+modificadores y totales; `V6` agrega comandas, snapshots y estados de preparación. El Bloque 7 no
+necesita una migración porque incorpora comunicación en tiempo real. No edites una
 migración que ya se ejecutó; cada cambio estructural debe ir en una migración nueva.

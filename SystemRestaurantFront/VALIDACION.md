@@ -15,6 +15,8 @@ Base preparada con:
 - Apertura y estados de pedidos en mesa o para llevar.
 - Captura, modificadores, total y bloqueo de partidas enviadas.
 - Comandas separadas y tablero de preparación.
+- Actualización por WebSocket, reconexión automática y consulta REST después de cada aviso.
+- Corrección responsive de los controles de modificadores del catálogo.
 
 Validación que debe ejecutarse antes de publicar la rama:
 
@@ -22,4 +24,4 @@ Validación que debe ejecutarse antes de publicar la rama:
 - `npm run build`
 - `npm test -- --watch=false`
 
-La guía funcional completa está en `../PRUEBA-BLOQUE-6.md`.
+La guía funcional completa está en `../PRUEBA-BLOQUE-7.md`.

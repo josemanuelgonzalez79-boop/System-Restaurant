@@ -8,6 +8,8 @@ import com.rest.restaurantsystem.catalog.product.ProductService;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
+import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
+import com.rest.restaurantsystem.realtime.RealtimeEventType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ public class OrderItemService {
     private final OrderService orderService;
     private final ProductService productService;
     private final ModifierGroupService modifierGroupService;
+    private final RealtimeEventPublisher realtimeEventPublisher;
 
     public OrderItemService(
             OrderItemRepository repository,
@@ -37,7 +40,8 @@ public class OrderItemService {
             RestaurantOrderRepository orderRepository,
             OrderService orderService,
             ProductService productService,
-            ModifierGroupService modifierGroupService
+            ModifierGroupService modifierGroupService,
+            RealtimeEventPublisher realtimeEventPublisher
     ) {
         this.repository = repository;
         this.modifierRepository = modifierRepository;
@@ -45,6 +49,7 @@ public class OrderItemService {
         this.orderService = orderService;
         this.productService = productService;
         this.modifierGroupService = modifierGroupService;
+        this.realtimeEventPublisher = realtimeEventPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -77,7 +82,9 @@ public class OrderItemService {
             order.touch();
         }
         orderRepository.saveAndFlush(order);
-        return buildDetail(order);
+        OrderDetailResponse response = buildDetail(order);
+        publishItemsChanged(order);
+        return response;
     }
 
     @Transactional
@@ -110,7 +117,9 @@ public class OrderItemService {
         }
         order.touch();
         orderRepository.saveAndFlush(order);
-        return buildDetail(order);
+        OrderDetailResponse response = buildDetail(order);
+        publishItemsChanged(order);
+        return response;
     }
 
     @Transactional
@@ -127,7 +136,9 @@ public class OrderItemService {
         repository.flush();
         order.touch();
         orderRepository.saveAndFlush(order);
-        return buildDetail(order);
+        OrderDetailResponse response = buildDetail(order);
+        publishItemsChanged(order);
+        return response;
     }
 
     private RestaurantOrder editableOrder(Long orderId, long version, String currentUsername) {
@@ -226,6 +237,16 @@ public class OrderItemService {
                 options.stream().map(option -> new OrderItemModifier(itemId, option)).toList()
         );
         modifierRepository.flush();
+    }
+
+    private void publishItemsChanged(RestaurantOrder order) {
+        realtimeEventPublisher.publish(
+                RealtimeEventType.ORDER_ITEMS_CHANGED,
+                order.getBranchId(),
+                order.getId(),
+                null,
+                null
+        );
     }
 
     OrderDetailResponse buildDetail(RestaurantOrder order) {

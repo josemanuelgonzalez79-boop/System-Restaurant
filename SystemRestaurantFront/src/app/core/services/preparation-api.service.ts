@@ -3,10 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import {
-  PreparationStatus,
-  PreparationTicket,
-} from '../models/preparation.model';
+import { PreparationStatus, PreparationTicket } from '../models/preparation.model';
 
 @Injectable({ providedIn: 'root' })
 export class PreparationApiService {
@@ -32,9 +29,9 @@ export class PreparationApiService {
     status: PreparationStatus,
     version: number,
   ): Observable<PreparationTicket> {
-    return this.http.patch<PreparationTicket>(
-      `${this.preparationUrl}/items/${itemId}/status`,
-      { status, version },
-    );
+    return this.http.patch<PreparationTicket>(`${this.preparationUrl}/items/${itemId}/status`, {
+      status,
+      version,
+    });
   }
 }

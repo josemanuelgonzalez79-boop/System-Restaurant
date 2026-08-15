@@ -1,8 +1,8 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, forkJoin } from 'rxjs';
+import { auditTime, filter, finalize, forkJoin, Subscription } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -16,6 +16,7 @@ import { Category, ModifierGroup, ModifierOption, Product } from '../../core/mod
 import { OrderDetail, OrderItem } from '../../core/models/order.model';
 import { CatalogApiService } from '../../core/services/catalog-api.service';
 import { OrderApiService } from '../../core/services/order-api.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 
 @Component({
   selector: 'app-order-detail',
@@ -35,14 +36,16 @@ import { OrderApiService } from '../../core/services/order-api.service';
   templateUrl: './order-detail.html',
   styleUrl: './order-detail.scss',
 })
-export class OrderDetailPage implements OnInit {
+export class OrderDetailPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
   private readonly orderApi = inject(OrderApiService);
   private readonly catalogApi = inject(CatalogApiService);
+  private readonly realtime = inject(RealtimeService);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
+  private realtimeSubscription?: Subscription;
 
   private readonly orderId = Number(this.route.snapshot.paramMap.get('id'));
 
@@ -93,7 +96,8 @@ export class OrderDetailPage implements OnInit {
   protected readonly pendingDispatchCount = computed(
     () =>
       this.detail()?.items.filter(
-        (item) => !item.sentAt && (item.destination === 'PRODUCTION' || item.destination === 'SERVICE'),
+        (item) =>
+          !item.sentAt && (item.destination === 'PRODUCTION' || item.destination === 'SERVICE'),
       ).length ?? 0,
   );
 
@@ -108,6 +112,10 @@ export class OrderDetailPage implements OnInit {
       return;
     }
     this.loadAll();
+  }
+
+  ngOnDestroy(): void {
+    this.realtimeSubscription?.unsubscribe();
   }
 
   protected chooseCategory(categoryId: number | null): void {
@@ -130,7 +138,8 @@ export class OrderDetailPage implements OnInit {
       this.messages.add({
         severity: 'warn',
         summary: 'Partida enviada',
-        detail: 'Ya está en preparación. Captura una partida adicional si el cliente pide algo más.',
+        detail:
+          'Ya está en preparación. Captura una partida adicional si el cliente pide algo más.',
       });
       return;
     }
@@ -273,10 +282,16 @@ export class OrderDetailPage implements OnInit {
   }
 
   protected refresh(): void {
-    this.refreshing.set(true);
+    this.refreshDetail(false);
+  }
+
+  private refreshDetail(silent: boolean): void {
+    if (!silent) {
+      this.refreshing.set(true);
+    }
     this.orderApi
       .findDetail(this.orderId)
-      .pipe(finalize(() => this.refreshing.set(false)))
+      .pipe(finalize(() => !silent && this.refreshing.set(false)))
       .subscribe((detail) => this.detail.set(detail));
   }
 
@@ -343,7 +358,19 @@ export class OrderDetailPage implements OnInit {
         this.products.set(products);
         this.modifierGroups.set(modifierGroups);
         this.selectedCategoryId.set(categories.find((category) => category.active)?.id ?? null);
+        this.watchOrder(detail.order.branchId);
       });
+  }
+
+  private watchOrder(branchId: number): void {
+    this.realtimeSubscription?.unsubscribe();
+    this.realtimeSubscription = this.realtime
+      .watchBranch(branchId)
+      .pipe(
+        filter((event) => event.orderId === this.orderId),
+        auditTime(200),
+      )
+      .subscribe(() => this.refreshDetail(true));
   }
 
   private modifierError(): string | null {

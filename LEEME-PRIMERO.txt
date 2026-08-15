@@ -1,4 +1,4 @@
-ESSENTIAL — BLOQUES 1, 2, 3, 4, 5 Y 6
+ESSENTIAL — BLOQUES 1, 2, 3, 4, 5, 6 Y 7
 
 Esta versión prepara la base de Essential para la operación de restaurantes pequeños y medianos
 mediante computadoras y tablets conectadas al Wi-Fi o red local del establecimiento.
@@ -27,7 +27,9 @@ INCLUYE
 - Bloqueo de partidas enviadas y captura de comandas adicionales.
 - Pantalla táctil de preparación por sucursal y ruta.
 - Estados pendiente, en preparación, lista, entregada y cancelada por partida.
-- Historial y actualización automática del tablero cada 15 segundos.
+- Actualización inmediata de pedidos, mesas y preparación mediante WebSocket.
+- Reconexión automática y estado visible del canal en tiempo real.
+- Consulta de respaldo de Preparación cada 60 segundos.
 - Migraciones de PostgreSQL con Flyway.
 
 REQUISITOS
@@ -43,7 +45,7 @@ SI YA EJECUTASTE LA VERSIÓN ANTERIOR
 3. Reemplaza los archivos del proyecto con esta versión.
 4. Vuelve a colocar tu secret.yml dentro de SystemRestaurantBack.
 5. No borres la base de datos ni ejecutes de nuevo los scripts manualmente.
-6. Inicia el backend. Flyway aplicará automáticamente las migraciones pendientes, incluida V6.
+6. Inicia el backend. El Bloque 7 no agrega tablas; Flyway conservará el esquema y los datos.
 7. Inicia Angular y abre http://localhost:4200.
 
 La primera pantalla pedirá crear al propietario inicial. Usa una contraseña de 10 a 72 caracteres
@@ -88,10 +90,13 @@ PRUEBA RECOMENDADA
 - Enviar una comanda y comprobar que las partidas enviadas queden bloqueadas.
 - Abrir Preparación y avanzar una partida hasta entregada.
 - Agregar otro producto al mismo pedido y comprobar que genere un segundo envío.
+- Mantener Preparación abierta en otra tablet y comprobar que la comanda aparezca inmediatamente.
+- Cambiar el estado de una partida y comprobar el cambio en las demás pantallas sin recargarlas.
+- Detener y reiniciar el backend para comprobar el indicador y la reconexión automática.
 - Completar el pedido y confirmar que la mesa vuelva a quedar libre.
 
 SIGUIENTE BLOQUE
 
-Actualización inmediata mediante WebSocket entre meseros, cocina y mapa de mesas.
+Cobro y formas de pago para cerrar el pedido y liberar la mesa.
 
 Consulta AVANCE-PROYECTO.md y PLANES-Y-ALCANCE.md para ver las decisiones y las tres opciones.

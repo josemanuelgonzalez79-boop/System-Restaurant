@@ -1,8 +1,8 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize, forkJoin } from 'rxjs';
+import { auditTime, finalize, forkJoin, Subscription } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -22,6 +22,7 @@ import {
 import { Branch, OperationalArea, ServicePoint } from '../../core/models/structure.model';
 import { AuthApiService } from '../../core/services/auth-api.service';
 import { OrderApiService } from '../../core/services/order-api.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { StructureApiService } from '../../core/services/structure-api.service';
 
 @Component({
@@ -43,14 +44,17 @@ import { StructureApiService } from '../../core/services/structure-api.service';
   templateUrl: './orders.html',
   styleUrl: './orders.scss',
 })
-export class Orders implements OnInit {
+export class Orders implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly orderApi = inject(OrderApiService);
   private readonly structureApi = inject(StructureApiService);
+  private readonly realtime = inject(RealtimeService);
   private readonly auth = inject(AuthApiService);
   private readonly messages = inject(MessageService);
   private readonly confirmations = inject(ConfirmationService);
   private readonly router = inject(Router);
+  private realtimeSubscription?: Subscription;
+  private pendingRealtimeRefresh = false;
 
   protected readonly loading = signal(true);
   protected readonly refreshing = signal(false);
@@ -126,12 +130,20 @@ export class Orders implements OnInit {
     this.loadStructure();
   }
 
+  ngOnDestroy(): void {
+    this.realtimeSubscription?.unsubscribe();
+  }
+
   protected changeBranch(branchId: number | null): void {
+    this.realtimeSubscription?.unsubscribe();
+    this.realtimeSubscription = undefined;
+    this.pendingRealtimeRefresh = false;
     this.selectedBranchId.set(branchId);
     this.selectedAreaId.set(null);
     this.orders.set([]);
     this.operators.set([]);
     if (branchId !== null) {
+      this.watchBranch(branchId);
       this.loadOperation(branchId);
     }
   }
@@ -289,13 +301,37 @@ export class Orders implements OnInit {
       orders: this.orderApi.findOrders(branchId),
       operators: this.orderApi.findOperators(branchId),
     })
-      .pipe(finalize(() => this.refreshing.set(false)))
+      .pipe(
+        finalize(() => {
+          this.refreshing.set(false);
+          if (this.pendingRealtimeRefresh && this.selectedBranchId() === branchId) {
+            this.pendingRealtimeRefresh = false;
+            this.loadOperation(branchId);
+          }
+        }),
+      )
       .subscribe(({ orders, operators }) => {
         if (this.selectedBranchId() !== branchId) {
           return;
         }
         this.orders.set(orders);
         this.operators.set(operators);
+      });
+  }
+
+  private watchBranch(branchId: number): void {
+    this.realtimeSubscription = this.realtime
+      .watchBranch(branchId)
+      .pipe(auditTime(200))
+      .subscribe(() => {
+        if (this.selectedBranchId() !== branchId) {
+          return;
+        }
+        if (this.refreshing()) {
+          this.pendingRealtimeRefresh = true;
+          return;
+        }
+        this.loadOperation(branchId);
       });
   }
 

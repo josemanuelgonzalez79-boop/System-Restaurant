@@ -52,6 +52,36 @@ nav {
   white-space: nowrap;
 }
 
+.realtime-status {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+  padding: 0.32rem 0.5rem;
+  border-radius: 999px;
+  color: var(--p-orange-700);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--p-orange-50);
+}
+
+.realtime-status i {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.realtime-status.connected {
+  color: var(--p-green-700);
+  background: var(--p-green-50);
+}
+
+.realtime-status.disconnected {
+  color: var(--p-red-700);
+  background: var(--p-red-50);
+}
+
 nav a {
   padding: 0.55rem 0.75rem;
   border-radius: 0.6rem;
@@ -127,6 +157,19 @@ footer {
 
   .current-user {
     display: none;
+  }
+
+  .realtime-status {
+    width: 0.65rem;
+    height: 0.65rem;
+    padding: 0;
+    font-size: 0;
+    background: transparent;
+  }
+
+  .realtime-status i {
+    width: 0.65rem;
+    height: 0.65rem;
   }
 
   .brand small {

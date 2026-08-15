@@ -31,6 +31,17 @@
             <a routerLink="/configuracion" routerLinkActive="active">Configuración</a>
           }
         </nav>
+        @if (realtime.connectionState() !== 'IDLE') {
+          <span
+            class="realtime-status"
+            [class.connected]="realtime.connectionState() === 'CONNECTED'"
+            [class.disconnected]="realtime.connectionState() === 'DISCONNECTED'"
+            [title]="connectionLabel(realtime.connectionState())"
+          >
+            <i></i>
+            {{ connectionLabel(realtime.connectionState()) }}
+          </span>
+        }
         <span class="current-user">{{ auth.user()?.fullName }}</span>
         <p-button
           icon="pi pi-sign-out"

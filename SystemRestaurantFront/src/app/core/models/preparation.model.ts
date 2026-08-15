@@ -1,12 +1,7 @@
 import { ProductDestination } from './catalog.model';
 import { RestaurantOrder } from './order.model';
 
-export type PreparationStatus =
-  | 'PENDING'
-  | 'IN_PREPARATION'
-  | 'READY'
-  | 'DELIVERED'
-  | 'CANCELLED';
+export type PreparationStatus = 'PENDING' | 'IN_PREPARATION' | 'READY' | 'DELIVERED' | 'CANCELLED';
 
 export interface PreparationModifier {
   id: number;

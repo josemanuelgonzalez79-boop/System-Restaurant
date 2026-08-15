@@ -56,13 +56,13 @@ Dirigida a restaurantes que requieren administración adicional e integraciones.
 
 | Medida                                | Estado                                              |
 | ------------------------------------- | --------------------------------------------------- |
-| Bloques terminados                    | 6 de 12                                  |
-| Avance por bloques                    | 50 %                                     |
-| Avance práctico estimado              | 55 % a 60 %                              |
-| Bloques pendientes de la opción local | 6                                        |
-| Siguiente bloque                      | Notificaciones WebSocket en tiempo real  |
+| Bloques terminados                    | 7 de 12                         |
+| Avance por bloques                    | 58 %                            |
+| Avance práctico estimado              | Alrededor de 65 %                |
+| Bloques pendientes de la opción local | 5                               |
+| Siguiente bloque                      | Cobro y formas de pago            |
 
 La captura del pedido y la comanda de cocina desde tablets ya forman parte del sistema. La prioridad
-inmediata no es la WAN: primero se completará el circuito local con actualización instantánea,
-cobro, caja, reporte y respaldo. La conexión entre sucursales se diseñará después sobre esa
+inmediata no es la WAN: la actualización instantánea local ya funciona y ahora se completará el
+circuito con cobro, caja, reporte y respaldo. La conexión entre sucursales se diseñará después sobre esa
 operación estable.

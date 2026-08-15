@@ -63,6 +63,26 @@ h1 {
   font-size: 0.8rem;
 }
 
+.heading-counter small {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+  color: var(--p-orange-600);
+  font-size: 0.65rem;
+}
+
+.heading-counter small i {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.heading-counter small.connected {
+  color: var(--p-green-600);
+}
+
 .preparation-toolbar {
   flex-wrap: wrap;
   gap: 0.8rem;
