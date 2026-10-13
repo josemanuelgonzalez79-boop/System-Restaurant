@@ -10,11 +10,11 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 
 ## Estado de la edición básica
 
-- Terminados: 9 de 12 bloques funcionales.
-- Avance medido por bloques: 75 %.
-- Avance práctico estimado: alrededor de 84 %, porque el flujo operativo ya cubre desde abrir una
-  mesa hasta cobrar, cerrar el pedido, liberar la mesa y realizar el corte de caja.
-- Restan 3 bloques: reporte diario, respaldos e instalación.
+- Terminados: 11 de 12 bloques funcionales.
+- Avance medido por bloques: 92 %.
+- Avance práctico estimado: alrededor de 95 %, porque el flujo operativo ya cubre desde abrir una
+  mesa hasta cobrar, cerrar caja y consultar el resultado del día.
+- Resta 1 bloque: instalación local y acceso desde tablets.
 
 ## Bloques terminados
 
@@ -134,6 +134,37 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 12. Los cambios de caja y cobro se reflejan en las demás tablets mediante el canal en tiempo real.
 13. La pantalla conserva los últimos 30 turnos y ofrece un corte imprimible desde el navegador.
 
+### Bloque 10: reporte diario
+
+1. Propietario, administrador y gerente consultan el resultado por sucursal y fecha.
+2. El periodo se calcula con la zona horaria de la sucursal, aunque PostgreSQL conserve instantes
+   en UTC.
+3. Los cobros se separan en efectivo, tarjeta, transferencia y otros.
+4. La venta neta distingue cobros recibidos y anulaciones realizadas durante el día.
+5. La gráfica por hora utiliza la hora local del restaurante.
+6. El resumen muestra pedidos abiertos, completados, cancelados, en mesa y para llevar, comensales
+   y ticket promedio.
+7. El top de productos usa cantidad, precio y modificadores históricos.
+8. Caja presenta fondos iniciales, cobros en efectivo, entradas, salidas, flujo esperado y
+   diferencia de cortes.
+9. Los turnos relacionados conservan apertura, cierre, esperado, contado y diferencia.
+10. La auditoría muestra pedidos cancelados y cobros anulados con usuario, fecha y motivo cuando
+    existe.
+11. El reporte puede exportarse a CSV o imprimirse/guardarse como PDF desde el navegador.
+12. La vista se actualiza mediante WebSocket y permite una consulta manual de respaldo.
+13. La migración V9 agrega índices de consulta sin alterar los datos históricos.
+
+### Bloque 11: respaldo y restauración guiados
+
+1. Solo el propietario puede descargar una copia completa desde Essential.
+2. El servidor usa las herramientas oficiales de PostgreSQL en formato custom, valida el archivo
+   y lo empaqueta con manifiesto y huella SHA-256.
+3. La restauración comprueba integridad y crea una base de prueba sin alterar la original.
+4. La promoción requiere intervención explícita, backend detenido, ausencia de conexiones y
+   respaldo adicional; conserva la base anterior para permitir revisión o reversión.
+5. Angular usa rutas API relativas al origen para sesiones/CSRF y acceso desde tablets.
+6. Una guía de simulacro documenta copia diaria, almacenamiento separado y recuperación.
+
 ### Roles disponibles
 
 | Rol        | Uso previsto                                                     |
@@ -171,8 +202,8 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 | 7      | Notificaciones en tiempo real                                      | Terminado |
 | 8      | Cobro y formas de pago                                             | Terminado |
 | 9      | Apertura y cierre básico de caja                                   | Terminado |
-| 10     | Reporte diario                                                     | Siguiente |
-| 11     | Respaldos y restauración                                           | Pendiente |
+| 10     | Reporte diario                                                     | Terminado |
+| 11     | Respaldos y restauración                                           | Siguiente |
 | 12     | Instalación en la red local                                        | Pendiente |
 
 ## Decisiones vigentes
@@ -193,14 +224,14 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 - La edición básica no incluye CFDI/SAT, nube pública, inventario por receta, clientes frecuentes,
   reservaciones ni integraciones de reparto; se consideran para ediciones posteriores.
 
-## Próximo bloque: reporte diario
+## Próximo bloque: respaldos y restauración
 
-El siguiente desarrollo convertirá la operación guardada en un resumen útil para el propietario:
+El siguiente desarrollo protegerá la información local del restaurante:
 
-- Consultar ventas por fecha, sucursal y turno de caja.
-- Separar efectivo, tarjeta, transferencia y otros métodos.
-- Mostrar pedidos, productos, cancelaciones y anulaciones del día.
-- Presentar totales claros sin sustituir la información contable o fiscal.
-- Imprimir o descargar un resumen operativo diario.
+- Crear respaldos completos de PostgreSQL mediante un proceso guiado.
+- Registrar fecha, estado, tamaño y ubicación de cada respaldo.
+- Evitar que contraseñas o rutas sensibles se expongan en la interfaz.
+- Validar el archivo antes de considerarlo disponible.
+- Documentar y proteger el proceso de restauración para evitar sobrescrituras accidentales.
 
 Consulta `PLANES-Y-ALCANCE.md` para la separación propuesta de las tres ediciones.

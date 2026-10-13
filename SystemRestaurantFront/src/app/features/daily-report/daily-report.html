@@ -1,0 +1,521 @@
+<section class="report-heading">
+  <div>
+    <span class="eyebrow">Resumen operativo</span>
+    <h1>Reporte diario</h1>
+    <p>Revisa ventas, pedidos, productos, anulaciones y caja de cada día.</p>
+  </div>
+  <div class="heading-actions no-print">
+    <p-button
+      label="Exportar CSV"
+      icon="pi pi-download"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="!report()"
+      (onClick)="exportCsv()"
+    />
+    <p-button
+      label="Imprimir / PDF"
+      icon="pi pi-print"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="!report()"
+      (onClick)="printReport()"
+    />
+    <p-button
+      label="Actualizar"
+      icon="pi pi-refresh"
+      [outlined]="true"
+      [loading]="refreshing()"
+      [disabled]="selectedBranchId() === null"
+      (onClick)="refresh()"
+    />
+  </div>
+</section>
+
+<section class="report-filters no-print">
+  <label>
+    <span>Sucursal</span>
+    <select [value]="selectedBranchId() ?? ''" (change)="selectBranch($any($event.target).value)">
+      @for (branch of branches(); track branch.id) {
+        <option [value]="branch.id">{{ branch.name }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    <span>Fecha del negocio</span>
+    <input
+      type="date"
+      [value]="selectedDate()"
+      [max]="maximumDate"
+      (change)="selectDate($any($event.target).value)"
+    />
+  </label>
+  <div class="filter-help">
+    <i class="pi pi-clock"></i>
+    <span>
+      <strong>Corte por día local</strong>
+      <small>Se utiliza la zona horaria configurada en la sucursal.</small>
+    </span>
+  </div>
+</section>
+
+@if (loading()) {
+  <div class="loading-state">
+    <i class="pi pi-spin pi-spinner"></i>
+    Generando reporte…
+  </div>
+} @else if (branches().length === 0) {
+  <section class="empty-state">
+    <i class="pi pi-building"></i>
+    <h2>Tu usuario no tiene sucursales asignadas</h2>
+    <p>Un propietario o administrador debe asignarte desde Estructura.</p>
+  </section>
+} @else if (loadError()) {
+  <section class="empty-state error-state">
+    <i class="pi pi-exclamation-triangle"></i>
+    <h2>No pudimos mostrar el reporte</h2>
+    <p>{{ loadError() }}</p>
+    <p-button label="Intentar nuevamente" icon="pi pi-refresh" (onClick)="refresh()" />
+  </section>
+} @else if (report(); as daily) {
+  <section class="print-title">
+    <div>
+      <span class="eyebrow">Reporte del negocio</span>
+      <h2>{{ daily.branchName }}</h2>
+      <p>{{ daily.businessDate | date: 'fullDate' : 'UTC' : 'es-MX' }}</p>
+    </div>
+    <div class="print-meta">
+      <strong>{{ daily.timezone }}</strong>
+      <small>Generado {{ instantLabel(daily.generatedAt, daily.timezone) }}</small>
+    </div>
+  </section>
+
+  <section class="metric-grid">
+    <article class="primary-metric">
+      <span>Venta neta</span>
+      <strong>{{
+        daily.sales.netCollected
+          | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      <small>
+        {{ daily.sales.receivedPaymentCount }} cobro(s) ·
+        {{ daily.sales.voidedPaymentCount }} anulación(es)
+      </small>
+    </article>
+    <article>
+      <span>Pedidos completados</span>
+      <strong>{{ daily.orders.completedCount }}</strong>
+      <small>{{ daily.orders.cancelledCount }} cancelado(s)</small>
+    </article>
+    <article>
+      <span>Ticket promedio</span>
+      <strong>{{
+        daily.orders.averageTicket
+          | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      <small>Sobre pedidos completados</small>
+    </article>
+    <article [class.alert-metric]="daily.cash.closingDifference !== 0">
+      <span>Diferencia de caja</span>
+      <strong>{{
+        daily.cash.closingDifference
+          | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      <small>{{ daily.cash.closedSessionCount }} corte(s) cerrado(s)</small>
+    </article>
+  </section>
+
+  <section class="report-layout">
+    <article class="report-card payment-card">
+      <header>
+        <div>
+          <span class="eyebrow">Ingresos</span>
+          <h2>Formas de pago</h2>
+        </div>
+        <p-tag
+          [value]="
+            (daily.sales.grossCollected
+              | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX') || ''
+          "
+          severity="secondary"
+        />
+      </header>
+      <div class="payment-list">
+        @for (method of daily.paymentMethods; track method.method) {
+          <div>
+            <div class="payment-line">
+              <span>{{ paymentMethodLabel(method.method) }}</span>
+              <strong>{{
+                method.netAmount
+                  | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+              }}</strong>
+            </div>
+            <div class="progress-track">
+              <i
+                [class.negative]="method.netAmount < 0"
+                [style.width.%]="paymentBarWidth(method)"
+              ></i>
+            </div>
+            <small>
+              Cobrado
+              {{
+                method.grossAmount
+                  | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+              }}
+              @if (method.voidedAmount !== 0) {
+                · Anulado
+                {{
+                  method.voidedAmount
+                    | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                }}
+              }
+            </small>
+          </div>
+        }
+      </div>
+      <footer>
+        <span>Cobros recibidos</span>
+        <strong>{{
+          daily.sales.grossCollected
+            | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+        }}</strong>
+        <span>Anulaciones realizadas</span>
+        <strong class="negative-value"
+          >−{{
+            daily.sales.voidedAmount
+              | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+          }}</strong
+        >
+      </footer>
+    </article>
+
+    <article class="report-card order-card">
+      <header>
+        <div>
+          <span class="eyebrow">Operación</span>
+          <h2>Pedidos del día</h2>
+        </div>
+        <p-tag [value]="daily.orders.openedCount + ' abiertos'" severity="info" />
+      </header>
+      <dl>
+        <div>
+          <dt>En mesa</dt>
+          <dd>{{ daily.orders.dineInCount }}</dd>
+        </div>
+        <div>
+          <dt>Para llevar</dt>
+          <dd>{{ daily.orders.takeoutCount }}</dd>
+        </div>
+        <div>
+          <dt>Comensales registrados</dt>
+          <dd>{{ daily.orders.guestCount }}</dd>
+        </div>
+        <div>
+          <dt>Completados</dt>
+          <dd>{{ daily.orders.completedCount }}</dd>
+        </div>
+        <div>
+          <dt>Cancelados</dt>
+          <dd>{{ daily.orders.cancelledCount }}</dd>
+        </div>
+        <div>
+          <dt>Pendientes al terminar el día</dt>
+          <dd>{{ daily.orders.pendingAtEndCount }}</dd>
+        </div>
+      </dl>
+      <div class="order-total">
+        <span>Valor de pedidos completados</span>
+        <strong>{{
+          daily.orders.completedOrderValue
+            | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+        }}</strong>
+      </div>
+    </article>
+  </section>
+
+  <article class="report-card hourly-card">
+    <header>
+      <div>
+        <span class="eyebrow">Tendencia</span>
+        <h2>Venta neta por hora</h2>
+      </div>
+      <small>Las anulaciones se descuentan en la hora en que fueron realizadas.</small>
+    </header>
+    @if (hasHourlyActivity()) {
+      <div class="hourly-chart" aria-label="Gráfica de venta neta por hora">
+        @for (hour of daily.hourlySales; track hour.hour) {
+          <div
+            class="hour-column"
+            [title]="hourLabel(hour.hour) + ' · ' + hour.netAmount.toFixed(2)"
+          >
+            <div class="hour-value">
+              @if (hour.netAmount !== 0) {
+                {{ hour.netAmount | number: '1.0-0' : 'es-MX' }}
+              }
+            </div>
+            <div class="bar-track">
+              <i [class.negative]="hour.netAmount < 0" [style.height.%]="hourlyBarHeight(hour)"></i>
+            </div>
+            <span>{{ hour.hour.toString().padStart(2, '0') }}</span>
+          </div>
+        }
+      </div>
+      <div class="chart-caption">Hora local de {{ daily.branchName }}</div>
+    } @else {
+      <div class="inline-empty">
+        <i class="pi pi-chart-bar"></i>
+        <span>No se registraron cobros ni anulaciones en esta fecha.</span>
+      </div>
+    }
+  </article>
+
+  <section class="report-layout lower-layout">
+    <article class="report-card products-card">
+      <header>
+        <div>
+          <span class="eyebrow">Consumo</span>
+          <h2>Productos más vendidos</h2>
+        </div>
+        <p-tag value="Top 10" severity="secondary" />
+      </header>
+      @if (daily.topProducts.length > 0) {
+        <div class="product-list">
+          @for (product of daily.topProducts; track product.rank + '-' + product.productName) {
+            <div>
+              <span class="rank">{{ product.rank }}</span>
+              <div class="product-name">
+                <strong>{{ product.productName }}</strong>
+                <div class="progress-track">
+                  <i [style.width.%]="productBarWidth(product.quantity)"></i>
+                </div>
+              </div>
+              <span>{{ product.quantity }} u.</span>
+              <strong>{{
+                product.amount | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+              }}</strong>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="inline-empty">
+          <i class="pi pi-inbox"></i>
+          <span>No hay productos de pedidos completados en esta fecha.</span>
+        </div>
+      }
+    </article>
+
+    <article class="report-card cash-card">
+      <header>
+        <div>
+          <span class="eyebrow">Control</span>
+          <h2>Caja del día</h2>
+        </div>
+        <p-tag
+          [value]="daily.cash.openAtEndCount > 0 ? 'Caja abierta al corte' : 'Sin caja pendiente'"
+          [severity]="daily.cash.openAtEndCount > 0 ? 'warn' : 'success'"
+        />
+      </header>
+      <dl>
+        <div>
+          <dt>Fondos iniciales</dt>
+          <dd>
+            {{
+              daily.cash.openingAmount
+                | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>Efectivo cobrado</dt>
+          <dd>
+            {{
+              daily.cash.cashPayments
+                | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>Entradas netas</dt>
+          <dd>
+            {{
+              daily.cash.cashInNet
+                | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>Salidas netas</dt>
+          <dd>
+            −{{
+              daily.cash.cashOutNet
+                | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}
+          </dd>
+        </div>
+        <div class="cash-emphasis">
+          <dt>Flujo de efectivo esperado</dt>
+          <dd>
+            {{
+              daily.cash.expectedCashFlow
+                | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}
+          </dd>
+        </div>
+      </dl>
+      <small class="cash-note">
+        Fondo de turnos abiertos este día + cobros en efectivo + entradas − salidas.
+      </small>
+    </article>
+  </section>
+
+  @if (daily.cash.sessions.length > 0) {
+    <article class="report-card table-card">
+      <header>
+        <div>
+          <span class="eyebrow">Arqueos</span>
+          <h2>Turnos relacionados con el día</h2>
+        </div>
+      </header>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Turno</th>
+              <th>Apertura</th>
+              <th>Cierre</th>
+              <th>Esperado</th>
+              <th>Contado</th>
+              <th>Diferencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (session of daily.cash.sessions; track session.id) {
+              <tr>
+                <td>
+                  <strong>{{ session.folio }}</strong>
+                  <small>{{ session.openedByUserName }}</small>
+                </td>
+                <td>{{ instantLabel(session.openedAt, daily.timezone) }}</td>
+                <td>
+                  @if (session.closedAt) {
+                    {{ instantLabel(session.closedAt, daily.timezone) }}
+                  } @else {
+                    <p-tag value="Abierta" severity="warn" />
+                  }
+                </td>
+                <td>
+                  @if (session.expectedCashAtClose !== null) {
+                    {{
+                      session.expectedCashAtClose
+                        | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                    }}
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>
+                  @if (session.countedCashAtClose !== null) {
+                    {{
+                      session.countedCashAtClose
+                        | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                    }}
+                  } @else {
+                    —
+                  }
+                </td>
+                <td [class.negative-value]="(session.differenceAtClose ?? 0) !== 0">
+                  @if (session.differenceAtClose !== null) {
+                    {{
+                      session.differenceAtClose
+                        | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                    }}
+                  } @else {
+                    —
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+  }
+
+  <section class="audit-layout">
+    <article class="report-card audit-card">
+      <header>
+        <div>
+          <span class="eyebrow">Seguimiento</span>
+          <h2>Pedidos cancelados</h2>
+        </div>
+        <p-tag [value]="daily.cancelledOrders.length.toString()" severity="danger" />
+      </header>
+      @if (daily.cancelledOrders.length > 0) {
+        <div class="audit-list">
+          @for (order of daily.cancelledOrders; track order.orderId) {
+            <div>
+              <div>
+                <strong>{{ order.folio }} · {{ serviceModeLabel(order.serviceMode) }}</strong>
+                <span>{{ order.customerReference || 'Sin referencia' }}</span>
+                <small>
+                  {{ order.assignedUserName }} ·
+                  {{ instantLabel(order.cancelledAt, daily.timezone) }}
+                </small>
+              </div>
+              <strong>{{
+                order.amount | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+              }}</strong>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="inline-empty compact">
+          <i class="pi pi-check-circle"></i>
+          <span>No hubo pedidos cancelados.</span>
+        </div>
+      }
+    </article>
+
+    <article class="report-card audit-card">
+      <header>
+        <div>
+          <span class="eyebrow">Auditoría</span>
+          <h2>Cobros anulados</h2>
+        </div>
+        <p-tag [value]="daily.voidedPayments.length.toString()" severity="danger" />
+      </header>
+      @if (daily.voidedPayments.length > 0) {
+        <div class="audit-list">
+          @for (payment of daily.voidedPayments; track payment.paymentId) {
+            <div>
+              <div>
+                <strong>{{ payment.folio }} · {{ payment.orderFolio }}</strong>
+                <span>{{ paymentMethodLabel(payment.method) }} · {{ payment.reason }}</span>
+                <small>
+                  {{ payment.voidedByUserName }} ·
+                  {{ instantLabel(payment.voidedAt, daily.timezone) }}
+                </small>
+              </div>
+              <strong class="negative-value"
+                >−{{
+                  payment.amount
+                    | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                }}</strong
+              >
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="inline-empty compact">
+          <i class="pi pi-check-circle"></i>
+          <span>No hubo cobros anulados.</span>
+        </div>
+      }
+    </article>
+  </section>
+
+  <p class="report-footnote">
+    La venta neta usa cobros recibidos menos anulaciones realizadas durante el día. El valor de
+    pedidos completados se calcula con los precios históricos guardados en cada partida.
+  </p>
+}

@@ -1,6 +1,12 @@
 import { Routes } from '@angular/router';
 
-import { adminGuard, authGuard, cashierGuard, ownerGuard } from './core/guards/auth.guard';
+import {
+  adminGuard,
+  authGuard,
+  cashierGuard,
+  ownerGuard,
+  reportGuard,
+} from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -56,6 +62,13 @@ export const routes: Routes = [
     title: 'Caja | Essential',
   },
   {
+    path: 'reporte-diario',
+    loadComponent: () =>
+      import('./features/daily-report/daily-report').then((component) => component.DailyReportPage),
+    canActivate: [reportGuard],
+    title: 'Reporte diario | Essential',
+  },
+  {
     path: 'catalogo',
     loadComponent: () =>
       import('./features/catalog/catalog').then((component) => component.Catalog),
@@ -74,6 +87,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/users/users').then((component) => component.Users),
     canActivate: [ownerGuard],
     title: 'Usuarios | Essential',
+  },
+  {
+    path: 'respaldos',
+    loadComponent: () =>
+      import('./features/backups/backups').then((component) => component.BackupsPage),
+    canActivate: [ownerGuard],
+    title: 'Respaldos | Essential',
   },
   {
     path: 'configuracion',

@@ -54,15 +54,15 @@ Dirigida a restaurantes que requieren administración adicional e integraciones.
 
 ## Situación actual
 
-| Medida                                | Estado                           |
-| ------------------------------------- | -------------------------------- |
-| Bloques terminados                    | 9 de 12               |
-| Avance por bloques                    | 75 %                  |
-| Avance práctico estimado              | Alrededor de 84 %     |
-| Bloques pendientes de la opción local | 3                     |
-| Siguiente bloque                      | Reporte diario básico |
+| Medida                                | Estado                   |
+| ------------------------------------- | ------------------------ |
+| Bloques terminados                    | 11 de 12                 |
+| Avance por bloques                    | 92 %                     |
+| Avance práctico estimado              | Alrededor de 95 %        |
+| Bloques pendientes de la opción local | 1                        |
+| Siguiente bloque                      | Instalación LAN/tablets  |
 
 La captura del pedido, la comanda de cocina, el cobro y el corte de caja desde tablets ya forman
 parte del sistema. La prioridad inmediata no es la WAN: la operación local ya forma un circuito
-completo y ahora se incorporarán el reporte diario, el respaldo y la instalación. La conexión entre
-sucursales se diseñará después sobre esa operación estable.
+completo y ya incluye reporte diario y recuperación guiada. Falta documentar y probar la
+instalación local con tablets. La conexión entre sucursales se diseñará después.

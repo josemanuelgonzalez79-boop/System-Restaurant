@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { PaymentCreatePayload } from '../models/payment.model';
 import { PaymentApiService } from './payment-api.service';
+import { environment } from '../../../environments/environment';
 
 describe('PaymentApiService', () => {
   let service: PaymentApiService;
@@ -33,7 +34,7 @@ describe('PaymentApiService', () => {
 
     service.add(12, payload).subscribe();
 
-    const request = httpController.expectOne('/api/v1/orders/12/payments');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/orders/12/payments`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(payload);
     request.flush({});
@@ -42,7 +43,9 @@ describe('PaymentApiService', () => {
   it('should send the current version and reason when voiding', () => {
     service.voidPayment(12, 8, 5, 'Captura incorrecta').subscribe();
 
-    const request = httpController.expectOne('/api/v1/orders/12/payments/8/void');
+    const request = httpController.expectOne(
+      `${environment.apiBaseUrl}/v1/orders/12/payments/8/void`,
+    );
     expect(request.request.method).toBe('PATCH');
     expect(request.request.body).toEqual({
       orderVersion: 5,

@@ -1,0 +1,59 @@
+<section class="backup-heading">
+  <span class="eyebrow">Continuidad del restaurante</span>
+  <h1>Respaldos</h1>
+  <p>Guarda una copia completa de Essential para recuperar el negocio después de una falla.</p>
+</section>
+
+<div class="backup-grid">
+  <section class="backup-card">
+    <span class="step">01 · Crear copia</span>
+    <h2>Descargar respaldo</h2>
+    <p>
+      El servidor crea un respaldo consistente de PostgreSQL, comprueba su formato y lo entrega en
+      un ZIP con manifiesto y huella SHA-256.
+    </p>
+    <p-button
+      label="Generar y descargar ZIP"
+      icon="pi pi-download"
+      [loading]="working()"
+      [disabled]="working()"
+      (onClick)="download()"
+    />
+    @if (lastDownload()) {
+      <p class="success" role="status">Descarga preparada: {{ lastDownload() }}</p>
+    }
+    @if (failureMessage()) {
+      <p class="failure" role="alert">{{ failureMessage() }}</p>
+    }
+  </section>
+
+  <section class="backup-card">
+    <span class="step">02 · Conservar</span>
+    <h2>Guardar fuera del servidor</h2>
+    <p>
+      Copia el ZIP a una unidad externa o ubicación segura distinta del equipo de Essential. El
+      archivo contiene ventas, usuarios y contraseñas cifradas: no lo compartas por mensajería.
+    </p>
+    <p>
+      Genera una copia al menos al cierre de cada jornada y comprueba una restauración
+      periódicamente.
+    </p>
+  </section>
+
+  <section class="backup-card wide">
+    <span class="step">03 · Recuperar</span>
+    <h2>Restauración guiada en el servidor</h2>
+    <p>
+      En Windows, ejecuta <code>SystemRestaurantBack\scripts\Restaurar-Essential.ps1</code> con el
+      ZIP descargado. Primero crea una base de prueba nueva, verifica SHA-256 y Flyway y conserva
+      intacta la base actual. Después de detener Spring Boot, puedes promover esa copia con
+      <code>-Promover</code>; antes guarda otra copia de seguridad y conserva la base anterior.
+    </p>
+    <pre>
+powershell -ExecutionPolicy Bypass -File .\scripts\Restaurar-Essential.ps1 -Archivo "C:\Respaldos\Essential-AAAAMMDD-HHMMSS.zip" -PgBin "C:\Program Files\PostgreSQL\18\bin"</pre>
+    <p class="notice">
+      Nunca restaures desde una tablet. La restauración debe realizarla el responsable del servidor
+      fuera del horario de servicio.
+    </p>
+  </section>
+</div>

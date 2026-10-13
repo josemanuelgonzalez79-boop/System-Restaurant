@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { OrderCreatePayload } from '../models/order.model';
+import { environment } from '../../../environments/environment';
 import { OrderApiService } from './order-api.service';
 
 describe('OrderApiService', () => {
@@ -24,7 +25,9 @@ describe('OrderApiService', () => {
   it('should find active orders by branch', () => {
     service.findOrders(7).subscribe();
 
-    const request = httpController.expectOne('/api/v1/orders?activeOnly=true&branchId=7');
+    const request = httpController.expectOne(
+      `${environment.apiBaseUrl}/v1/orders?activeOnly=true&branchId=7`,
+    );
     expect(request.request.method).toBe('GET');
     request.flush([]);
   });
@@ -42,7 +45,7 @@ describe('OrderApiService', () => {
 
     service.create(payload).subscribe();
 
-    const request = httpController.expectOne('/api/v1/orders');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/orders`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(payload);
     request.flush({ id: 1, folio: 'PED-000001', ...payload });
@@ -51,7 +54,7 @@ describe('OrderApiService', () => {
   it('should send the current version when changing status', () => {
     service.changeStatus(9, 'IN_PROGRESS', 3).subscribe();
 
-    const request = httpController.expectOne('/api/v1/orders/9/status');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/orders/9/status`);
     expect(request.request.method).toBe('PATCH');
     expect(request.request.body).toEqual({ status: 'IN_PROGRESS', version: 3 });
     request.flush({});
@@ -68,7 +71,7 @@ describe('OrderApiService', () => {
       })
       .subscribe();
 
-    const request = httpController.expectOne('/api/v1/orders/12/items');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/orders/12/items`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({
       productId: 4,
@@ -83,7 +86,9 @@ describe('OrderApiService', () => {
   it('should remove a line using the current order version', () => {
     service.removeItem(12, 31, 5).subscribe();
 
-    const request = httpController.expectOne('/api/v1/orders/12/items/31?orderVersion=5');
+    const request = httpController.expectOne(
+      `${environment.apiBaseUrl}/v1/orders/12/items/31?orderVersion=5`,
+    );
     expect(request.request.method).toBe('DELETE');
     request.flush({});
   });
@@ -91,7 +96,7 @@ describe('OrderApiService', () => {
   it('should dispatch only with the current order version', () => {
     service.dispatch(12, 6).subscribe();
 
-    const request = httpController.expectOne('/api/v1/orders/12/dispatch');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/orders/12/dispatch`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ orderVersion: 6 });
     request.flush({ orderDetail: {}, tickets: [] });

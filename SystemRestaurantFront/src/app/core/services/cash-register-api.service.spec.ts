@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { CashRegisterApiService } from './cash-register-api.service';
+import { environment } from '../../../environments/environment';
 
 describe('CashRegisterApiService', () => {
   let service: CashRegisterApiService;
@@ -21,7 +22,9 @@ describe('CashRegisterApiService', () => {
   it('should request the open cash register for a branch', () => {
     service.findCurrent(3).subscribe();
 
-    const request = httpController.expectOne('/api/v1/cash-registers/current?branchId=3');
+    const request = httpController.expectOne(
+      `${environment.apiBaseUrl}/v1/cash-registers/current?branchId=3`,
+    );
     expect(request.request.method).toBe('GET');
     request.flush(null);
   });
@@ -37,7 +40,9 @@ describe('CashRegisterApiService', () => {
 
     service.addMovement(12, payload).subscribe();
 
-    const request = httpController.expectOne('/api/v1/cash-registers/12/movements');
+    const request = httpController.expectOne(
+      `${environment.apiBaseUrl}/v1/cash-registers/12/movements`,
+    );
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(payload);
     request.flush({});

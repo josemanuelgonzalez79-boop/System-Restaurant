@@ -68,3 +68,20 @@ export const cashierGuard: CanActivateFn = () => {
     }),
   );
 };
+
+export const reportGuard: CanActivateFn = () => {
+  const auth = inject(AuthApiService);
+  const router = inject(Router);
+
+  return auth.ensureInitialized().pipe(
+    map(() => {
+      if (auth.setupRequired()) {
+        return router.createUrlTree(['/setup']);
+      }
+      if (!auth.authenticated()) {
+        return router.createUrlTree(['/login']);
+      }
+      return auth.canViewReports() ? true : router.createUrlTree(['/']);
+    }),
+  );
+};

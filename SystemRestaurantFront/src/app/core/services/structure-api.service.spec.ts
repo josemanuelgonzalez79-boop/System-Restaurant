@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { BranchPayload, OperationalAreaPayload } from '../models/structure.model';
 import { StructureApiService } from './structure-api.service';
+import { environment } from '../../../environments/environment';
 
 describe('StructureApiService', () => {
   let service: StructureApiService;
@@ -33,7 +34,7 @@ describe('StructureApiService', () => {
 
     service.createBranch(payload).subscribe();
 
-    const request = httpController.expectOne('/api/v1/branches');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/branches`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(payload);
     request.flush({
@@ -49,7 +50,7 @@ describe('StructureApiService', () => {
   it('should filter areas by branch', () => {
     service.findAreas(7).subscribe();
 
-    const request = httpController.expectOne('/api/v1/areas?branchId=7');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/areas?branchId=7`);
     expect(request.request.method).toBe('GET');
     request.flush([]);
   });
@@ -65,7 +66,7 @@ describe('StructureApiService', () => {
 
     service.createArea(payload).subscribe();
 
-    const request = httpController.expectOne('/api/v1/areas');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/areas`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(payload);
     request.flush({
@@ -82,7 +83,7 @@ describe('StructureApiService', () => {
   it('should replace branch assignments', () => {
     service.replaceAssignments(3, [1, 2]).subscribe();
 
-    const request = httpController.expectOne('/api/v1/branches/3/assignments');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/branches/3/assignments`);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({ userIds: [1, 2] });
     request.flush([]);

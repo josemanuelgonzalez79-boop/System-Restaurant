@@ -35,6 +35,9 @@ server:
         same-site: lax
 
 app:
+  backup:
+    pg-dump: ${APP_BACKUP_PG_DUMP:pg_dump}
+    pg-restore: ${APP_BACKUP_PG_RESTORE:pg_restore}
   cors:
     allowed-origins:
       - http://localhost:4200

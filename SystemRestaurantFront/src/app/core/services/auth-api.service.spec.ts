@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { EssentialUser } from '../models/user.model';
+import { environment } from '../../../environments/environment';
 import { AuthApiService } from './auth-api.service';
 
 describe('AuthApiService', () => {
@@ -28,12 +29,14 @@ describe('AuthApiService', () => {
       expect(service.user()).toBeNull();
     });
 
-    httpController.expectOne('/api/v1/auth/csrf').flush({
+    httpController.expectOne(`${environment.apiBaseUrl}/v1/auth/csrf`).flush({
       token: 'csrf-token',
       headerName: 'X-XSRF-TOKEN',
       parameterName: '_csrf',
     });
-    httpController.expectOne('/api/v1/auth/setup-status').flush({ setupRequired: true });
+    httpController
+      .expectOne(`${environment.apiBaseUrl}/v1/auth/setup-status`)
+      .flush({ setupRequired: true });
   });
 
   it('should log in and load the current user', () => {
@@ -54,22 +57,22 @@ describe('AuthApiService', () => {
       expect(service.user()).toEqual(user);
     });
 
-    httpController.expectOne('/api/v1/auth/csrf').flush({
+    httpController.expectOne(`${environment.apiBaseUrl}/v1/auth/csrf`).flush({
       token: 'csrf-token',
       headerName: 'X-XSRF-TOKEN',
       parameterName: '_csrf',
     });
 
-    const login = httpController.expectOne('/api/v1/auth/login');
+    const login = httpController.expectOne(`${environment.apiBaseUrl}/v1/auth/login`);
     expect(login.request.method).toBe('POST');
     expect(login.request.body).toContain('username=admin');
     login.flush(null);
 
-    httpController.expectOne('/api/v1/auth/csrf').flush({
+    httpController.expectOne(`${environment.apiBaseUrl}/v1/auth/csrf`).flush({
       token: 'new-csrf-token',
       headerName: 'X-XSRF-TOKEN',
       parameterName: '_csrf',
     });
-    httpController.expectOne('/api/v1/auth/me').flush(user);
+    httpController.expectOne(`${environment.apiBaseUrl}/v1/auth/me`).flush(user);
   });
 });

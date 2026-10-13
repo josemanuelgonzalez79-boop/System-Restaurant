@@ -19,7 +19,8 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
         firstValidationError ?? error.error?.detail ?? error.error?.message ?? error.message;
 
       const isSessionProbe = request.url.endsWith('/auth/me') && error.status === 401;
-      if (!isSessionProbe) {
+      const isBackupDownload = request.url.endsWith('/v1/backups') && request.method === 'POST';
+      if (!isSessionProbe && !isBackupDownload) {
         messages.add({
           severity: 'error',
           summary: 'No fue posible completar la solicitud',

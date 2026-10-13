@@ -180,3 +180,15 @@ footer {
     padding-bottom: 5rem;
   }
 }
+
+@media print {
+  .app-header,
+  footer {
+    display: none;
+  }
+
+  .app-content {
+    width: 100%;
+    min-height: auto;
+  }
+}

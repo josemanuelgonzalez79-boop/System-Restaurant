@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { Category, ModifierGroupPayload, ProductPayload } from '../models/catalog.model';
 import { CatalogApiService } from './catalog-api.service';
+import { environment } from '../../../environments/environment';
 
 describe('CatalogApiService', () => {
   let service: CatalogApiService;
@@ -39,7 +40,7 @@ describe('CatalogApiService', () => {
       expect(categories).toEqual(response);
     });
 
-    const request = httpController.expectOne('/api/v1/categories');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/categories`);
     expect(request.request.method).toBe('GET');
     request.flush(response);
   });
@@ -56,7 +57,7 @@ describe('CatalogApiService', () => {
 
     service.createProduct(payload).subscribe();
 
-    const request = httpController.expectOne('/api/v1/products');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/products`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(payload);
     request.flush({
@@ -82,7 +83,7 @@ describe('CatalogApiService', () => {
 
     service.createModifierGroup(payload).subscribe();
 
-    const request = httpController.expectOne('/api/v1/modifier-groups');
+    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/modifier-groups`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(payload);
     request.flush({ id: 3, productName: 'Corte', active: true, options: [], ...payload });

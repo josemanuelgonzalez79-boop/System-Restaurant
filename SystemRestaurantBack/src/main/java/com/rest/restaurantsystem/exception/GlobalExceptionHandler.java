@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
+import com.rest.restaurantsystem.backup.BackupGenerationException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -82,6 +83,12 @@ public class GlobalExceptionHandler {
                 "Otro usuario modificó este registro. Actualiza la pantalla e intenta nuevamente.",
                 request
         );
+    }
+
+    @ExceptionHandler(BackupGenerationException.class)
+    ProblemDetail handleBackupFailure(BackupGenerationException exception, HttpServletRequest request) {
+        return problem(HttpStatus.SERVICE_UNAVAILABLE,
+                exception.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)

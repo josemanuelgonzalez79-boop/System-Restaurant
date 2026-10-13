@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { PreparationApiService } from './preparation-api.service';
+import { environment } from '../../../environments/environment';
 
 describe('PreparationApiService', () => {
   let service: PreparationApiService;
@@ -24,7 +25,7 @@ describe('PreparationApiService', () => {
     service.findTickets(3, 'PRODUCTION').subscribe();
 
     const request = httpController.expectOne(
-      '/api/v1/preparation?branchId=3&activeOnly=true&destination=PRODUCTION',
+      `${environment.apiBaseUrl}/v1/preparation?branchId=3&activeOnly=true&destination=PRODUCTION`,
     );
     expect(request.request.method).toBe('GET');
     request.flush([]);
@@ -33,7 +34,9 @@ describe('PreparationApiService', () => {
   it('should send item status with its optimistic version', () => {
     service.changeItemStatus(18, 'IN_PREPARATION', 2).subscribe();
 
-    const request = httpController.expectOne('/api/v1/preparation/items/18/status');
+    const request = httpController.expectOne(
+      `${environment.apiBaseUrl}/v1/preparation/items/18/status`,
+    );
     expect(request.request.method).toBe('PATCH');
     expect(request.request.body).toEqual({ status: 'IN_PREPARATION', version: 2 });
     request.flush({});

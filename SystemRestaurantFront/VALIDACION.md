@@ -16,6 +16,10 @@ Base preparada con:
 - Captura, modificadores, total y bloqueo de partidas enviadas.
 - Comandas separadas y tablero de preparación.
 - Actualización por WebSocket, reconexión automática y consulta REST después de cada aviso.
+- Cobro dividido, historial auditable y cierre de pedidos pagados.
+- Apertura, movimientos, arqueo y cierre de caja.
+- Reporte diario por sucursal y fecha con exportación CSV e impresión/PDF.
+- Respaldos descargables para el propietario y ruta API del mismo origen para CSRF/tablets.
 - Corrección responsive de los controles de modificadores del catálogo.
 
 Validación que debe ejecutarse antes de publicar la rama:
@@ -24,4 +28,4 @@ Validación que debe ejecutarse antes de publicar la rama:
 - `npm run build`
 - `npm test -- --watch=false`
 
-La guía funcional completa está en `../PRUEBA-BLOQUE-7.md`.
+La guía funcional del respaldo y restauración está en `../PRUEBA-BLOQUE-11.md`.
