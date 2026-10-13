@@ -10,11 +10,10 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 
 ## Estado de la edición básica
 
-- Terminados: 11 de 12 bloques funcionales.
-- Avance medido por bloques: 92 %.
-- Avance práctico estimado: alrededor de 95 %, porque el flujo operativo ya cubre desde abrir una
-  mesa hasta cobrar, cerrar caja y consultar el resultado del día.
-- Resta 1 bloque: instalación local y acceso desde tablets.
+- Implementados: 12 de 12 bloques funcionales.
+- Avance medido por bloques: 100 % de la implementación planificada.
+- Falta la aceptación en un restaurante: prueba LAN con tablets, reinicio real de Windows y
+  simulacro de restauración de una copia en una base distinta.
 
 ## Bloques terminados
 
@@ -165,6 +164,18 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 5. Angular usa rutas API relativas al origen para sesiones/CSRF y acceso desde tablets.
 6. Una guía de simulacro documenta copia diaria, almacenamiento separado y recuperación.
 
+### Bloque 12: instalación en LAN y tablets
+
+1. La compilación Maven y Angular publica una versión validada en el servidor Windows.
+2. Caddy sirve la interfaz mediante HTTPS en una dirección privada y reenvía API y WebSocket
+   al backend en loopback.
+3. Java queda limitado a `127.0.0.1:3211`; la regla de firewall solo permite HTTPS desde la
+   subred privada local.
+4. Dos tareas de Windows arrancan backend y proxy al encender el servidor y reintentan si el
+   proceso o PostgreSQL tarda en iniciar.
+5. La guía cubre certificado raíz local, acceso y prueba de tiempo real desde tablets, caída
+   de internet, reinicio del servidor y simulacro de recuperación.
+
 ### Roles disponibles
 
 | Rol        | Uso previsto                                                     |
@@ -203,8 +214,8 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 | 8      | Cobro y formas de pago                                             | Terminado |
 | 9      | Apertura y cierre básico de caja                                   | Terminado |
 | 10     | Reporte diario                                                     | Terminado |
-| 11     | Respaldos y restauración                                           | Siguiente |
-| 12     | Instalación en la red local                                        | Pendiente |
+| 11     | Respaldos y restauración                                           | Implementado |
+| 12     | Instalación en la red local                                        | Implementado |
 
 ## Decisiones vigentes
 
@@ -224,14 +235,10 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 - La edición básica no incluye CFDI/SAT, nube pública, inventario por receta, clientes frecuentes,
   reservaciones ni integraciones de reparto; se consideran para ediciones posteriores.
 
-## Próximo bloque: respaldos y restauración
+## Siguiente etapa: piloto de la edición local
 
-El siguiente desarrollo protegerá la información local del restaurante:
-
-- Crear respaldos completos de PostgreSQL mediante un proceso guiado.
-- Registrar fecha, estado, tamaño y ubicación de cada respaldo.
-- Evitar que contraseñas o rutas sensibles se expongan en la interfaz.
-- Validar el archivo antes de considerarlo disponible.
-- Documentar y proteger el proceso de restauración para evitar sobrescrituras accidentales.
+Ejecutar `PRUEBA-BLOQUE-12.md` en un servidor Windows con dos tablets, verificar el canal WSS,
+reiniciar el equipo y ensayar la restauración del respaldo en una base de prueba. Registrar los
+problemas observados antes de ofrecer la edición básica a un restaurante.
 
 Consulta `PLANES-Y-ALCANCE.md` para la separación propuesta de las tres ediciones.

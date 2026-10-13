@@ -23,7 +23,10 @@ spring:
     time-zone: UTC
 
 server:
+  # Caddy publica la aplicación en la LAN; Java solo escucha en este equipo.
+  address: ${SERVER_ADDRESS:127.0.0.1}
   port: ${SERVER_PORT:3211}
+  forward-headers-strategy: framework
   shutdown: graceful
   compression:
     enabled: true

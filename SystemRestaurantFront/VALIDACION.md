@@ -20,6 +20,7 @@ Base preparada con:
 - Apertura, movimientos, arqueo y cierre de caja.
 - Reporte diario por sucursal y fecha con exportación CSV e impresión/PDF.
 - Respaldos descargables para el propietario y ruta API del mismo origen para CSRF/tablets.
+- Compilación estática para HTTPS/LAN; `/api` y `/ws` usan el mismo origen en tablets.
 - Corrección responsive de los controles de modificadores del catálogo.
 
 Validación que debe ejecutarse antes de publicar la rama:
@@ -29,3 +30,4 @@ Validación que debe ejecutarse antes de publicar la rama:
 - `npm test -- --watch=false`
 
 La guía funcional del respaldo y restauración está en `../PRUEBA-BLOQUE-11.md`.
+El despliegue del servidor y la prueba con tablets están en `../PRUEBA-BLOQUE-12.md`.

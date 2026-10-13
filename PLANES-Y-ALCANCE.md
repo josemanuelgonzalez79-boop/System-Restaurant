@@ -56,13 +56,13 @@ Dirigida a restaurantes que requieren administración adicional e integraciones.
 
 | Medida                                | Estado                   |
 | ------------------------------------- | ------------------------ |
-| Bloques terminados                    | 11 de 12                 |
-| Avance por bloques                    | 92 %                     |
-| Avance práctico estimado              | Alrededor de 95 %        |
-| Bloques pendientes de la opción local | 1                        |
-| Siguiente bloque                      | Instalación LAN/tablets  |
+| Bloques implementados                 | 12 de 12                 |
+| Avance por bloques                    | 100 %                    |
+| Validación pendiente                  | Prueba LAN/tablets real y simulacro de restauración |
+| Siguiente etapa                       | Piloto en un restaurante |
 
 La captura del pedido, la comanda de cocina, el cobro y el corte de caja desde tablets ya forman
 parte del sistema. La prioridad inmediata no es la WAN: la operación local ya forma un circuito
-completo y ya incluye reporte diario y recuperación guiada. Falta documentar y probar la
-instalación local con tablets. La conexión entre sucursales se diseñará después.
+completo e incluye reporte diario, recuperación guiada y despliegue Windows/LAN documentado.
+La aceptación de la edición requiere el piloto con tablets, reinicio del servidor y una
+restauración real de prueba. La conexión entre sucursales se diseñará después.

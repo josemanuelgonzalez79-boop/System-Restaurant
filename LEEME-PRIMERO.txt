@@ -1,4 +1,4 @@
-ESSENTIAL — BLOQUES 1 AL 11
+ESSENTIAL — BLOQUES 1 AL 12
 
 Esta versión prepara la base de Essential para la operación de restaurantes pequeños y medianos
 mediante computadoras y tablets conectadas al Wi-Fi o red local del establecimiento.
@@ -45,6 +45,7 @@ INCLUYE
 - Resumen de caja, turnos, diferencias, cancelaciones y anulaciones.
 - Exportación CSV y vista de impresión que puede guardarse como PDF.
 - Respaldo completo descargable solo por el propietario y restauración guiada en una base de prueba.
+- Despliegue LAN Windows con HTTPS, proxy para API/WebSocket y arranque al iniciar el servidor.
 - Migraciones de PostgreSQL con Flyway.
 
 REQUISITOS
@@ -53,6 +54,7 @@ REQUISITOS
 - Node.js 22.12 o superior dentro de la rama 22, o Node.js 24.
 - PostgreSQL 18 (también puede funcionar con versiones soportadas anteriores).
 - Utilidades pg_dump y pg_restore en el servidor para descargar respaldos.
+- Para el despliegue LAN: Caddy 2 y una IPv4 privada fija/reservada en el servidor.
 
 SI YA EJECUTASTE LA VERSIÓN ANTERIOR
 
@@ -125,8 +127,11 @@ PRUEBA RECOMENDADA
 - Abrir Respaldos como propietario y descargar el ZIP.
 - Verificar el ZIP y realizar una restauración de prueba, sin promover ni cambiar la base actual.
 
-SIGUIENTE BLOQUE
+INSTALACIÓN LAN Y TABLETS
 
-Instalación en la red local y acceso desde tablets.
+Consulta PRUEBA-BLOQUE-12.md para publicar la aplicación, configurar HTTPS,
+instalar el certificado raíz en las tablets y probar el arranque automático.
+El desarrollo de los 12 bloques está implementado. Falta aceptar la edición local
+con dos tablets y ensayar una restauración real antes de ponerla en producción.
 
-Consulta PRUEBA-BLOQUE-11.md, AVANCE-PROYECTO.md y PLANES-Y-ALCANCE.md.
+Consulta también PRUEBA-BLOQUE-11.md, AVANCE-PROYECTO.md y PLANES-Y-ALCANCE.md.
