@@ -28,7 +28,13 @@
           }
           @if (auth.canAdminister()) {
             <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
-            <a routerLink="/inventario" routerLinkActive="active">Inventario</a>
+            <a
+              routerLink="/inventario"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              >Inventario</a
+            >
+            <a routerLink="/inventario/reporte" routerLinkActive="active">Reporte y conteo</a>
             <a routerLink="/recetas" routerLinkActive="active">Recetas</a>
             <a routerLink="/costos" routerLinkActive="active">Costos</a>
             <a routerLink="/estructura" routerLinkActive="active">Estructura</a>

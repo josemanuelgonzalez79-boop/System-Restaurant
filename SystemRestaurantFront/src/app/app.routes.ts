@@ -103,6 +103,15 @@ export const routes: Routes = [
     title: 'Costos y márgenes | Essential Plus',
   },
   {
+    path: 'inventario/reporte',
+    loadComponent: () =>
+      import('./features/inventory-report/inventory-report').then(
+        (component) => component.InventoryReportPage,
+      ),
+    canActivate: [adminGuard],
+    title: 'Reporte y conteo | Essential Plus',
+  },
+  {
     path: 'usuarios',
     loadComponent: () => import('./features/users/users').then((component) => component.Users),
     canActivate: [ownerGuard],

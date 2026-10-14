@@ -23,7 +23,7 @@ actualización si detecta varias sucursales preexistentes, para evitar mezclar o
 Los doce bloques de esta edición están implementados. Faltan el piloto con tablets, el reinicio
 real del servidor y una restauración probada en una base separada antes de ofrecerla en producción.
 
-## Opción 2: Essential Plus (en desarrollo)
+## Opción 2: Essential Plus (cinco bloques implementados)
 
 Parte del código de Essential Restaurante Local y conserva **una instalación independiente por
 restaurante**. Se desarrolla en la rama `plus` y se organiza en **cinco bloques**:
@@ -33,8 +33,8 @@ restaurante**. Se desarrolla en la rama `plus` y se organiza en **cinco bloques*
 | 1 | Insumos, existencias, compras, salidas, mermas y conteos con historial | Probado y subido a `plus` |
 | 2 | Recetas por producto y opción extra, con cantidades por unidad | Probado y subido a `plus` |
 | 3 | Consumo de recetas al enviar comandas y reversas auditables | Probado y subido a `plus` |
-| 4 | Costos por receta, costo de extras y márgenes por producto | Implementado en esta entrega |
-| 5 | Reportes de inventario, alertas y conciliación de conteos | Pendiente |
+| 4 | Costos por receta, costo de extras y márgenes por producto | Probado y subido a `plus` |
+| 5 | Reportes de inventario, alertas y conciliación de conteos | Implementado en esta entrega; pendiente de prueba en instalación |
 
 Las partidas enviadas a cocina o servicio consumen la receta de producto y las recetas adicionales
 de las opciones elegidas. Una cancelación antes de comenzar revierte exactamente ese consumo;
@@ -45,6 +45,14 @@ Los costos de Plus son de referencia por unidad de insumo, registrados con motiv
 El margen es una estimación de materia prima sobre precio de venta; falta de receta o precio de
 insumo deja el margen pendiente. V14 conserva el costo vigente en cada nuevo consumo y su reversa.
 La compra de stock no recalcula el costo automáticamente.
+
+El bloque 5 agrega reporte de movimientos por periodo (hasta 31 días), alertas de stock y costos
+faltantes, valoración de existencia actual y costo histórico conocido de comandas. Cuando faltan
+costos se indica que el total es parcial. El conteo físico revisa todos los insumos activos en
+una sola confirmación: registra la comparación esperada/contada, crea ajustes únicamente para las
+diferencias y rechaza todo el conteo si algún insumo cambió antes de guardarlo. `V15` conserva el
+historial anterior sin alterar existencias al migrar. La validación en una instalación con datos
+reales sigue pendiente antes de ofrecer Plus a otros restaurantes.
 
 ## Opción 3: Essential Pro (alcance futuro)
 

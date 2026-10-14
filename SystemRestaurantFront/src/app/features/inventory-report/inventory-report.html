@@ -1,0 +1,360 @@
+<header class="report-heading">
+  <div>
+    <span class="eyebrow">Essential Plus · bloque 5 de 5</span>
+    <h1>Reporte y conteo de inventario</h1>
+    <p>Revisa las existencias, detecta faltantes y concilia un conteo físico con historial.</p>
+  </div>
+  <a routerLink="/inventario" class="back-link"
+    ><i class="pi pi-arrow-left"></i> Volver a inventario</a
+  >
+</header>
+
+<section class="period-card" aria-label="Periodo del reporte">
+  <div class="period-fields">
+    <label for="from-date"
+      >Desde <input pInputText id="from-date" type="date" [(ngModel)]="from" [max]="maximumDate"
+    /></label>
+    <label for="to-date"
+      >Hasta <input pInputText id="to-date" type="date" [(ngModel)]="to" [max]="maximumDate"
+    /></label>
+  </div>
+  <div class="period-actions">
+    <p-button
+      label="Consultar"
+      icon="pi pi-search"
+      [loading]="loading()"
+      [disabled]="!validRange()"
+      (onClick)="refresh()"
+    />
+    <p-button
+      label="Descargar CSV"
+      icon="pi pi-download"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="!report()"
+      (onClick)="downloadCsv()"
+    />
+  </div>
+  <small
+    >El periodo admite hasta 31 días. Existencias y valoración muestran el estado actual; los
+    movimientos corresponden a las fechas elegidas.</small
+  >
+  @if (!validRange()) {
+    <p class="notice">Elige fechas válidas, sin futuro y con un máximo de 31 días.</p>
+  }
+</section>
+
+@if (reportError()) {
+  <p class="notice" role="alert">{{ reportError() }}</p>
+}
+
+@if (report(); as data) {
+  <section class="summary-grid" aria-label="Resumen de inventario">
+    <article>
+      <i class="pi pi-box"></i><strong>{{ data.activeIngredients }}</strong
+      ><span>Insumos activos</span>
+    </article>
+    <article class="warning">
+      <i class="pi pi-exclamation-triangle"></i><strong>{{ data.lowStock }}</strong
+      ><span>En o bajo el mínimo</span>
+    </article>
+    <article class="danger">
+      <i class="pi pi-ban"></i><strong>{{ data.outOfStock }}</strong
+      ><span>Agotados</span>
+    </article>
+    <article class="warning">
+      <i class="pi pi-wallet"></i><strong>{{ data.missingCosts }}</strong
+      ><span>Sin costo de referencia</span>
+    </article>
+  </section>
+
+  <section class="value-grid">
+    <article>
+      <span>Valor conocido de existencias actuales</span>
+      <strong>{{
+        data.knownStockValue | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      @if (data.unvaluedStock) {
+        <small>Parcial: {{ data.unvaluedStock }} insumo(s) con existencia no tienen costo.</small>
+      }
+    </article>
+    <article>
+      <span>Costo conocido de comandas en el periodo</span>
+      <strong>{{
+        data.knownOrderCost | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      @if (data.unpricedOrderMovements) {
+        <small
+          >Parcial: {{ data.unpricedOrderMovements }} movimiento(s) de comanda sin costo
+          histórico.</small
+        >
+      }
+    </article>
+  </section>
+
+  <section class="report-card">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">Alertas y movimientos</span>
+        <h2>Insumos</h2>
+      </div>
+      <p>Generado {{ data.generatedAt | date: 'medium' }} · {{ data.timezone }}</p>
+    </div>
+    <div class="filters">
+      <label for="report-search" class="search"
+        ><i class="pi pi-search"></i
+        ><input
+          pInputText
+          id="report-search"
+          type="search"
+          placeholder="Buscar insumo"
+          [value]="search()"
+          (input)="search.set($any($event.target).value)"
+      /></label>
+      <label class="switch"
+        ><input
+          type="checkbox"
+          [checked]="alertOnly()"
+          (change)="alertOnly.set($any($event.target).checked)"
+        />
+        Mostrar solo alertas</label
+      >
+    </div>
+    <div class="ingredient-grid">
+      @for (item of visible(); track item.id) {
+        <article class="ingredient-card" [class.muted]="!item.active">
+          <div class="ingredient-top">
+            <div>
+              <h3>{{ item.name }}</h3>
+              <small>{{ item.active ? 'Activo' : 'Inactivo' }} · {{ unit(item.unit) }}</small>
+            </div>
+            <div class="tags">
+              @if (item.outOfStock) {
+                <p-tag value="Agotado" severity="danger" />
+              } @else if (item.lowStock) {
+                <p-tag value="Reponer" severity="warn" />
+              }
+              @if (item.active && item.unitCost === null) {
+                <p-tag value="Sin costo" severity="secondary" />
+              }
+            </div>
+          </div>
+          <div class="item-numbers">
+            <span
+              >Existencia <b>{{ item.stockQuantity | number: '1.0-3' }}</b></span
+            >
+            <span
+              >Mínimo <b>{{ item.minimumQuantity | number: '1.0-3' }}</b></span
+            >
+            <span
+              >Valor
+              <b>{{
+                item.stockValue === null
+                  ? 'Pendiente'
+                  : (item.stockValue | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX')
+              }}</b></span
+            >
+          </div>
+          <div class="movement-numbers">
+            <span
+              >Compras <b>+{{ item.purchases | number: '1.0-3' }}</b></span
+            >
+            <span
+              >Salidas <b>−{{ item.manualUse | number: '1.0-3' }}</b></span
+            >
+            <span
+              >Mermas <b>−{{ item.waste | number: '1.0-3' }}</b></span
+            >
+            <span
+              >Comandas <b>−{{ item.orderConsumption | number: '1.0-3' }}</b></span
+            >
+            <span
+              >Reversas <b>+{{ item.orderReversal | number: '1.0-3' }}</b></span
+            >
+            <span
+              >Ajustes
+              <b
+                >{{ item.adjustments > 0 ? '+' : '' }}{{ item.adjustments | number: '1.0-3' }}</b
+              ></span
+            >
+            <span
+              >Variación total
+              <b>{{ item.netDelta > 0 ? '+' : '' }}{{ item.netDelta | number: '1.0-3' }}</b></span
+            >
+          </div>
+        </article>
+      } @empty {
+        <p class="empty">No hay insumos para este filtro.</p>
+      }
+    </div>
+  </section>
+}
+
+<section class="count-card">
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow">Conciliación física</span>
+      <h2>Conteo de insumos</h2>
+    </div>
+    @if (!draft()) {
+      <p-button
+        label="Iniciar conteo"
+        icon="pi pi-list-check"
+        [loading]="startingCount()"
+        (onClick)="startCount()"
+      />
+    }
+  </div>
+  <p>
+    Cuenta todos los insumos activos cuando la operación esté tranquila. Escribe incluso los valores
+    en cero. Al confirmar, solo las diferencias generan ajustes auditables.
+  </p>
+  @if (draft(); as lines) {
+    <div class="count-progress">
+      <strong>{{ countedLines() }} / {{ lines.length }}</strong> insumos contados ·
+      <strong>{{ changedLines() }}</strong> diferencias
+    </div>
+    @if (staleCount()) {
+      <p class="notice" role="alert">
+        Cambió el inventario o este identificador ya fue utilizado. Descarta este borrador e inicia
+        un conteo nuevo; no se aplicaron ajustes parciales.
+      </p>
+    }
+    <div class="count-list">
+      @for (line of lines; track line.ingredientId) {
+        <div class="count-line">
+          <div class="count-name">
+            <strong>{{ line.name }}</strong
+            ><small
+              >Esperado: {{ line.expectedQuantity | number: '1.0-3' }} {{ unit(line.unit) }}</small
+            >
+          </div>
+          <label [for]="'count-' + line.ingredientId"
+            >Contado ({{ unit(line.unit) }})
+            <p-inputnumber
+              [inputId]="'count-' + line.ingredientId"
+              [ngModel]="line.countedQuantity"
+              (ngModelChange)="updateCount(line.ingredientId, $event)"
+              [min]="0"
+              [useGrouping]="false"
+              [minFractionDigits]="0"
+              [maxFractionDigits]="line.unit === 'PIECE' ? 0 : 3"
+              placeholder="Sin contar"
+            />
+          </label>
+          <span
+            class="count-difference"
+            [class.has-difference]="
+              line.countedQuantity !== null && line.countedQuantity !== line.expectedQuantity
+            "
+          >
+            {{
+              line.countedQuantity === null
+                ? 'Pendiente'
+                : 'Diferencia: ' + (line.countedQuantity - line.expectedQuantity | number: '1.0-3')
+            }}
+          </span>
+        </div>
+      }
+    </div>
+    <label for="count-reason" class="reason-field"
+      >Motivo o referencia del conteo
+      <textarea
+        pTextarea
+        id="count-reason"
+        [(ngModel)]="reason"
+        (ngModelChange)="reasonChanged()"
+        maxlength="250"
+        rows="2"
+        placeholder="Ej. Conteo semanal al cierre del turno"
+      ></textarea>
+    </label>
+    <div class="count-actions">
+      <p-button
+        label="Descartar borrador"
+        severity="secondary"
+        [text]="true"
+        [disabled]="saving()"
+        (onClick)="cancelCount()"
+      />
+      <p-button
+        label="Conciliar y guardar"
+        icon="pi pi-check"
+        [loading]="saving()"
+        [disabled]="staleCount() || countedLines() !== lines.length || reason.trim().length < 5"
+        (onClick)="submitCount()"
+      />
+    </div>
+  }
+</section>
+
+<section class="history-card">
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow">Trazabilidad</span>
+      <h2>Últimos 20 conteos</h2>
+    </div>
+    <p-button
+      icon="pi pi-refresh"
+      ariaLabel="Actualizar historial"
+      severity="secondary"
+      [text]="true"
+      (onClick)="refreshCounts()"
+    />
+  </div>
+  @if (counts().length) {
+    <div class="history-tabs">
+      @for (count of counts(); track count.id) {
+        <button
+          type="button"
+          [class.selected]="selectedCount()?.id === count.id"
+          (click)="selectedCount.set(count)"
+        >
+          <strong>#{{ count.id }}</strong> {{ count.countedAt | date: 'short' }}
+          <small>{{ count.adjustedLines }} ajustes · {{ count.recordedByUsername }}</small>
+        </button>
+      }
+    </div>
+    @if (selectedCount(); as count) {
+      <div class="count-detail">
+        <div class="section-heading">
+          <div>
+            <h3>Conteo #{{ count.id }}</h3>
+            <p>{{ count.reason }} · {{ count.recordedByUsername }}</p>
+          </div>
+          <p-button
+            label="Descargar conteo"
+            icon="pi pi-download"
+            [outlined]="true"
+            severity="secondary"
+            (onClick)="downloadCountCsv(count)"
+          />
+        </div>
+        <p>
+          Diferencia valorizada conocida:
+          <strong>{{
+            count.knownDifferenceValue | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+          }}</strong>
+          @if (count.unpricedDifferences) {
+            · {{ count.unpricedDifferences }} diferencia(s) sin costo, total parcial.
+          }
+        </p>
+        <div class="detail-list">
+          @for (line of count.lines; track line.ingredientId) {
+            <div>
+              <strong>{{ line.ingredientName }}</strong
+              ><span
+                >{{ line.expectedQuantity | number: '1.0-3' }} →
+                {{ line.countedQuantity | number: '1.0-3' }} {{ unit(line.unit) }}</span
+              ><b [class.changed]="line.difference !== 0"
+                >{{ line.difference > 0 ? '+' : '' }}{{ line.difference | number: '1.0-3' }}</b
+              >
+            </div>
+          }
+        </div>
+      </div>
+    }
+  } @else {
+    <p class="empty">Todavía no se ha conciliado ningún conteo.</p>
+  }
+</section>

@@ -7,14 +7,19 @@
       quedan en el historial.
     </p>
   </div>
-  <p-button
-    label="Actualizar"
-    icon="pi pi-refresh"
-    severity="secondary"
-    [outlined]="true"
-    [loading]="loading()"
-    (onClick)="refresh()"
-  />
+  <div class="heading-actions">
+    <a routerLink="/inventario/reporte" class="report-link"
+      ><i class="pi pi-chart-bar"></i> Reporte y conteo</a
+    >
+    <p-button
+      label="Actualizar"
+      icon="pi pi-refresh"
+      severity="secondary"
+      [outlined]="true"
+      [loading]="loading()"
+      (onClick)="refresh()"
+    />
+  </div>
 </section>
 
 <section class="inventory-summary" aria-label="Resumen de inventario">

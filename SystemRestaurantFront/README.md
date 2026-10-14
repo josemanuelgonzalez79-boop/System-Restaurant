@@ -67,6 +67,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
   cancelaciones auditadas sin cargo en la cuenta.
 - Essential Plus: costos de referencia auditables, costo por receta y extra, utilidad bruta y
   margen sobre venta; costo histórico por comanda.
+- Essential Plus: reporte y alertas de inventario, exportación CSV y conciliación auditable de
+  conteos físicos sin cambios parciales.
 
 Rutas:
 
@@ -81,6 +83,7 @@ Rutas:
 /catalogo
 /estructura
 /inventario
+/inventario/reporte
 /recetas
 /costos
 /configuracion

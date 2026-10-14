@@ -107,6 +107,7 @@ src/main/resources/db/migration/V11__create_local_inventory.sql
 src/main/resources/db/migration/V12__create_product_recipes.sql
 src/main/resources/db/migration/V13__consume_recipes_on_dispatch.sql
 src/main/resources/db/migration/V14__recipe_costs_and_margin_snapshots.sql
+src/main/resources/db/migration/V15__inventory_counts.sql
 ```
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. `V4` incorpora
@@ -129,3 +130,9 @@ existencia, la comanda no sale. Una cancelación aún pendiente devuelve el cons
 `V14` agrega costo de referencia auditado por insumo y costo congelado en nuevos movimientos
 automáticos de comanda y reversa. La API `/api/v1/costs` calcula márgenes actuales de materia
 prima para productos y extras; los costos no reescriben el historial anterior.
+
+`V15` agrega el historial inmutable de conteos físicos por restaurante, sin alterar el stock al
+migrar. La API `/api/v1/inventory/report?from=AAAA-MM-DD&to=AAAA-MM-DD` resume movimientos
+del periodo y valora la existencia actual, señalando costos pendientes. La API
+`/api/v1/inventory/counts` concilia todos los insumos activos con versiones, registra los ajustes
+necesarios en el libro de movimientos y rechaza cambios simultáneos sin aplicar ajustes parciales.
