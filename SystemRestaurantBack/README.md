@@ -105,6 +105,7 @@ src/main/resources/db/migration/V9__add_daily_report_indexes.sql
 src/main/resources/db/migration/V10__one_local_restaurant.sql
 src/main/resources/db/migration/V11__create_local_inventory.sql
 src/main/resources/db/migration/V12__create_product_recipes.sql
+src/main/resources/db/migration/V13__consume_recipes_on_dispatch.sql
 ```
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. `V4` incorpora
@@ -119,6 +120,7 @@ que ya se ejecutó; cada cambio estructural debe ir en una migración nueva.
 y evita desactivarlo. Si encuentra varias sucursales, se detiene antes de modificar los datos: cada
 restaurante debe trasladarse a su propia instalación y base de datos.
 
-`V11` agrega el inventario local de Essential Plus y sus movimientos auditables. `V12` relaciona
-recetas con productos u opciones de modificador y guarda cantidades de insumos por unidad. No
-descuenta existencias por pedido; esa operación corresponde al siguiente bloque.
+`V11` agrega inventario local y movimientos auditables. `V12` relaciona recetas con productos y
+opciones. `V13` enlaza los movimientos automáticos con partidas de comanda y guarda el motivo de
+cancelación. El despacho descuenta los insumos en la misma transacción; si falta una receta o
+existencia, la comanda no sale. Una cancelación aún pendiente devuelve el consumo original.

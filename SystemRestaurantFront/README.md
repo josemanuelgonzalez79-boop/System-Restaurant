@@ -63,6 +63,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
 - Arqueo con efectivo esperado, conteo real, diferencia e historial imprimible.
 - Essential Plus: insumos, existencias, compras, salidas, mermas y conteos físicos con historial.
 - Essential Plus: recetas por producto y opción extra con cantidades de insumos por unidad.
+- Essential Plus: consumo por comanda, historial por partida, devolución antes de preparar y
+  cancelaciones auditadas sin cargo en la cuenta.
 
 Rutas:
 

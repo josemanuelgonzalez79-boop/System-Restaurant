@@ -274,7 +274,9 @@ public class OrderItemService {
                         modifiersByItem.getOrDefault(item.getId(), List.of())
                 ))
                 .toList();
-        int totalUnits = responses.stream().mapToInt(OrderItemResponse::quantity).sum();
+        int totalUnits = responses.stream()
+                .filter(item -> item.cancelledAt() == null)
+                .mapToInt(OrderItemResponse::quantity).sum();
         BigDecimal productSubtotal = responses.stream()
                 .map(OrderItemResponse::baseSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -297,11 +299,12 @@ public class OrderItemService {
             List<OrderItemModifier> modifiers
     ) {
         BigDecimal quantity = BigDecimal.valueOf(item.getQuantity());
-        BigDecimal baseSubtotal = item.getUnitPrice().multiply(quantity);
-        BigDecimal modifierSubtotal = modifiers.stream()
+        BigDecimal baseSubtotal = item.getCancelledAt() == null
+                ? item.getUnitPrice().multiply(quantity) : BigDecimal.ZERO;
+        BigDecimal modifierSubtotal = item.getCancelledAt() == null ? modifiers.stream()
                 .map(OrderItemModifier::getPriceDelta)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .multiply(quantity);
+                .multiply(quantity) : BigDecimal.ZERO;
         return new OrderItemResponse(
                 item.getId(),
                 item.getProductId(),
@@ -315,6 +318,7 @@ public class OrderItemService {
                 modifierSubtotal,
                 baseSubtotal.add(modifierSubtotal),
                 item.getSentAt(),
+                item.getCancelledAt(),
                 item.getVersion(),
                 item.getCreatedAt(),
                 item.getUpdatedAt()

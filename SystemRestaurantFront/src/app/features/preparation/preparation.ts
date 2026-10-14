@@ -1,9 +1,11 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { auditTime, finalize, interval, Subscription } from 'rxjs';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
 
 import {
   PreparationItem,
@@ -20,8 +22,7 @@ type DestinationFilter = 'ALL' | 'PRODUCTION' | 'SERVICE';
 
 @Component({
   selector: 'app-preparation',
-  imports: [ButtonModule, ConfirmDialogModule, TagModule],
-  providers: [ConfirmationService],
+  imports: [ButtonModule, DialogModule, FormsModule, TagModule, TextareaModule],
   templateUrl: './preparation.html',
   styleUrl: './preparation.scss',
 })
@@ -30,7 +31,6 @@ export class PreparationPage implements OnInit, OnDestroy {
   private readonly preparationApi = inject(PreparationApiService);
   protected readonly realtime = inject(RealtimeService);
   private readonly messages = inject(MessageService);
-  private readonly confirmations = inject(ConfirmationService);
   private fallbackSubscription?: Subscription;
   private realtimeSubscription?: Subscription;
   private pendingRealtimeRefresh = false;
@@ -44,6 +44,8 @@ export class PreparationPage implements OnInit, OnDestroy {
   protected readonly showHistory = signal(false);
   protected readonly tickets = signal<PreparationTicket[]>([]);
   protected readonly changingIds = signal<Set<number>>(new Set());
+  protected readonly cancelTarget = signal<PreparationItem | null>(null);
+  protected cancelReason = '';
 
   protected readonly columns: ReadonlyArray<{
     status: PreparationStatus;
@@ -208,15 +210,24 @@ export class PreparationPage implements OnInit, OnDestroy {
   }
 
   protected cancel(item: PreparationItem): void {
-    this.confirmations.confirm({
-      header: 'Cancelar partida',
-      message: `¿Confirmas que ${item.quantity} × ${item.productName} no debe prepararse?`,
-      icon: 'pi pi-exclamation-triangle',
-      rejectLabel: 'Conservar',
-      acceptLabel: 'Cancelar partida',
-      acceptButtonProps: { severity: 'danger' },
-      accept: () => this.changeStatus(item, 'CANCELLED'),
-    });
+    this.cancelReason = '';
+    this.cancelTarget.set(item);
+  }
+
+  protected closeCancel(): void {
+    this.cancelTarget.set(null);
+    this.cancelReason = '';
+  }
+
+  protected confirmCancel(): void {
+    const item = this.cancelTarget();
+    const reason = this.cancelReason.trim();
+    if (!item || this.changingIds().has(item.id)) return;
+    if (reason.length < 5 || reason.length > 180) {
+      this.messages.add({ severity: 'warn', summary: 'Escribe un motivo de 5 a 180 caracteres.' });
+      return;
+    }
+    this.changeStatus(item, 'CANCELLED', reason);
   }
 
   protected historyItems(ticket: PreparationTicket): PreparationItem[] {
@@ -287,10 +298,10 @@ export class PreparationPage implements OnInit, OnDestroy {
     }
   }
 
-  private changeStatus(item: PreparationItem, status: PreparationStatus): void {
+  private changeStatus(item: PreparationItem, status: PreparationStatus, reason?: string): void {
     this.changingIds.update((current) => new Set(current).add(item.id));
     this.preparationApi
-      .changeItemStatus(item.id, status, item.version)
+      .changeItemStatus(item.id, status, item.version, reason)
       .pipe(
         finalize(() => {
           this.changingIds.update((current) => {
@@ -302,6 +313,7 @@ export class PreparationPage implements OnInit, OnDestroy {
         }),
       )
       .subscribe((updatedTicket) => {
+        if (status === 'CANCELLED') this.closeCancel();
         const hasVisibleItems =
           this.showHistory() ||
           updatedTicket.items.some((candidate) =>

@@ -31,13 +31,15 @@ restaurante**. Se desarrolla en la rama `plus` y se organiza en **cinco bloques*
 | Bloque | Función | Estado |
 | --- | --- | --- |
 | 1 | Insumos, existencias, compras, salidas, mermas y conteos con historial | Probado y subido a `plus` |
-| 2 | Recetas por producto y opción extra, con cantidades por unidad | Implementado en esta entrega |
-| 3 | Consumo de recetas al enviar comandas y reversas auditables | Pendiente |
+| 2 | Recetas por producto y opción extra, con cantidades por unidad | Probado y subido a `plus` |
+| 3 | Consumo de recetas al enviar comandas y reversas auditables | Implementado en esta entrega |
 | 4 | Costos por receta, costo de extras y márgenes por producto | Pendiente |
 | 5 | Reportes de inventario, alertas y conciliación de conteos | Pendiente |
 
-Definir una receta **todavía no descuenta ingredientes**. El consumo y las reversas de pedidos
-se implementarán en el bloque 3, con reglas explícitas para no duplicar movimientos.
+Las partidas enviadas a cocina o servicio consumen la receta de producto y las recetas adicionales
+de las opciones elegidas. Una cancelación antes de comenzar revierte exactamente ese consumo;
+después de comenzar se conserva el consumo físico. Una partida cancelada deja de cobrarse. Los
+productos con ruta `NONE` no generan comandas y siguen fuera del consumo automático.
 
 ## Opción 3: Essential Pro (alcance futuro)
 

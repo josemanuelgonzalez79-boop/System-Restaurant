@@ -22,6 +22,8 @@ export interface PreparationItem {
   readyAt: string | null;
   deliveredAt: string | null;
   cancelledAt: string | null;
+  cancelReason: string | null;
+  cancelledByUsername: string | null;
   createdAt: string;
   updatedAt: string;
 }

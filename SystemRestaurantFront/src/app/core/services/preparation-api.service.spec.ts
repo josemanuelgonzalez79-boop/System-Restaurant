@@ -41,4 +41,19 @@ describe('PreparationApiService', () => {
     expect(request.request.body).toEqual({ status: 'IN_PREPARATION', version: 2 });
     request.flush({});
   });
+
+  it('includes the audit reason when cancelling a preparation item', () => {
+    service.changeItemStatus(18, 'CANCELLED', 3, 'Cliente canceló').subscribe();
+
+    const request = httpController.expectOne(
+      `${environment.apiBaseUrl}/v1/preparation/items/18/status`,
+    );
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({
+      status: 'CANCELLED',
+      version: 3,
+      reason: 'Cliente canceló',
+    });
+    request.flush({});
+  });
 });

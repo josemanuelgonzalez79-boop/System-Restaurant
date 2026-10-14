@@ -28,10 +28,12 @@ export class PreparationApiService {
     itemId: number,
     status: PreparationStatus,
     version: number,
+    reason?: string,
   ): Observable<PreparationTicket> {
     return this.http.patch<PreparationTicket>(`${this.preparationUrl}/items/${itemId}/status`, {
       status,
       version,
+      ...(reason ? { reason } : {}),
     });
   }
 }

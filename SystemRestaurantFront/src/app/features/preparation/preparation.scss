@@ -465,3 +465,29 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+:host ::ng-deep .cancel-form {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.cancel-form textarea {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+}
+
+.cancel-form label {
+  font-weight: 700;
+}
+
+.cancel-form small {
+  color: var(--p-text-muted-color);
+}
+
+.cancel-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

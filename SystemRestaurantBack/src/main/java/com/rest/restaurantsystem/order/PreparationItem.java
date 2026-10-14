@@ -53,6 +53,15 @@ class PreparationItem {
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
 
+    @Column(name = "cancel_reason", length = 180)
+    private String cancelReason;
+
+    @Column(name = "cancelled_by_user_id")
+    private Long cancelledByUserId;
+
+    @Column(name = "cancelled_by_username", length = 80)
+    private String cancelledByUsername;
+
     @Version
     private long version;
 
@@ -90,6 +99,13 @@ class PreparationItem {
             case PENDING -> {
             }
         }
+    }
+
+    void cancel(String reason, Long userId, String username) {
+        changeStatus(PreparationStatus.CANCELLED);
+        cancelReason = reason;
+        cancelledByUserId = userId;
+        cancelledByUsername = username;
     }
 
     Long getId() {
@@ -134,6 +150,14 @@ class PreparationItem {
 
     Instant getCancelledAt() {
         return cancelledAt;
+    }
+
+    String getCancelReason() {
+        return cancelReason;
+    }
+
+    String getCancelledByUsername() {
+        return cancelledByUsername;
     }
 
     long getVersion() {

@@ -3,8 +3,8 @@
     <span class="eyebrow">Essential Plus · operación local</span>
     <h1>Inventario de insumos</h1>
     <p>
-      Registra lo que entra, sale o se pierde en este restaurante. Cada movimiento queda en el
-      historial.
+      Registra entradas, salidas y mermas. Las comandas enviadas consumen recetas y los movimientos
+      quedan en el historial.
     </p>
   </div>
   <p-button
@@ -270,6 +270,9 @@
                 <div>
                   <strong>{{ movementLabel(movement.movementType) }}</strong>
                   <span>{{ movement.reason }}</span>
+                  @if (movement.preparationItemId) {
+                    <small>Partida de comanda #{{ movement.preparationItemId }}</small>
+                  }
                   <small
                     >{{ movement.recordedByUsername }} ·
                     {{ movement.occurredAt | date: 'medium' }}</small

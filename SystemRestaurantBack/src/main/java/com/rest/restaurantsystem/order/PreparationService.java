@@ -4,6 +4,8 @@ import com.rest.restaurantsystem.catalog.product.ProductDestination;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
+import com.rest.restaurantsystem.inventory.ConsumptionRequest;
+import com.rest.restaurantsystem.inventory.OrderConsumptionService;
 import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
 import com.rest.restaurantsystem.realtime.RealtimeEventType;
 import com.rest.restaurantsystem.user.UserResponse;
@@ -40,10 +42,12 @@ public class PreparationService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemModifierRepository orderModifierRepository;
     private final RestaurantOrderRepository orderRepository;
+    private final OrderPaymentRepository paymentRepository;
     private final OrderService orderService;
     private final OrderItemService orderItemService;
     private final UserService userService;
     private final RealtimeEventPublisher realtimeEventPublisher;
+    private final OrderConsumptionService consumptionService;
 
     public PreparationService(
             PreparationTicketRepository ticketRepository,
@@ -52,10 +56,12 @@ public class PreparationService {
             OrderItemRepository orderItemRepository,
             OrderItemModifierRepository orderModifierRepository,
             RestaurantOrderRepository orderRepository,
+            OrderPaymentRepository paymentRepository,
             OrderService orderService,
             OrderItemService orderItemService,
             UserService userService,
-            RealtimeEventPublisher realtimeEventPublisher
+            RealtimeEventPublisher realtimeEventPublisher,
+            OrderConsumptionService consumptionService
     ) {
         this.ticketRepository = ticketRepository;
         this.preparationItemRepository = preparationItemRepository;
@@ -63,10 +69,12 @@ public class PreparationService {
         this.orderItemRepository = orderItemRepository;
         this.orderModifierRepository = orderModifierRepository;
         this.orderRepository = orderRepository;
+        this.paymentRepository = paymentRepository;
         this.orderService = orderService;
         this.orderItemService = orderItemService;
         this.userService = userService;
         this.realtimeEventPublisher = realtimeEventPublisher;
+        this.consumptionService = consumptionService;
     }
 
     @Transactional
@@ -75,7 +83,7 @@ public class PreparationService {
             PreparationDispatchRequest request,
             String currentUsername
     ) {
-        RestaurantOrder order = orderService.getAccessibleEntity(orderId, currentUsername);
+        RestaurantOrder order = orderService.getLockedAccessibleEntity(orderId, currentUsername);
         ensureEditable(order);
         if (order.getVersion() != request.orderVersion()) {
             throw new ConflictException(
@@ -107,6 +115,7 @@ public class PreparationService {
                 ));
         UserResponse currentUser = userService.currentUser(currentUsername);
         List<PreparationTicket> createdTickets = new ArrayList<>();
+        List<ConsumptionRequest> consumptions = new ArrayList<>();
 
         try {
             for (ProductDestination destination : List.of(
@@ -152,6 +161,11 @@ public class PreparationService {
                         }
                         preparationModifierRepository.saveAll(snapshots);
                     }
+                    consumptions.add(new ConsumptionRequest(
+                            preparationItem.getId(), orderId, orderItem.getProductId(),
+                            orderItem.getProductName(), orderItem.getQuantity(),
+                            modifiers.stream().map(OrderItemModifier::getModifierOptionId).toList()
+                    ));
                     orderItem.markSent(ticket.getSentAt());
                 }
             }
@@ -161,6 +175,7 @@ public class PreparationService {
             );
         }
 
+        consumptionService.consume(consumptions, currentUser.id(), currentUsername);
         orderItemRepository.saveAll(pendingItems);
         order.touch();
         try {
@@ -220,15 +235,19 @@ public class PreparationService {
             PreparationStatusRequest request,
             String currentUsername
     ) {
-        PreparationItem item = preparationItemRepository.findById(itemId)
+        Long ticketId = preparationItemRepository.findTicketIdById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No se encontró la partida de preparación."
                 ));
-        PreparationTicket ticket = ticketRepository.findById(item.getTicketId())
+        PreparationTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No se encontró la comanda de preparación."
                 ));
-        orderService.ensureAccessibleBranch(ticket.getBranchId(), currentUsername);
+        RestaurantOrder order = orderService.getLockedAccessibleEntity(ticket.getOrderId(), currentUsername);
+        PreparationItem item = preparationItemRepository.findLockedById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No se encontró la partida de preparación."
+                ));
         if (item.getVersion() != request.version()) {
             throw new ConflictException(
                     "La partida cambió en otra pantalla. Actualiza e intenta nuevamente."
@@ -238,7 +257,28 @@ public class PreparationService {
             return buildResponses(List.of(ticket)).getFirst();
         }
         validateTransition(item.getStatus(), request.status());
-        item.changeStatus(request.status());
+        if (request.status() == PreparationStatus.CANCELLED) {
+            String reason = request.reason() == null ? "" : request.reason().trim();
+            if (reason.length() < 5 || reason.length() > 180) {
+                throw new BadRequestException("Escribe un motivo de cancelación de 5 a 180 caracteres.");
+            }
+            if (paymentRepository.existsByOrderIdAndStatus(order.getId(), PaymentStatus.ACTIVE)) {
+                throw new BadRequestException("Anula primero los cobros activos antes de cancelar la partida.");
+            }
+            UserResponse user = userService.currentUser(currentUsername);
+            if (item.getStatus() == PreparationStatus.PENDING) {
+                consumptionService.reversePending(item.getId(), reason, user.id(), currentUsername);
+            }
+            item.cancel(reason, user.id(), currentUsername);
+            OrderItem orderItem = orderItemRepository.findById(item.getOrderItemId())
+                    .orElseThrow(() -> new ResourceNotFoundException("No se encontró el producto del pedido."));
+            orderItem.markCancelled(item.getCancelledAt());
+            orderItemRepository.saveAndFlush(orderItem);
+            order.touch();
+            orderRepository.saveAndFlush(order);
+        } else {
+            item.changeStatus(request.status());
+        }
         try {
             preparationItemRepository.saveAndFlush(item);
         } catch (OptimisticLockingFailureException exception) {
@@ -338,6 +378,8 @@ public class PreparationService {
                             item.getReadyAt(),
                             item.getDeliveredAt(),
                             item.getCancelledAt(),
+                            item.getCancelReason(),
+                            item.getCancelledByUsername(),
                             item.getCreatedAt(),
                             item.getUpdatedAt()
                     ))

@@ -8,6 +8,8 @@ public record InventoryMovementResponse(
         Long id,
         UUID operationId,
         Long ingredientId,
+        Long preparationItemId,
+        Long reversesMovementId,
         MovementType movementType,
         BigDecimal quantityDelta,
         BigDecimal stockAfter,
@@ -18,6 +20,7 @@ public record InventoryMovementResponse(
     static InventoryMovementResponse from(InventoryMovement movement) {
         return new InventoryMovementResponse(
                 movement.getId(), movement.getOperationId(), movement.getIngredientId(),
+                movement.getPreparationItemId(), movement.getReversesMovementId(),
                 movement.getMovementType(), movement.getQuantityDelta(), movement.getStockAfter(),
                 movement.getReason(), movement.getRecordedByUsername(), movement.getOccurredAt()
         );

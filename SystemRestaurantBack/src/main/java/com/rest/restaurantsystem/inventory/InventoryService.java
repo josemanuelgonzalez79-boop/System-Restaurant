@@ -3,6 +3,9 @@ package com.rest.restaurantsystem.inventory;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
+import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
+import com.rest.restaurantsystem.realtime.RealtimeEventType;
+import com.rest.restaurantsystem.structure.BranchService;
 import com.rest.restaurantsystem.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,17 +20,23 @@ public class InventoryService {
     private final InventoryMovementRepository movements;
     private final RecipeLineRepository recipeLines;
     private final UserService users;
+    private final BranchService branchService;
+    private final RealtimeEventPublisher realtimeEventPublisher;
 
     public InventoryService(
             IngredientRepository ingredients,
             InventoryMovementRepository movements,
             RecipeLineRepository recipeLines,
-            UserService users
+            UserService users,
+            BranchService branchService,
+            RealtimeEventPublisher realtimeEventPublisher
     ) {
         this.ingredients = ingredients;
         this.movements = movements;
         this.recipeLines = recipeLines;
         this.users = users;
+        this.branchService = branchService;
+        this.realtimeEventPublisher = realtimeEventPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -49,7 +58,9 @@ public class InventoryService {
         if (ingredients.existsByNameIgnoreCase(name)) {
             throw new ConflictException("Ya existe un insumo con ese nombre.");
         }
-        return IngredientResponse.from(ingredients.saveAndFlush(new Ingredient(request)));
+        IngredientResponse response = IngredientResponse.from(ingredients.saveAndFlush(new Ingredient(request)));
+        publishInventoryChange();
+        return response;
     }
 
     @Transactional
@@ -68,7 +79,9 @@ public class InventoryService {
             throw new BadRequestException("No puedes cambiar la unidad de un insumo con movimientos o recetas.");
         }
         ingredient.update(request);
-        return IngredientResponse.from(ingredients.saveAndFlush(ingredient));
+        IngredientResponse response = IngredientResponse.from(ingredients.saveAndFlush(ingredient));
+        publishInventoryChange();
+        return response;
     }
 
     @Transactional
@@ -81,11 +94,17 @@ public class InventoryService {
             throw new BadRequestException("Quita este insumo de las recetas antes de desactivarlo.");
         }
         ingredient.setActive(active);
-        return IngredientResponse.from(ingredients.saveAndFlush(ingredient));
+        IngredientResponse response = IngredientResponse.from(ingredients.saveAndFlush(ingredient));
+        publishInventoryChange();
+        return response;
     }
 
     @Transactional
     public InventoryMovementResponse recordMovement(Long ingredientId, StockMovementRequest request, String username) {
+        if (request.movementType() == MovementType.ORDER_CONSUMPTION
+                || request.movementType() == MovementType.ORDER_REVERSAL) {
+            throw new BadRequestException("Los movimientos de pedidos se generan al enviar o cancelar comandas.");
+        }
         InventoryMovement existing = movements.findByOperationId(request.operationId()).orElse(null);
         if (existing != null) {
             return retryResult(existing, ingredientId, request, username);
@@ -137,7 +156,9 @@ public class InventoryService {
                 request.operationId(), ingredientId, request.movementType(), delta, after,
                 request.reason(), userId, username
         );
-        return InventoryMovementResponse.from(movements.saveAndFlush(movement));
+        InventoryMovementResponse response = InventoryMovementResponse.from(movements.saveAndFlush(movement));
+        publishInventoryChange();
+        return response;
     }
 
     private InventoryMovementResponse retryResult(
@@ -171,5 +192,11 @@ public class InventoryService {
                 && request.minimumQuantity().stripTrailingZeros().scale() > 0) {
             throw new BadRequestException("El mínimo de piezas debe ser un número entero.");
         }
+    }
+
+    private void publishInventoryChange() {
+        // V10 guarantees a single restaurant. The event is delivered only after commit.
+        branchService.findAll().forEach(branch -> realtimeEventPublisher.publish(
+                RealtimeEventType.INVENTORY_CHANGED, branch.id(), null, null, null));
     }
 }

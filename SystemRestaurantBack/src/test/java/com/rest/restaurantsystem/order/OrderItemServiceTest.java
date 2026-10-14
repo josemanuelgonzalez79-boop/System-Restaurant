@@ -168,6 +168,28 @@ class OrderItemServiceTest {
         verify(repository, never()).saveAndFlush(any());
     }
 
+    @Test
+    void keepsCancelledLineVisibleButExcludesItFromTheBill() {
+        RestaurantOrder order = order();
+        OrderItem cancelled = new OrderItem(42L, product(), 2, null);
+        ReflectionTestUtils.setField(cancelled, "id", 90L);
+        cancelled.markCancelled(Instant.now());
+        OrderItem active = new OrderItem(42L, product(), 1, null);
+        ReflectionTestUtils.setField(active, "id", 91L);
+        when(repository.findByOrderIdOrderByCreatedAtAscIdAsc(42L))
+                .thenReturn(List.of(cancelled, active));
+        when(modifierRepository.findByOrderItemIdInOrderByOrderItemIdAscIdAsc(anyList()))
+                .thenReturn(List.of());
+        when(orderService.toResponse(order)).thenReturn(response(order));
+
+        OrderDetailResponse result = service.buildDetail(order);
+
+        assertThat(result.items()).hasSize(2);
+        assertThat(result.items().getFirst().lineTotal()).isEqualByComparingTo("0");
+        assertThat(result.totalUnits()).isEqualTo(1);
+        assertThat(result.total()).isEqualByComparingTo("100.00");
+    }
+
     private RestaurantOrder order() {
         RestaurantOrder order = new RestaurantOrder(
                 new OrderCreateRequest(

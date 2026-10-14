@@ -223,6 +223,9 @@
             <b>{{ item.quantity }} ×</b>
             <div>
               <strong>{{ item.productName }}</strong>
+              @if (item.cancelledAt) {
+                <small>Cancelada · sin cargo</small>
+              }
               @if (item.modifiers.length > 0) {
                 <small>
                   @for (modifier of item.modifiers; track modifier.id; let last = $last) {

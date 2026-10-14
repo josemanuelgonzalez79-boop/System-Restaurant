@@ -1,4 +1,54 @@
-<p-confirmDialog />
+<p-dialog
+  header="Cancelar partida"
+  [modal]="true"
+  [visible]="cancelTarget() !== null"
+  [style]="{ width: 'min(94vw, 520px)' }"
+  (visibleChange)="$event ? null : closeCancel()"
+>
+  @if (cancelTarget(); as item) {
+    <div class="cancel-form">
+      <strong>{{ item.quantity }} × {{ item.productName }}</strong>
+      @if (item.status === 'PENDING') {
+        <p>
+          La partida aún no comenzó. Sus insumos se devolverán al inventario y saldrá de la cuenta.
+        </p>
+      } @else {
+        <p>
+          Ya comenzó la preparación. El consumo permanecerá registrado y la partida saldrá de la
+          cuenta. Si se recuperó físicamente algún insumo, registra un ajuste verificado en
+          Inventario.
+        </p>
+      }
+      <label for="cancel-preparation-reason">Motivo de cancelación</label>
+      <textarea
+        pTextarea
+        id="cancel-preparation-reason"
+        [(ngModel)]="cancelReason"
+        maxlength="180"
+        rows="3"
+        placeholder="Ej. El cliente canceló antes de iniciar"
+      ></textarea>
+      <small>Quedará guardado con tu usuario en el historial.</small>
+      <div class="cancel-actions">
+        <p-button
+          label="Conservar"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="changingIds().has(item.id)"
+          (onClick)="closeCancel()"
+        />
+        <p-button
+          label="Confirmar cancelación"
+          severity="danger"
+          icon="pi pi-ban"
+          [loading]="changingIds().has(item.id)"
+          [disabled]="cancelReason.trim().length < 5"
+          (onClick)="confirmCancel()"
+        />
+      </div>
+    </div>
+  }
+</p-dialog>
 
 <section class="preparation-heading">
   <div>
@@ -187,6 +237,9 @@
                   {{ pointLabel(ticket) }} · {{ ticket.order.folio }} ·
                   {{ item.status === 'DELIVERED' ? 'Entregada' : 'Cancelada' }}
                 </small>
+                @if (item.cancelReason) {
+                  <small>Motivo: {{ item.cancelReason }} · {{ item.cancelledByUsername }}</small>
+                }
               </span>
             </article>
           }

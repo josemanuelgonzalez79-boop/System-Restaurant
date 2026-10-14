@@ -19,6 +19,7 @@ public record OrderItemResponse(
         BigDecimal modifierSubtotal,
         BigDecimal lineTotal,
         Instant sentAt,
+        Instant cancelledAt,
         long version,
         Instant createdAt,
         Instant updatedAt

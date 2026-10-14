@@ -3,6 +3,7 @@ package com.rest.restaurantsystem.order;
 import com.rest.restaurantsystem.catalog.product.ProductDestination;
 import com.rest.restaurantsystem.catalog.product.ProductResponse;
 import com.rest.restaurantsystem.exception.BadRequestException;
+import com.rest.restaurantsystem.inventory.OrderConsumptionService;
 import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
 import com.rest.restaurantsystem.realtime.RealtimeEventType;
 import com.rest.restaurantsystem.user.UserResponse;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +53,9 @@ class PreparationServiceTest {
     private RestaurantOrderRepository orderRepository;
 
     @Mock
+    private OrderPaymentRepository paymentRepository;
+
+    @Mock
     private OrderService orderService;
 
     @Mock
@@ -61,6 +66,9 @@ class PreparationServiceTest {
 
     @Mock
     private RealtimeEventPublisher realtimeEventPublisher;
+
+    @Mock
+    private OrderConsumptionService consumptionService;
 
     @InjectMocks
     private PreparationService service;
@@ -74,7 +82,7 @@ class PreparationServiceTest {
         AtomicLong preparationItemIds = new AtomicLong(500L);
         List<PreparationItem> createdItems = new ArrayList<>();
 
-        when(orderService.getAccessibleEntity(42L, "mesero")).thenReturn(order);
+        when(orderService.getLockedAccessibleEntity(42L, "mesero")).thenReturn(order);
         when(orderItemRepository.findByOrderIdOrderByCreatedAtAscIdAsc(42L))
                 .thenReturn(List.of(kitchenItem, serviceItem));
         when(orderModifierRepository.findByOrderItemIdInOrderByOrderItemIdAscIdAsc(anyList()))
@@ -115,6 +123,8 @@ class PreparationServiceTest {
                 .containsExactly(ProductDestination.PRODUCTION, ProductDestination.SERVICE);
         assertThat(kitchenItem.getSentAt()).isNotNull();
         assertThat(serviceItem.getSentAt()).isNotNull();
+        verify(consumptionService).consume(anyList(), org.mockito.ArgumentMatchers.eq(10L),
+                org.mockito.ArgumentMatchers.eq("mesero"));
         verify(realtimeEventPublisher).publish(
                 RealtimeEventType.PREPARATION_DISPATCHED,
                 1L,
@@ -141,8 +151,10 @@ class PreparationServiceTest {
         );
         ReflectionTestUtils.setField(ticket, "id", 100L);
         ticket.onCreate();
-        when(preparationItemRepository.findById(500L)).thenReturn(Optional.of(item));
+        when(preparationItemRepository.findTicketIdById(500L)).thenReturn(Optional.of(100L));
+        when(preparationItemRepository.findLockedById(500L)).thenReturn(Optional.of(item));
         when(ticketRepository.findById(100L)).thenReturn(Optional.of(ticket));
+        when(orderService.getLockedAccessibleEntity(42L, "cocinero")).thenReturn(order());
 
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
@@ -154,6 +166,63 @@ class PreparationServiceTest {
         );
 
         assertThat(exception.getMessage()).contains("No es posible cambiar");
+    }
+
+    @Test
+    void pendingCancellationReversesStockAndRemovesTheCharge() {
+        PreparationItem prepared = preparationItem();
+        RestaurantOrder order = order();
+        OrderItem orderItem = item(90L, ProductDestination.PRODUCTION, "Hamburguesa");
+        stubCancellation(prepared, order, orderItem);
+
+        service.changeStatus(500L,
+                new PreparationStatusRequest(PreparationStatus.CANCELLED, 0, "Cliente canceló"),
+                "cocinero");
+
+        verify(consumptionService).reversePending(500L, "Cliente canceló", 10L, "cocinero");
+        assertThat(orderItem.getCancelledAt()).isNotNull();
+        assertThat(prepared.getCancelReason()).isEqualTo("Cliente canceló");
+        assertThat(prepared.getCancelledByUsername()).isEqualTo("cocinero");
+    }
+
+    @Test
+    void cancellationAfterStartingKeepsTheConsumption() {
+        PreparationItem prepared = preparationItem();
+        prepared.changeStatus(PreparationStatus.IN_PREPARATION);
+        stubCancellation(prepared, order(), item(90L, ProductDestination.PRODUCTION, "Hamburguesa"));
+
+        service.changeStatus(500L,
+                new PreparationStatusRequest(PreparationStatus.CANCELLED, 0, "Se derramó"),
+                "cocinero");
+
+        verify(consumptionService, never()).reversePending(any(), any(), any(), any());
+        assertThat(prepared.getStatus()).isEqualTo(PreparationStatus.CANCELLED);
+    }
+
+    private PreparationItem preparationItem() {
+        PreparationItem prepared = new PreparationItem(
+                100L, item(90L, ProductDestination.PRODUCTION, "Hamburguesa"));
+        ReflectionTestUtils.setField(prepared, "id", 500L);
+        prepared.onCreate();
+        return prepared;
+    }
+
+    private void stubCancellation(PreparationItem prepared, RestaurantOrder order, OrderItem orderItem) {
+        PreparationTicket ticket = new PreparationTicket(
+                42L, 1L, ProductDestination.PRODUCTION, 1, 10L);
+        ReflectionTestUtils.setField(ticket, "id", 100L);
+        ticket.onCreate();
+        when(preparationItemRepository.findTicketIdById(500L)).thenReturn(Optional.of(100L));
+        when(preparationItemRepository.findLockedById(500L)).thenReturn(Optional.of(prepared));
+        when(ticketRepository.findById(100L)).thenReturn(Optional.of(ticket));
+        when(orderService.getLockedAccessibleEntity(42L, "cocinero")).thenReturn(order);
+        when(userService.currentUser("cocinero")).thenReturn(user());
+        when(orderItemRepository.findById(90L)).thenReturn(Optional.of(orderItem));
+        when(preparationItemRepository.findByTicketIdInOrderByTicketIdAscCreatedAtAscIdAsc(anyList()))
+                .thenReturn(List.of(prepared));
+        when(orderRepository.findById(42L)).thenReturn(Optional.of(order));
+        when(orderService.toResponse(order)).thenReturn(orderResponse(order));
+        when(userService.findById(10L)).thenReturn(user());
     }
 
     private RestaurantOrder order() {

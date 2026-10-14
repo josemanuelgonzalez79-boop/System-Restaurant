@@ -2,6 +2,8 @@ package com.rest.restaurantsystem.inventory;
 
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
+import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
+import com.rest.restaurantsystem.structure.BranchService;
 import com.rest.restaurantsystem.user.UserResponse;
 import com.rest.restaurantsystem.user.UserRole;
 import com.rest.restaurantsystem.user.UserService;
@@ -29,6 +31,8 @@ class InventoryServiceTest {
     @Mock InventoryMovementRepository movements;
     @Mock RecipeLineRepository recipeLines;
     @Mock UserService users;
+    @Mock BranchService branchService;
+    @Mock RealtimeEventPublisher realtimeEventPublisher;
     @InjectMocks InventoryService service;
 
     @Test
@@ -100,6 +104,13 @@ class InventoryServiceTest {
         assertThrows(ConflictException.class, () -> service.recordMovement(1L,
                 new StockMovementRequest(operationId, MovementType.PURCHASE,
                         new BigDecimal("3"), "Compra", 0L), "admin"));
+    }
+
+    @Test
+    void rejectsForgedAutomaticMovementsFromTheManualInventoryApi() {
+        assertThrows(BadRequestException.class, () -> service.recordMovement(1L,
+                movement(MovementType.ORDER_REVERSAL, "2", 0), "admin"));
+        verifyNoInteractions(ingredients, users);
     }
 
     private IngredientRequest request(IngredientUnit unit) {

@@ -16,6 +16,8 @@ public record PreparationItemResponse(
         Instant readyAt,
         Instant deliveredAt,
         Instant cancelledAt,
+        String cancelReason,
+        String cancelledByUsername,
         Instant createdAt,
         Instant updatedAt
 ) {

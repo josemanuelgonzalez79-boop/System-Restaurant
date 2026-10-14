@@ -4,5 +4,7 @@ public enum MovementType {
     PURCHASE,
     USE,
     WASTE,
-    ADJUSTMENT
+    ADJUSTMENT,
+    ORDER_CONSUMPTION,
+    ORDER_REVERSAL
 }

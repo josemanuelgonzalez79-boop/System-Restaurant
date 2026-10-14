@@ -50,6 +50,9 @@ class OrderItem {
     @Column(name = "sent_at")
     private Instant sentAt;
 
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
+
     @Version
     private long version;
 
@@ -78,6 +81,10 @@ class OrderItem {
 
     void markSent(Instant sentAt) {
         this.sentAt = sentAt;
+    }
+
+    void markCancelled(Instant cancelledAt) {
+        this.cancelledAt = cancelledAt;
     }
 
     Long getId() {
@@ -114,6 +121,10 @@ class OrderItem {
 
     Instant getSentAt() {
         return sentAt;
+    }
+
+    Instant getCancelledAt() {
+        return cancelledAt;
     }
 
     long getVersion() {

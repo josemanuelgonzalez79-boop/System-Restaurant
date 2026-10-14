@@ -12,5 +12,11 @@ interface InventoryMovementRepository extends JpaRepository<InventoryMovement, L
 
     boolean existsByIngredientId(Long ingredientId);
 
+    boolean existsByPreparationItemIdAndMovementType(Long preparationItemId, MovementType type);
+
+    List<InventoryMovement> findByPreparationItemIdAndMovementTypeOrderByIngredientIdAsc(
+            Long preparationItemId, MovementType type
+    );
+
     List<InventoryMovement> findTop50ByIngredientIdOrderByOccurredAtDescIdDesc(Long ingredientId);
 }

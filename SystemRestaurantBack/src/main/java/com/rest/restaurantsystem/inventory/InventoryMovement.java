@@ -28,6 +28,12 @@ class InventoryMovement {
     @Column(name = "ingredient_id", nullable = false, updatable = false)
     private Long ingredientId;
 
+    @Column(name = "preparation_item_id", updatable = false)
+    private Long preparationItemId;
+
+    @Column(name = "reverses_movement_id", updatable = false)
+    private Long reversesMovementId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "movement_type", nullable = false, length = 20, updatable = false)
     private MovementType movementType;
@@ -58,8 +64,20 @@ class InventoryMovement {
             BigDecimal quantityDelta, BigDecimal stockAfter, String reason,
             Long recordedByUserId, String recordedByUsername
     ) {
+        this(operationId, ingredientId, movementType, quantityDelta, stockAfter, reason,
+                recordedByUserId, recordedByUsername, null, null);
+    }
+
+    InventoryMovement(
+            UUID operationId, Long ingredientId, MovementType movementType,
+            BigDecimal quantityDelta, BigDecimal stockAfter, String reason,
+            Long recordedByUserId, String recordedByUsername,
+            Long preparationItemId, Long reversesMovementId
+    ) {
         this.operationId = operationId;
         this.ingredientId = ingredientId;
+        this.preparationItemId = preparationItemId;
+        this.reversesMovementId = reversesMovementId;
         this.movementType = movementType;
         this.quantityDelta = quantityDelta;
         this.stockAfter = stockAfter;
@@ -78,6 +96,14 @@ class InventoryMovement {
 
     Long getIngredientId() {
         return ingredientId;
+    }
+
+    Long getPreparationItemId() {
+        return preparationItemId;
+    }
+
+    Long getReversesMovementId() {
+        return reversesMovementId;
     }
 
     MovementType getMovementType() {

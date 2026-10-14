@@ -114,14 +114,34 @@
 
       <div class="ticket-items">
         @for (item of current.items; track item.id) {
-          <article class="ticket-item">
+          <article class="ticket-item" [class.cancelled-item]="item.cancelledAt">
             <div class="item-quantity">{{ item.quantity }}</div>
             <div class="item-description">
               <strong>{{ item.productName }}</strong>
-              <span class="dispatch-state" [class.sent]="item.sentAt">
-                <i [class]="item.sentAt ? 'pi pi-check-circle' : 'pi pi-clock'"></i>
-                {{ item.sentAt ? 'Enviada' : destinationLabel(item) }}
+              <span class="dispatch-state" [class.sent]="item.sentAt && !item.cancelledAt">
+                <i
+                  [class]="
+                    item.cancelledAt
+                      ? 'pi pi-ban'
+                      : item.sentAt
+                        ? 'pi pi-check-circle'
+                        : 'pi pi-clock'
+                  "
+                ></i>
+                {{
+                  item.cancelledAt
+                    ? 'Cancelada · sin cargo'
+                    : item.sentAt
+                      ? 'Enviada'
+                      : destinationLabel(item)
+                }}
               </span>
+              @if (item.destination === 'NONE' && !item.cancelledAt) {
+                <small
+                  >Sin consumo automático de insumos. Usa ruta Servicio si se descuenta por
+                  comanda.</small
+                >
+              }
               <span>
                 {{ item.unitPrice | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }} c/u
               </span>

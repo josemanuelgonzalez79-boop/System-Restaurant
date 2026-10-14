@@ -1,7 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { auditTime, finalize, interval, Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -15,11 +15,14 @@ import {
   Ingredient,
   IngredientPayload,
   IngredientUnit,
+  ManualMovementType,
   MovementType,
   StockMovement,
   StockMovementPayload,
 } from '../../core/models/inventory.model';
 import { InventoryApiService } from '../../core/services/inventory-api.service';
+import { OrderApiService } from '../../core/services/order-api.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 
 @Component({
   selector: 'app-inventory',
@@ -37,11 +40,17 @@ import { InventoryApiService } from '../../core/services/inventory-api.service';
   templateUrl: './inventory.html',
   styleUrl: './inventory.scss',
 })
-export class InventoryPage implements OnInit {
+export class InventoryPage implements OnInit, OnDestroy {
   private readonly api = inject(InventoryApiService);
+  private readonly orders = inject(OrderApiService);
+  private readonly realtime = inject(RealtimeService);
   private readonly forms = inject(FormBuilder);
   private readonly messages = inject(MessageService);
   private pendingOperationId: string | null = null;
+  private realtimeSubscription?: Subscription;
+  private branchLookup?: Subscription;
+  private fallbackSubscription?: Subscription;
+  private refreshGeneration = 0;
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
@@ -73,7 +82,7 @@ export class InventoryPage implements OnInit {
     { value: 'KG', label: 'Kilogramos' },
     { value: 'L', label: 'Litros' },
   ];
-  protected readonly movementTypes: { value: MovementType; label: string }[] = [
+  protected readonly movementTypes: { value: ManualMovementType; label: string }[] = [
     { value: 'PURCHASE', label: 'Entrada / compra' },
     { value: 'USE', label: 'Salida manual' },
     { value: 'WASTE', label: 'Merma' },
@@ -86,7 +95,10 @@ export class InventoryPage implements OnInit {
     minimumQuantity: [0, [Validators.required, Validators.min(0)]],
   });
   protected readonly movementForm = this.forms.nonNullable.group({
-    movementType: this.forms.nonNullable.control<MovementType>('PURCHASE', Validators.required),
+    movementType: this.forms.nonNullable.control<ManualMovementType>(
+      'PURCHASE',
+      Validators.required,
+    ),
     quantity: [0, [Validators.required, Validators.min(0)]],
     reason: ['', [Validators.required, Validators.maxLength(250)]],
   });
@@ -99,15 +111,41 @@ export class InventoryPage implements OnInit {
 
   ngOnInit(): void {
     this.refresh();
+    this.branchLookup = this.orders.findBranches().subscribe({
+      next: (branches) => {
+        if (branches.length > 0) {
+          this.realtimeSubscription = this.realtime
+            .watchBranch(branches[0].id)
+            .pipe(auditTime(250))
+            .subscribe(() => this.refresh());
+        }
+      },
+      error: () => {},
+    });
+    this.fallbackSubscription = interval(60_000).subscribe(() => {
+      if (!this.saving() && !this.savingMovement()) this.refresh();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.branchLookup?.unsubscribe();
+    this.realtimeSubscription?.unsubscribe();
+    this.fallbackSubscription?.unsubscribe();
   }
 
   protected refresh(): void {
+    const generation = ++this.refreshGeneration;
     this.loading.set(true);
     this.api
       .findAll()
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        finalize(() => {
+          if (generation === this.refreshGeneration) this.loading.set(false);
+        }),
+      )
       .subscribe({
         next: (ingredients) => {
+          if (generation !== this.refreshGeneration) return;
           this.ingredients.set(ingredients);
           if (this.selectedId() !== null) {
             this.loadHistory(this.selectedId()!);
@@ -220,6 +258,8 @@ export class InventoryPage implements OnInit {
   }
 
   protected movementLabel(type: MovementType): string {
+    if (type === 'ORDER_CONSUMPTION') return 'Consumo por comanda';
+    if (type === 'ORDER_REVERSAL') return 'Devolución por cancelación';
     return this.movementTypes.find((option) => option.value === type)?.label ?? type;
   }
 

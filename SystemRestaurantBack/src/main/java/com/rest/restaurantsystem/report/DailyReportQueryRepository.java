@@ -134,6 +134,7 @@ public class DailyReportQueryRepository {
                            ), 0) AS order_total
                     FROM order_items item
                     LEFT JOIN modifier_totals modifier ON modifier.order_item_id = item.id
+                    WHERE item.cancelled_at IS NULL
                     GROUP BY item.order_id
                 )
                 SELECT COUNT(*) FILTER (
@@ -206,6 +207,7 @@ public class DailyReportQueryRepository {
                   AND orders.status = 'COMPLETED'
                   AND orders.closed_at >= :startAt
                   AND orders.closed_at < :endAt
+                  AND item.cancelled_at IS NULL
                 GROUP BY item.product_name
                 ORDER BY quantity DESC, amount DESC, item.product_name
                 LIMIT 10
@@ -361,6 +363,7 @@ public class DailyReportQueryRepository {
                            )), 0) AS amount
                     FROM order_items item
                     LEFT JOIN modifier_totals modifier ON modifier.order_item_id = item.id
+                    WHERE item.cancelled_at IS NULL
                     GROUP BY item.order_id
                 )
                 SELECT orders.id,

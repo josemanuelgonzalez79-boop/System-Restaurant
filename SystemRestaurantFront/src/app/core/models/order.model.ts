@@ -66,6 +66,7 @@ export interface OrderItem {
   modifierSubtotal: number;
   lineTotal: number;
   sentAt: string | null;
+  cancelledAt: string | null;
   version: number;
   createdAt: string;
   updatedAt: string;
