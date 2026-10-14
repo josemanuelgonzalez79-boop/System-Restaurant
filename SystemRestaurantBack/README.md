@@ -74,6 +74,8 @@ sesión HTTP y protección CSRF.
 | `GET/PATCH`          | `/api/v1/preparation`                           | Usuario activo del restaurante               |
 | `GET/POST/PATCH`     | `/api/v1/orders/{id}/payments`                  | Usuario activo del restaurante               |
 | `GET/POST/PATCH`     | `/api/v1/cash-registers`                        | Propietario, administrador, gerente o cajero |
+| `GET/POST/PUT/PATCH` | `/api/v1/inventory/ingredients`                 | Propietario o administrador                  |
+| `GET/POST`           | `/api/v1/inventory/ingredients/{id}/movements`  | Propietario o administrador                  |
 | WebSocket/STOMP      | `/ws`                                           | Usuario autenticado                          |
 
 ## Tiempo real
@@ -99,6 +101,7 @@ src/main/resources/db/migration/V7__create_order_payments.sql
 src/main/resources/db/migration/V8__create_cash_register_sessions.sql
 src/main/resources/db/migration/V9__add_daily_report_indexes.sql
 src/main/resources/db/migration/V10__one_local_restaurant.sql
+src/main/resources/db/migration/V11__create_local_inventory.sql
 ```
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. `V4` incorpora
@@ -112,3 +115,6 @@ que ya se ejecutó; cada cambio estructural debe ir en una migración nueva.
 `V10` conserva el identificador interno y los datos históricos, limita la base a un restaurante
 y evita desactivarlo. Si encuentra varias sucursales, se detiene antes de modificar los datos: cada
 restaurante debe trasladarse a su propia instalación y base de datos.
+
+`V11` agrega el inventario local de Essential Plus y sus movimientos auditables. El registro
+de ventas aún no consume existencias: la relación entre productos y recetas será un módulo posterior.

@@ -1,0 +1,286 @@
+<section class="inventory-heading">
+  <div>
+    <span class="eyebrow">Essential Plus · operación local</span>
+    <h1>Inventario de insumos</h1>
+    <p>
+      Registra lo que entra, sale o se pierde en este restaurante. Cada movimiento queda en el
+      historial.
+    </p>
+  </div>
+  <p-button
+    label="Actualizar"
+    icon="pi pi-refresh"
+    severity="secondary"
+    [outlined]="true"
+    [loading]="loading()"
+    (onClick)="refresh()"
+  />
+</section>
+
+<section class="inventory-summary" aria-label="Resumen de inventario">
+  <article>
+    <i class="pi pi-box"></i><strong>{{ ingredients().length }}</strong
+    ><span>Insumos registrados</span>
+  </article>
+  <article class="low" [class.alert]="lowCount() > 0">
+    <i class="pi pi-exclamation-circle"></i> <strong>{{ lowCount() }}</strong
+    ><span>En nivel mínimo</span>
+  </article>
+  <article><i class="pi pi-shield"></i><strong>1</strong><span>Restaurante local</span></article>
+</section>
+
+<div class="inventory-layout">
+  <section class="editor-panel">
+    <header>
+      <span class="eyebrow">Catálogo de insumos</span>
+      <h2>{{ editingId() ? 'Editar insumo' : 'Nuevo insumo' }}</h2>
+      <p>Usa piezas para unidades enteras, kg para peso y L para líquidos.</p>
+    </header>
+    <form [formGroup]="ingredientForm" (ngSubmit)="submitIngredient()">
+      <label
+        ><span>Nombre del insumo</span>
+        <input
+          pInputText
+          formControlName="name"
+          maxlength="120"
+          placeholder="Ej. Tomate, aceite o tortillas"
+        />
+        @if (ingredientForm.controls.name.touched && ingredientForm.controls.name.invalid) {
+          <small class="field-error">Escribe el nombre del insumo.</small>
+        }
+      </label>
+      <div class="form-pair">
+        <label
+          ><span>Unidad</span>
+          <p-select
+            formControlName="unit"
+            [options]="units"
+            optionLabel="label"
+            optionValue="value"
+            inputId="ingredient-unit"
+          />
+        </label>
+        <label
+          ><span>Avisar desde</span>
+          <p-inputnumber
+            formControlName="minimumQuantity"
+            inputId="ingredient-minimum"
+            [min]="0"
+            [maxFractionDigits]="ingredientForm.controls.unit.value === 'PIECE' ? 0 : 3"
+            [minFractionDigits]="0"
+            [useGrouping]="false"
+          />
+        </label>
+      </div>
+      <small class="hint"
+        >El inventario empieza en cero. Un mínimo de cero desactiva la alerta.</small
+      >
+      <div class="form-actions">
+        @if (editingId()) {
+          <p-button
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            type="button"
+            (onClick)="cancelEdit()"
+          />
+        }
+        <p-button
+          [label]="editingId() ? 'Guardar cambios' : 'Crear insumo'"
+          icon="pi pi-save"
+          type="submit"
+          [loading]="saving()"
+        />
+      </div>
+    </form>
+  </section>
+
+  <section class="list-panel">
+    <header class="list-heading">
+      <div>
+        <span class="eyebrow">Existencias</span>
+        <h2>Insumos del restaurante</h2>
+      </div>
+      <button
+        type="button"
+        class="filter-button"
+        [class.selected]="lowOnly()"
+        (click)="lowOnly.set(!lowOnly())"
+      >
+        Solo mínimos <strong>{{ lowCount() }}</strong>
+      </button>
+    </header>
+    <label class="search-label"
+      ><span class="visually-hidden">Buscar insumo</span>
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+        placeholder="Buscar insumo…"
+      />
+    </label>
+
+    @if (loading() && ingredients().length === 0) {
+      <div class="empty">Cargando inventario…</div>
+    } @else if (visible().length === 0) {
+      <div class="empty">No hay insumos para este filtro. Crea el primero a la izquierda.</div>
+    } @else {
+      <div class="ingredient-list">
+        @for (ingredient of visible(); track ingredient.id) {
+          <article class="ingredient-row" [class.is-selected]="selectedId() === ingredient.id">
+            <button
+              type="button"
+              class="ingredient-main"
+              (click)="select(ingredient)"
+              [attr.aria-label]="'Ver movimientos de ' + ingredient.name"
+            >
+              <span class="ingredient-name">{{ ingredient.name }}</span>
+              <small>Último cambio: {{ ingredient.updatedAt | date: 'short' }}</small>
+              <span class="stock-number"
+                >{{ ingredient.stockQuantity | number: '1.0-3' }}
+                <small>{{ unitLabel(ingredient.unit) }}</small></span
+              >
+            </button>
+            <div class="ingredient-foot">
+              @if (!ingredient.active) {
+                <p-tag value="Inactivo" severity="secondary" />
+              } @else if (ingredient.lowStock) {
+                <p-tag value="Mínimo alcanzado" severity="warn" />
+              } @else {
+                <p-tag value="Disponible" severity="success" />
+              }
+              <span class="minimum"
+                >Mínimo: {{ ingredient.minimumQuantity | number: '1.0-3' }}</span
+              >
+              <div class="row-actions">
+                <p-button
+                  label="Editar"
+                  icon="pi pi-pencil"
+                  size="small"
+                  severity="secondary"
+                  [text]="true"
+                  (onClick)="edit(ingredient)"
+                />
+                <p-button
+                  [label]="ingredient.active ? 'Desactivar' : 'Activar'"
+                  size="small"
+                  severity="secondary"
+                  [text]="true"
+                  [disabled]="ingredient.active && ingredient.stockQuantity > 0"
+                  (onClick)="changeActive(ingredient)"
+                />
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</div>
+
+@if (selected(); as ingredient) {
+  <section class="movement-panel">
+    <header>
+      <div>
+        <span class="eyebrow">Control de existencias</span>
+        <h2>{{ ingredient.name }}</h2>
+        <p>
+          Actual:
+          <strong
+            >{{ ingredient.stockQuantity | number: '1.0-3' }}
+            {{ unitLabel(ingredient.unit) }}</strong
+          >
+          · Mínimo: {{ ingredient.minimumQuantity | number: '1.0-3' }}
+        </p>
+      </div>
+    </header>
+    <div class="movement-layout">
+      <form [formGroup]="movementForm" (ngSubmit)="submitMovement()">
+        <h3>Registrar movimiento</h3>
+        @if (!ingredient.active) {
+          <p class="notice">Activa este insumo para registrar movimientos.</p>
+        }
+        <label
+          ><span>Tipo</span>
+          <p-select
+            formControlName="movementType"
+            [options]="movementTypes"
+            optionLabel="label"
+            optionValue="value"
+            inputId="movement-type"
+          />
+        </label>
+        <label
+          ><span>{{
+            movementForm.controls.movementType.value === 'ADJUSTMENT'
+              ? 'Existencia contada'
+              : 'Cantidad'
+          }}</span>
+          <p-inputnumber
+            formControlName="quantity"
+            inputId="movement-quantity"
+            [min]="0"
+            [maxFractionDigits]="ingredient.unit === 'PIECE' ? 0 : 3"
+            [minFractionDigits]="0"
+            [useGrouping]="false"
+          />
+        </label>
+        @if (movementForm.controls.movementType.value === 'ADJUSTMENT') {
+          <small class="hint"
+            >Conteo físico establece la existencia final; la diferencia queda registrada.</small
+          >
+        }
+        <label
+          ><span>Motivo o referencia</span>
+          <textarea
+            pTextarea
+            formControlName="reason"
+            rows="2"
+            maxlength="250"
+            placeholder="Ej. Compra factura 123 o producto dañado"
+          ></textarea>
+          @if (movementForm.controls.reason.touched && movementForm.controls.reason.invalid) {
+            <small class="field-error">Escribe el motivo para conservar la trazabilidad.</small>
+          }
+        </label>
+        <p-button
+          label="Guardar movimiento"
+          type="submit"
+          icon="pi pi-check"
+          [disabled]="!ingredient.active"
+          [loading]="savingMovement()"
+        />
+      </form>
+
+      <div class="history">
+        <h3>Últimos movimientos <small>hasta 50</small></h3>
+        @if (loadingHistory()) {
+          <p class="empty">Cargando historial…</p>
+        } @else if (movements().length === 0) {
+          <p class="empty">Todavía no hay movimientos para este insumo.</p>
+        } @else {
+          <div class="history-list">
+            @for (movement of movements(); track movement.id) {
+              <article>
+                <span class="delta" [class.positive]="movement.quantityDelta > 0">
+                  {{ movement.quantityDelta > 0 ? '+' : ''
+                  }}{{ movement.quantityDelta | number: '1.0-3' }}
+                </span>
+                <div>
+                  <strong>{{ movementLabel(movement.movementType) }}</strong>
+                  <span>{{ movement.reason }}</span>
+                  <small
+                    >{{ movement.recordedByUsername }} ·
+                    {{ movement.occurredAt | date: 'medium' }}</small
+                  >
+                </div>
+                <span class="after">Quedó: {{ movement.stockAfter | number: '1.0-3' }}</span>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+}

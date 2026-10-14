@@ -61,6 +61,7 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
 - Anulación auditable, cierre pagado de la cuenta y comprobante interno imprimible.
 - Apertura de caja del restaurante, movimientos manuales y totales por forma de pago.
 - Arqueo con efectivo esperado, conteo real, diferencia e historial imprimible.
+- Essential Plus: insumos, existencias, compras, salidas, mermas y conteos físicos con historial.
 
 Rutas:
 
@@ -74,6 +75,7 @@ Rutas:
 /caja
 /catalogo
 /estructura
+/inventario
 /configuracion
 /usuarios
 ```

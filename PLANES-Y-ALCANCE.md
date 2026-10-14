@@ -23,12 +23,17 @@ actualización si detecta varias sucursales preexistentes, para evitar mezclar o
 Los doce bloques de esta edición están implementados. Faltan el piloto con tablets, el reinicio
 real del servidor y una restauración probada en una base separada antes de ofrecerla en producción.
 
-## Opción 2: Restaurante Plus (alcance futuro)
+## Opción 2: Essential Plus (en desarrollo)
 
-Podría ampliar **cada instalación independiente** con inventario básico, insumos, recetas y
-mermas. La definición comercial y técnica se hará después del piloto.
+Parte del código de Essential Restaurante Local y conserva **una instalación independiente por
+restaurante**. El primer módulo disponible registra insumos, unidad, mínimo, existencias, compras,
+salidas manuales, mermas y conteos físicos con historial y control de cambios entre tablets.
 
-## Opción 3: Restaurante Pro (alcance futuro)
+Siguientes módulos previstos: recetas por producto, consumo de insumos asociado a pedidos,
+costeo básico y alertas operativas. Este primer módulo de inventario **no descuenta ingredientes
+automáticamente al vender**, porque todavía no hay recetas que indiquen las cantidades.
+
+## Opción 3: Essential Pro (alcance futuro)
 
 Podría agregar reservaciones, clientes frecuentes, promociones e integraciones según las
 necesidades del restaurante. También conservará el límite de un restaurante por instalación.

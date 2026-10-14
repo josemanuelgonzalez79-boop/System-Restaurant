@@ -7,7 +7,7 @@
         <img class="brand-logo" src="essential-mark.png" alt="" />
         <span>
           <strong>essential</strong>
-          <small>Control para tu negocio</small>
+          <small>Restaurante local · Plus</small>
         </span>
       </a>
     </ng-template>
@@ -28,6 +28,7 @@
           }
           @if (auth.canAdminister()) {
             <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
+            <a routerLink="/inventario" routerLinkActive="active">Inventario</a>
             <a routerLink="/estructura" routerLinkActive="active">Estructura</a>
           }
           @if (auth.isOwner()) {

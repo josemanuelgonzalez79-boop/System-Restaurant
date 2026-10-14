@@ -83,6 +83,13 @@ export const routes: Routes = [
     title: 'Estructura | Essential',
   },
   {
+    path: 'inventario',
+    loadComponent: () =>
+      import('./features/inventory/inventory').then((component) => component.InventoryPage),
+    canActivate: [adminGuard],
+    title: 'Inventario | Essential Plus',
+  },
+  {
     path: 'usuarios',
     loadComponent: () => import('./features/users/users').then((component) => component.Users),
     canActivate: [ownerGuard],
