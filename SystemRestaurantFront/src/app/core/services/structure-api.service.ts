@@ -5,8 +5,6 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Branch,
-  BranchAssignmentUser,
-  BranchPayload,
   OperationalArea,
   OperationalAreaPayload,
   ServicePoint,
@@ -22,18 +20,6 @@ export class StructureApiService {
 
   findBranches(): Observable<Branch[]> {
     return this.http.get<Branch[]>(this.branchesUrl);
-  }
-
-  createBranch(payload: BranchPayload): Observable<Branch> {
-    return this.http.post<Branch>(this.branchesUrl, payload);
-  }
-
-  updateBranch(id: number, payload: BranchPayload): Observable<Branch> {
-    return this.http.put<Branch>(`${this.branchesUrl}/${id}`, payload);
-  }
-
-  changeBranchActive(id: number, active: boolean): Observable<Branch> {
-    return this.http.patch<Branch>(`${this.branchesUrl}/${id}/active`, { active });
   }
 
   findAreas(branchId?: number): Observable<OperationalArea[]> {
@@ -68,15 +54,5 @@ export class StructureApiService {
 
   changePointActive(id: number, active: boolean): Observable<ServicePoint> {
     return this.http.patch<ServicePoint>(`${this.pointsUrl}/${id}/active`, { active });
-  }
-
-  findAssignments(branchId: number): Observable<BranchAssignmentUser[]> {
-    return this.http.get<BranchAssignmentUser[]>(`${this.branchesUrl}/${branchId}/assignments`);
-  }
-
-  replaceAssignments(branchId: number, userIds: number[]): Observable<BranchAssignmentUser[]> {
-    return this.http.put<BranchAssignmentUser[]>(`${this.branchesUrl}/${branchId}/assignments`, {
-      userIds,
-    });
   }
 }

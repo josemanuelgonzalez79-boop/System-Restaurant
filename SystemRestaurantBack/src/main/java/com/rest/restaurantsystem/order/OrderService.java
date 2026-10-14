@@ -59,7 +59,7 @@ public class OrderService {
         UserResponse currentUser = userService.currentUser(currentUsername);
         Set<Long> allowedBranchIds = assignmentService.findAssignedBranchIds(currentUser.id());
         if (branchId != null && !allowedBranchIds.contains(branchId)) {
-            throw new BadRequestException("Tu usuario no está asignado a la sucursal seleccionada.");
+            throw new BadRequestException("No tienes acceso a este restaurante.");
         }
 
         List<RestaurantOrder> orders;
@@ -212,7 +212,7 @@ public class OrderService {
             throw new BadRequestException("El responsable seleccionado está inactivo.");
         }
         if (!assignmentService.isAssigned(branchId, userId)) {
-            throw new BadRequestException("El responsable no está asignado a la sucursal.");
+            throw new BadRequestException("El responsable no está activo en este restaurante.");
         }
         return user;
     }
@@ -220,7 +220,7 @@ public class OrderService {
     private UserResponse ensureCurrentUserAssigned(Long branchId, String username) {
         UserResponse currentUser = userService.currentUser(username);
         if (!assignmentService.isAssigned(branchId, currentUser.id())) {
-            throw new BadRequestException("Tu usuario no está asignado a la sucursal seleccionada.");
+            throw new BadRequestException("No tienes acceso a este restaurante.");
         }
         return currentUser;
     }

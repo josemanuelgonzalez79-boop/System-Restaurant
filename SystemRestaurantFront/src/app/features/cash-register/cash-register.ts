@@ -129,11 +129,6 @@ export class CashRegisterPage implements OnInit, OnDestroy {
     }
   }
 
-  protected selectBranch(value: string): void {
-    const branchId = Number(value);
-    this.changeBranch(Number.isInteger(branchId) && branchId > 0 ? branchId : null);
-  }
-
   protected refresh(): void {
     this.loadCash(false);
   }

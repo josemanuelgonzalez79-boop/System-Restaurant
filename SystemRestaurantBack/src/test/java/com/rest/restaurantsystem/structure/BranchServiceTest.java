@@ -1,16 +1,17 @@
 package com.rest.restaurantsystem.structure;
 
-import com.rest.restaurantsystem.cash.CashRegisterOccupancyService;
-import com.rest.restaurantsystem.exception.BadRequestException;
-import com.rest.restaurantsystem.order.OrderOccupancyService;
+import com.rest.restaurantsystem.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -20,66 +21,51 @@ class BranchServiceTest {
     @Mock
     private BranchRepository repository;
 
-    @Mock
-    private OrderOccupancyService occupancyService;
-
-    @Mock
-    private CashRegisterOccupancyService cashRegisterOccupancyService;
-
     @InjectMocks
     private BranchService service;
 
     @Test
-    void rejectsInvalidTimezone() {
-        BranchRequest request = new BranchRequest(
-                "CENTRO",
-                "Sucursal Centro",
-                null,
-                null,
-                "Zona/Inexistente",
-                0
-        );
+    void updatesDetailsOfTheOnlyLocalRestaurant() {
+        Branch restaurant = restaurant();
+        when(repository.findAll()).thenReturn(List.of(restaurant));
 
-        assertThrows(BadRequestException.class, () -> service.create(request));
+        service.updateLocalDetails("  Mi Restaurante  ", "  Centro  ", "  5551234  ", "  America/Mazatlan  ");
+
+        assertEquals("Mi Restaurante", restaurant.getName());
+        assertEquals("Centro", restaurant.getAddress());
+        assertEquals("5551234", restaurant.getPhone());
+        assertEquals("America/Mazatlan", restaurant.getTimezone());
     }
 
     @Test
-    void keepsAtLeastOneActiveBranch() {
-        Branch branch = new Branch(validRequest());
-        when(repository.findById(1L)).thenReturn(Optional.of(branch));
-        when(repository.countByActiveTrue()).thenReturn(1L);
+    void clearsOptionalContactDetails() {
+        Branch restaurant = restaurant();
+        when(repository.findAll()).thenReturn(List.of(restaurant));
 
-        assertThrows(BadRequestException.class, () -> service.changeActive(1L, false));
+        service.updateLocalDetails("Restaurante", " ", null, "America/Mazatlan");
+
+        assertNull(restaurant.getAddress());
+        assertNull(restaurant.getPhone());
     }
 
     @Test
-    void rejectsDeactivationWithActiveOrders() {
-        Branch branch = new Branch(validRequest());
-        when(repository.findById(1L)).thenReturn(Optional.of(branch));
-        when(repository.countByActiveTrue()).thenReturn(2L);
-        when(occupancyService.hasActiveOrdersForBranch(1L)).thenReturn(true);
+    void reportsMissingLocalRestaurant() {
+        when(repository.findAll()).thenReturn(List.of());
 
-        assertThrows(BadRequestException.class, () -> service.changeActive(1L, false));
+        assertThrows(ResourceNotFoundException.class,
+                () -> service.updateLocalDetails("Restaurante", null, null, "America/Mazatlan"));
     }
 
     @Test
-    void rejectsDeactivationWithOpenCashRegister() {
-        Branch branch = new Branch(validRequest());
-        when(repository.findById(1L)).thenReturn(Optional.of(branch));
-        when(repository.countByActiveTrue()).thenReturn(2L);
-        when(cashRegisterOccupancyService.hasOpenSession(1L)).thenReturn(true);
+    void findsExistingRestaurantByInternalId() {
+        Branch restaurant = restaurant();
+        when(repository.findById(1L)).thenReturn(Optional.of(restaurant));
 
-        assertThrows(BadRequestException.class, () -> service.changeActive(1L, false));
+        assertEquals("Restaurante", service.findById(1L).name());
     }
 
-    private BranchRequest validRequest() {
-        return new BranchRequest(
-                "PRINCIPAL",
-                "Principal",
-                null,
-                null,
-                "America/Mazatlan",
-                0
-        );
+    private Branch restaurant() {
+        return new Branch(new BranchRequest(
+                "PRINCIPAL", "Restaurante", null, null, "America/Mazatlan", 0));
     }
 }

@@ -1,5 +1,3 @@
-import { UserRole } from './user.model';
-
 export interface Branch {
   id: number;
   code: string;
@@ -12,15 +10,6 @@ export interface Branch {
   version: number;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface BranchPayload {
-  code: string;
-  name: string;
-  address: string;
-  phone: string;
-  timezone: string;
-  sortOrder: number;
 }
 
 export type AreaType = 'SERVICE' | 'PRODUCTION' | 'STORAGE' | 'CHECKOUT' | 'OFFICE' | 'OTHER';
@@ -74,13 +63,4 @@ export interface ServicePointPayload {
   description: string;
   pointType: ServicePointType;
   sortOrder: number;
-}
-
-export interface BranchAssignmentUser {
-  userId: number;
-  username: string;
-  fullName: string;
-  role: UserRole;
-  active: boolean;
-  assigned: boolean;
 }

@@ -28,23 +28,11 @@
 } @else if (branches().length === 0) {
   <section class="empty-state">
     <i class="pi pi-building"></i>
-    <h2>No tienes una sucursal asignada</h2>
-    <p>Un propietario debe asignar tu usuario a una sucursal activa desde Estructura.</p>
+    <h2>No se pudo cargar el restaurante</h2>
+    <p>Actualiza la pantalla. Si el problema continúa, revisa el servidor local.</p>
   </section>
 } @else {
   <section class="operation-toolbar">
-    <label>
-      <span>Sucursal</span>
-      <p-select
-        [ngModel]="selectedBranchId()"
-        (ngModelChange)="changeBranch($event)"
-        [options]="branches()"
-        optionLabel="name"
-        optionValue="id"
-        inputId="order-branch"
-      />
-    </label>
-
     <div class="toolbar-actions">
       <p-button
         label="Actualizar"

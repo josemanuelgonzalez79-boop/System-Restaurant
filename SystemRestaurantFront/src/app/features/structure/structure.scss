@@ -30,7 +30,7 @@ small {
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(90px, 1fr));
+  grid-template-columns: repeat(2, minmax(90px, 1fr));
   overflow: hidden;
   border: 1px solid var(--p-content-border-color);
   border-radius: 0.85rem;
@@ -60,7 +60,7 @@ small {
 
 .editor-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -136,7 +136,7 @@ p-select {
 
 .tables-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -170,92 +170,9 @@ td small {
   place-items: center;
 }
 
-.assignment-toolbar {
-  display: grid;
-  grid-template-columns: minmax(260px, 0.7fr) minmax(360px, 1.3fr);
-  align-items: end;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.assignment-help {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-height: 42px;
-  padding: 0.7rem 0.85rem;
-  border-radius: 0.65rem;
-  color: var(--p-text-muted-color);
-  background: var(--p-content-hover-background);
-}
-
-.assignment-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
-}
-
-.assignment-row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.8rem;
-  border: 1px solid var(--p-content-border-color);
-  border-radius: 0.7rem;
-  background: var(--p-content-background);
-  cursor: pointer;
-}
-
-.assignment-row:hover {
-  border-color: var(--p-primary-color);
-}
-
-.assignment-row input {
-  width: 1.05rem;
-  height: 1.05rem;
-  accent-color: var(--p-primary-color);
-}
-
-.assignment-row strong,
-.assignment-row small {
-  display: block;
-}
-
-.assignment-row small {
-  margin-top: 0.18rem;
-  font-weight: 400;
-}
-
-.assignment-row.disabled {
-  opacity: 0.58;
-  cursor: not-allowed;
-}
-
-.assignment-loading {
-  display: grid;
-  min-height: 100px;
-  color: var(--p-text-muted-color);
-  place-items: center;
-}
-
-.validation-note {
-  display: block;
-  margin-top: 0.75rem;
-  color: var(--p-red-500);
-}
-
-.assignment-actions {
-  margin-top: 1rem;
-}
-
 @media (max-width: 1100px) {
   .editor-grid {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .editor-grid p-card:last-child {
-    grid-column: 1 / -1;
   }
 
   .tables-grid {
@@ -273,14 +190,8 @@ td small {
     align-self: stretch;
   }
 
-  .editor-grid,
-  .assignment-list,
-  .assignment-toolbar {
+  .editor-grid {
     grid-template-columns: 1fr;
-  }
-
-  .editor-grid p-card:last-child {
-    grid-column: auto;
   }
 }
 

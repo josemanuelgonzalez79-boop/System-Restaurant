@@ -1,5 +1,10 @@
 # Avance de Essential
 
+> **Decisión vigente (octubre de 2026):** Essential opera un solo restaurante por instalación y
+> base de datos. La migración `V10` cierra la creación de sucursales y elimina la asignación
+> manual de usuarios. Los apartados de bloques anteriores documentan su implementación original;
+> `PLANES-Y-ALCANCE.md` describe el alcance actual.
+
 ## Objetivo
 
 Construir un sistema de operación para restaurantes pequeños y medianos, accesible desde
@@ -221,12 +226,10 @@ decisiones de la primera versión priorizan el trabajo real de un restaurante.
 
 - La edición básica funciona dentro de un restaurante mediante un servidor local y tablets o
   computadoras conectadas a su Wi-Fi/LAN; no requiere internet ni una WAN para operar.
-- La entidad sucursal se conserva desde ahora. En la edición básica se recomienda una instalación
-  por ubicación física; comunicar ubicaciones remotas pertenecerá a la edición multi-sucursal.
-- Una edición multi-sucursal necesitará conectividad WAN segura mediante VPN o una arquitectura
-  central en la nube. Nunca se expondrá directamente el servidor local a internet.
-- Una instalación y base de datos por restaurante durante la primera edición; dentro de ella se
-  comparten catálogo y usuarios.
+- Una instalación y base de datos por restaurante en todas las ediciones. Otro local utiliza
+  su propia copia; no se conectan ni comparten catálogo, usuarios, pedidos o reportes.
+- Se conserva un identificador interno único para respetar pedidos y caja existentes. No se
+  pueden registrar otras sucursales ni desactivar el restaurante local.
 - Angular y Spring Boot se desarrollan mediante funciones completas.
 - REST realiza las operaciones y WebSocket transporta avisos en tiempo real.
 - PostgreSQL siempre será la fuente de verdad.

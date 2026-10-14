@@ -25,14 +25,6 @@
 </section>
 
 <section class="branch-toolbar no-print">
-  <label>
-    <span>Sucursal</span>
-    <select [value]="selectedBranchId() ?? ''" (change)="selectBranch($any($event.target).value)">
-      @for (branch of branches(); track branch.id) {
-        <option [value]="branch.id">{{ branch.name }}</option>
-      }
-    </select>
-  </label>
   <div class="branch-state">
     <i [class]="current() ? 'pi pi-lock-open' : 'pi pi-lock'"></i>
     <span>
@@ -47,8 +39,8 @@
 } @else if (branches().length === 0) {
   <section class="empty-state">
     <i class="pi pi-building"></i>
-    <h2>Tu usuario no tiene sucursales asignadas</h2>
-    <p>Un propietario o administrador debe asignarte desde Estructura.</p>
+    <h2>No se pudo cargar el restaurante</h2>
+    <p>Actualiza la pantalla. Si el problema continúa, revisa el servidor local.</p>
   </section>
 } @else if (current(); as summary) {
   <section class="session-strip">
@@ -290,9 +282,9 @@
     </article>
     <article class="open-explanation">
       <i class="pi pi-shield"></i>
-      <h2>Una caja por sucursal</h2>
+      <h2>Caja del restaurante</h2>
       <p>
-        Todas las tablets asignadas podrán cobrar sobre este mismo turno. Essential separará
+        Todas las tablets conectadas podrán cobrar sobre este mismo turno. Essential separará
         efectivo, tarjeta, transferencia y movimientos manuales para realizar el corte.
       </p>
       <ul>

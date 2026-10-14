@@ -67,6 +67,13 @@ class Branch {
         this.active = active;
     }
 
+    void updateLocalDetails(String name, String address, String phone, String timezone) {
+        this.name = name.trim();
+        this.address = normalizeOptional(address);
+        this.phone = normalizeOptional(phone);
+        this.timezone = timezone.trim();
+    }
+
     Long getId() {
         return id;
     }

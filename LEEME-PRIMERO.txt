@@ -1,4 +1,4 @@
-ESSENTIAL — BLOQUES 1 AL 12
+ESSENTIAL — RESTAURANTE LOCAL (BLOQUES 1 AL 12)
 
 Esta versión prepara la base de Essential para la operación de restaurantes pequeños y medianos
 mediante computadoras y tablets conectadas al Wi-Fi o red local del establecimiento.
@@ -13,8 +13,8 @@ INCLUYE
 - Configuración inicial del primer propietario.
 - Inicio y cierre de sesión.
 - Usuarios, contraseñas, roles y permisos.
-- Sucursales, áreas operativas y puntos de atención.
-- Asignación de usuarios por sucursal.
+- Un restaurante por instalación y base de datos; áreas y puntos de atención locales.
+- Los usuarios activos pueden operar el restaurante según su rol, sin asignación adicional.
 - Mapa operativo de mesas y puntos libres u ocupados.
 - Apertura de pedidos en mesa o para llevar.
 - Folio, responsable, comensales, referencia y notas del pedido.
@@ -25,7 +25,7 @@ INCLUYE
 - Precio histórico, subtotales, extras y total calculado por el backend.
 - Envío de comandas separadas para cocina y barra o servicio.
 - Bloqueo de partidas enviadas y captura de comandas adicionales.
-- Pantalla táctil de preparación por sucursal y ruta.
+- Pantalla táctil de preparación por ruta.
 - Estados pendiente, en preparación, lista, entregada y cancelada por partida.
 - Actualización inmediata de pedidos, mesas y preparación mediante WebSocket.
 - Reconexión automática y estado visible del canal en tiempo real.
@@ -35,11 +35,11 @@ INCLUYE
 - Historial auditable de cobros y anulaciones.
 - Protección contra cobros simultáneos o duplicados desde varias tablets.
 - Comprobante interno imprimible y cierre pagado que libera la mesa.
-- Un turno de caja abierto por sucursal, compartido por las tablets del local.
+- Un turno de caja abierto en el restaurante, compartido por las tablets del local.
 - Fondo inicial, entradas, salidas y anulaciones con auditoría.
 - Totales por forma de pago, efectivo esperado, conteo real y diferencia de cierre.
 - Historial de los últimos 30 turnos y corte de caja imprimible.
-- Reporte diario por sucursal y fecha con corte según la zona horaria local.
+- Reporte diario del restaurante por fecha con corte según la zona horaria local.
 - Venta neta, formas de pago, pedidos, ticket promedio y venta por hora.
 - Top de productos con cantidades e importes históricos.
 - Resumen de caja, turnos, diferencias, cancelaciones y anulaciones.
@@ -63,8 +63,9 @@ SI YA EJECUTASTE LA VERSIÓN ANTERIOR
 3. Reemplaza los archivos del proyecto con esta versión.
 4. Vuelve a colocar tu secret.yml dentro de SystemRestaurantBack.
 5. No borres la base de datos ni ejecutes de nuevo los scripts manualmente.
-6. Inicia el backend. Si aún falta, Flyway aplicará automáticamente V9 de índices del reporte.
-   Bloque 11 no tiene migración. No ejecutes migraciones manualmente.
+6. Inicia el backend. Flyway aplicará automáticamente V10 para limitar la base a un restaurante.
+   Si la base ya contiene varias sucursales, el arranque se detendrá sin borrar datos. Separa
+   primero cada restaurante en instalaciones y bases independientes. No ejecutes V10 manualmente.
 7. Inicia Angular y abre http://localhost:4200.
 
 Solo si la base no tiene usuarios, la primera pantalla pedirá crear al propietario inicial.
@@ -100,9 +101,9 @@ PRUEBA RECOMENDADA
 - Configurar el nombre y tipo del negocio.
 - Crear una categoría y un producto o servicio.
 - Comprobar que un operador no pueda administrar usuarios ni configuración.
-- Abrir Estructura y confirmar la sucursal principal.
+- Abrir Estructura y confirmar que se puedan administrar áreas y mesas.
 - Crear un área y un punto de atención.
-- Guardar la asignación de usuarios de la sucursal.
+- Verificar que el usuario activo pueda entrar a Pedidos sin una asignación manual.
 - Abrir Pedidos y crear un pedido desde una mesa libre.
 - Abrir un pedido para llevar.
 - Entrar a Capturar, agregar productos, modificadores y notas.
@@ -113,14 +114,14 @@ PRUEBA RECOMENDADA
 - Mantener Preparación abierta en otra tablet y comprobar que la comanda aparezca inmediatamente.
 - Cambiar el estado de una partida y comprobar el cambio en las demás pantallas sin recargarlas.
 - Detener y reiniciar el backend para comprobar el indicador y la reconexión automática.
-- Abrir Caja, elegir una sucursal y registrar el fondo inicial.
+- Abrir Caja y registrar el fondo inicial.
 - Abrir Cobro, registrar efectivo, comprobar el cambio y completar el saldo.
 - Probar una cuenta dividida entre tarjeta y transferencia.
 - Volver a Caja y confirmar los totales por forma de pago.
 - Registrar una entrada y una salida; anular un movimiento y comprobar que conserve la auditoría.
 - Cerrar el pedido pagado y confirmar que la mesa vuelva a quedar libre.
 - Contar el efectivo, cerrar el turno y comprobar la diferencia contra el efectivo esperado.
-- Abrir Reporte, seleccionar la sucursal y la fecha utilizada.
+- Abrir Reporte y seleccionar la fecha utilizada.
 - Comparar la venta neta y las formas de pago contra los cobros registrados.
 - Revisar la gráfica por hora, el top de productos, los pedidos cancelados y los cobros anulados.
 - Exportar el CSV y abrir la vista de impresión/PDF.

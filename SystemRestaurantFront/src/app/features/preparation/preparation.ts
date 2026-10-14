@@ -1,5 +1,4 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { auditTime, finalize, interval, Subscription } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -21,7 +20,7 @@ type DestinationFilter = 'ALL' | 'PRODUCTION' | 'SERVICE';
 
 @Component({
   selector: 'app-preparation',
-  imports: [ButtonModule, ConfirmDialogModule, FormsModule, TagModule],
+  imports: [ButtonModule, ConfirmDialogModule, TagModule],
   providers: [ConfirmationService],
   templateUrl: './preparation.html',
   styleUrl: './preparation.scss',
@@ -111,18 +110,6 @@ export class PreparationPage implements OnInit, OnDestroy {
     this.realtimeSubscription?.unsubscribe();
   }
 
-  protected selectBranch(value: string): void {
-    const branchId = Number(value);
-    this.selectedBranchId.set(Number.isInteger(branchId) && branchId > 0 ? branchId : null);
-    this.realtimeSubscription?.unsubscribe();
-    this.realtimeSubscription = undefined;
-    this.pendingRealtimeRefresh = false;
-    if (this.selectedBranchId() !== null) {
-      this.watchBranch(this.selectedBranchId() as number);
-    }
-    this.loadTickets(false);
-  }
-
   protected selectDestination(destination: DestinationFilter): void {
     this.destination.set(destination);
     this.loadTickets(false);
@@ -204,7 +191,7 @@ export class PreparationPage implements OnInit, OnDestroy {
 
   protected realtimeLabel(state: RealtimeConnectionState): string {
     const labels: Record<RealtimeConnectionState, string> = {
-      IDLE: this.branches().length === 0 ? 'Sin sucursal asignada' : 'Canal en espera',
+      IDLE: this.branches().length === 0 ? 'Restaurante no disponible' : 'Canal en espera',
       CONNECTING: 'Conectando…',
       CONNECTED: 'Actualización inmediata',
       RECONNECTING: 'Reconectando…',

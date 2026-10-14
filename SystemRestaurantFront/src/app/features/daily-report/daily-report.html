@@ -34,14 +34,6 @@
 
 <section class="report-filters no-print">
   <label>
-    <span>Sucursal</span>
-    <select [value]="selectedBranchId() ?? ''" (change)="selectBranch($any($event.target).value)">
-      @for (branch of branches(); track branch.id) {
-        <option [value]="branch.id">{{ branch.name }}</option>
-      }
-    </select>
-  </label>
-  <label>
     <span>Fecha del negocio</span>
     <input
       type="date"
@@ -54,7 +46,7 @@
     <i class="pi pi-clock"></i>
     <span>
       <strong>Corte por día local</strong>
-      <small>Se utiliza la zona horaria configurada en la sucursal.</small>
+      <small>Se utiliza la zona horaria configurada para este restaurante.</small>
     </span>
   </div>
 </section>
@@ -67,8 +59,8 @@
 } @else if (branches().length === 0) {
   <section class="empty-state">
     <i class="pi pi-building"></i>
-    <h2>Tu usuario no tiene sucursales asignadas</h2>
-    <p>Un propietario o administrador debe asignarte desde Estructura.</p>
+    <h2>No se pudo cargar el restaurante</h2>
+    <p>Actualiza la pantalla. Si el problema continúa, revisa el servidor local.</p>
   </section>
 } @else if (loadError()) {
   <section class="empty-state error-state">

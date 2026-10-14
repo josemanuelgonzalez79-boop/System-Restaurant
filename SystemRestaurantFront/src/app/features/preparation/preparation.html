@@ -22,15 +22,6 @@
 </section>
 
 <section class="preparation-toolbar" aria-label="Filtros de preparación">
-  <label>
-    <span>Sucursal</span>
-    <select [value]="selectedBranchId() ?? ''" (change)="selectBranch($any($event.target).value)">
-      @for (branch of branches(); track branch.id) {
-        <option [value]="branch.id">{{ branch.name }}</option>
-      }
-    </select>
-  </label>
-
   <div class="route-tabs" role="group" aria-label="Ruta operativa">
     <button
       type="button"
@@ -79,8 +70,8 @@
 } @else if (branches().length === 0) {
   <section class="empty-board">
     <i class="pi pi-building"></i>
-    <h2>Tu usuario no tiene sucursales asignadas</h2>
-    <p>Solicita al administrador una asignación antes de operar preparación.</p>
+    <h2>No se pudo cargar el restaurante</h2>
+    <p>Actualiza la pantalla. Si el problema continúa, revisa el servidor local.</p>
   </section>
 } @else {
   <section class="kitchen-board">

@@ -145,7 +145,7 @@ public class DailyReportService {
         }
         if (!assignmentService.isAssigned(branchId, user.id())) {
             throw new BadRequestException(
-                    "Tu usuario no está asignado a la sucursal seleccionada."
+                    "No tienes acceso a este restaurante."
             );
         }
     }

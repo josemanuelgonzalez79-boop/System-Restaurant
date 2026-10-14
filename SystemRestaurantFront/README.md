@@ -47,19 +47,19 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
 - Configuración genérica del negocio.
 - Administración de categorías y productos o servicios.
 - Disponibilidad, activación y ruta operativa.
-- Administración de sucursales, áreas y puntos de atención.
-- Asignación de usuarios por sucursal.
+- Administración de áreas y puntos de atención de un único restaurante local.
+- Usuarios activos con acceso según su rol, sin asignación de sucursal.
 - Mapa de mesas libres y ocupadas por área.
 - Apertura de pedidos en el local o para llevar.
 - Folio, responsable, comensales, notas y estados del pedido.
 - Captura táctil con variantes, notas y total.
 - Envío de comandas nuevas a cocina o servicio.
-- Tablero de preparación por sucursal, ruta y estado de cada partida.
-- Avisos STOMP/WebSocket por sucursal y actualización inmediata desde REST.
+- Tablero de preparación por ruta y estado de cada partida.
+- Avisos STOMP/WebSocket del restaurante local y actualización inmediata desde REST.
 - Reconexión automática e indicador visible del canal en tiempo real.
 - Cobro completo o dividido, cambio en efectivo e historial de movimientos.
 - Anulación auditable, cierre pagado de la cuenta y comprobante interno imprimible.
-- Apertura de caja por sucursal, movimientos manuales y totales por forma de pago.
+- Apertura de caja del restaurante, movimientos manuales y totales por forma de pago.
 - Arqueo con efectivo esperado, conteo real, diferencia e historial imprimible.
 
 Rutas:

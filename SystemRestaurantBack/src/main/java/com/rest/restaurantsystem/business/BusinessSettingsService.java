@@ -2,6 +2,7 @@ package com.rest.restaurantsystem.business;
 
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
+import com.rest.restaurantsystem.structure.BranchService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,9 +13,11 @@ import java.time.ZoneId;
 public class BusinessSettingsService {
 
     private final BusinessSettingsRepository repository;
+    private final BranchService branchService;
 
-    public BusinessSettingsService(BusinessSettingsRepository repository) {
+    public BusinessSettingsService(BusinessSettingsRepository repository, BranchService branchService) {
         this.repository = repository;
+        this.branchService = branchService;
     }
 
     @Transactional(readOnly = true)
@@ -27,6 +30,9 @@ public class BusinessSettingsService {
         validateTimezone(request.timezone());
         BusinessSettings settings = findSettings();
         settings.update(request);
+        branchService.updateLocalDetails(
+                request.displayName(), request.address(), request.phone(), request.timezone()
+        );
         return BusinessSettingsResponse.from(settings);
     }
 

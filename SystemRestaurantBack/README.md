@@ -68,19 +68,18 @@ sesión HTTP y protección CSRF.
 | `GET/POST/PUT/PATCH` | `/api/v1/categories`                            | Propietario o administrador                  |
 | `GET/POST/PUT/PATCH` | `/api/v1/products`                              | Propietario o administrador                  |
 | `GET`                | `/api/v1/branches`, `/areas`, `/service-points` | Usuario autenticado                          |
-| `POST/PUT/PATCH`     | `/api/v1/branches`, `/areas`, `/service-points` | Propietario o administrador                  |
-| `GET/PUT`            | `/api/v1/branches/{id}/assignments`             | Propietario o administrador                  |
-| `GET/POST/PATCH`     | `/api/v1/orders`                                | Usuario autenticado y asignado a la sucursal |
-| `POST`               | `/api/v1/orders/{id}/dispatch`                  | Usuario autenticado y asignado a la sucursal |
-| `GET/PATCH`          | `/api/v1/preparation`                           | Usuario autenticado y asignado a la sucursal |
-| `GET/POST/PATCH`     | `/api/v1/orders/{id}/payments`                  | Usuario autenticado y asignado a la sucursal |
+| `POST/PUT/PATCH`     | `/api/v1/areas`, `/api/v1/service-points`       | Propietario o administrador                  |
+| `GET/POST/PATCH`     | `/api/v1/orders`                                | Usuario activo del restaurante               |
+| `POST`               | `/api/v1/orders/{id}/dispatch`                  | Usuario activo del restaurante               |
+| `GET/PATCH`          | `/api/v1/preparation`                           | Usuario activo del restaurante               |
+| `GET/POST/PATCH`     | `/api/v1/orders/{id}/payments`                  | Usuario activo del restaurante               |
 | `GET/POST/PATCH`     | `/api/v1/cash-registers`                        | Propietario, administrador, gerente o cajero |
 | WebSocket/STOMP      | `/ws`                                           | Usuario autenticado                          |
 
 ## Tiempo real
 
 El endpoint `/ws` comparte la sesión HTTP de Essential. Los clientes se suscriben únicamente al
-canal `/topic/branches/{branchId}` de una sucursal a la que el usuario esté asignado. Los avisos se
+canal `/topic/branches/{branchId}` del restaurante local; solo los usuarios activos tienen acceso. Los avisos se
 publican después de confirmar la transacción y hacen que Angular vuelva a consultar la API REST.
 
 Para usar tablets mediante otra dirección de la LAN, agrega cada origen de Angular a
@@ -98,6 +97,8 @@ src/main/resources/db/migration/V5__create_order_items_and_modifiers.sql
 src/main/resources/db/migration/V6__create_preparation_tickets.sql
 src/main/resources/db/migration/V7__create_order_payments.sql
 src/main/resources/db/migration/V8__create_cash_register_sessions.sql
+src/main/resources/db/migration/V9__add_daily_report_indexes.sql
+src/main/resources/db/migration/V10__one_local_restaurant.sql
 ```
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. `V4` incorpora
@@ -107,3 +108,7 @@ necesita una migración porque incorpora comunicación en tiempo real. `V7` agre
 pago, referencias y auditoría de anulaciones. `V8` incorpora turnos de caja por sucursal,
 movimientos manuales, arqueo de cierre y la relación entre cobros y caja. No edites una migración
 que ya se ejecutó; cada cambio estructural debe ir en una migración nueva.
+
+`V10` conserva el identificador interno y los datos históricos, limita la base a un restaurante
+y evita desactivarlo. Si encuentra varias sucursales, se detiene antes de modificar los datos: cada
+restaurante debe trasladarse a su propia instalación y base de datos.

@@ -57,7 +57,7 @@ class RealtimeAuthorizationInterceptor implements ChannelInterceptor {
         UserResponse user = userService.currentUser(authenticated.getName());
         if (!user.active() || !assignmentService.isAssigned(branchId, user.id())) {
             throw new AccessDeniedException(
-                    "Tu usuario no está asignado a la sucursal solicitada."
+                    "No tienes acceso al canal de este restaurante."
             );
         }
     }

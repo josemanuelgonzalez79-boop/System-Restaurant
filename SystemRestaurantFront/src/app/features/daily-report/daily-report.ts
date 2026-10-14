@@ -66,11 +66,6 @@ export class DailyReportPage implements OnInit, OnDestroy {
     this.realtimeSubscription?.unsubscribe();
   }
 
-  protected selectBranch(value: string): void {
-    const branchId = Number(value);
-    this.changeBranch(Number.isInteger(branchId) && branchId > 0 ? branchId : null);
-  }
-
   protected selectDate(value: string): void {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
       return;

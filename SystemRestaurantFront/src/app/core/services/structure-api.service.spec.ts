@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { BranchPayload, OperationalAreaPayload } from '../models/structure.model';
+import { OperationalAreaPayload } from '../models/structure.model';
 import { StructureApiService } from './structure-api.service';
 import { environment } from '../../../environments/environment';
 
@@ -22,29 +22,26 @@ describe('StructureApiService', () => {
     httpController.verify();
   });
 
-  it('should create a branch', () => {
-    const payload: BranchPayload = {
-      code: 'CENTRO',
-      name: 'Sucursal Centro',
-      address: '',
-      phone: '',
-      timezone: 'America/Mazatlan',
-      sortOrder: 0,
-    };
-
-    service.createBranch(payload).subscribe();
+  it('should read the local restaurant', () => {
+    service.findBranches().subscribe();
 
     const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/branches`);
-    expect(request.request.method).toBe('POST');
-    expect(request.request.body).toEqual(payload);
-    request.flush({
-      id: 1,
-      active: true,
-      version: 0,
-      createdAt: '2026-08-08T00:00:00Z',
-      updatedAt: '2026-08-08T00:00:00Z',
-      ...payload,
-    });
+    expect(request.request.method).toBe('GET');
+    request.flush([
+      {
+        id: 1,
+        code: 'PRINCIPAL',
+        name: 'Mi restaurante',
+        address: null,
+        phone: null,
+        timezone: 'America/Mazatlan',
+        sortOrder: 0,
+        active: true,
+        version: 0,
+        createdAt: '2026-08-08T00:00:00Z',
+        updatedAt: '2026-08-08T00:00:00Z',
+      },
+    ]);
   });
 
   it('should filter areas by branch', () => {
@@ -78,14 +75,5 @@ describe('StructureApiService', () => {
       updatedAt: '2026-08-08T00:00:00Z',
       ...payload,
     });
-  });
-
-  it('should replace branch assignments', () => {
-    service.replaceAssignments(3, [1, 2]).subscribe();
-
-    const request = httpController.expectOne(`${environment.apiBaseUrl}/v1/branches/3/assignments`);
-    expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toEqual({ userIds: [1, 2] });
-    request.flush([]);
   });
 });

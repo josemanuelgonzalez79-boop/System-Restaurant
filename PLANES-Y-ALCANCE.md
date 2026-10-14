@@ -1,68 +1,38 @@
 # Planes y alcance de Essential
 
-Esta separación mantiene una primera edición alcanzable para restaurantes pequeños sin cerrar la
-puerta a clientes con varias ubicaciones. Los nombres son provisionales.
+## Regla de instalación
+
+Essential opera un solo restaurante por instalación y por base de datos PostgreSQL. Las tablets,
+caja y cocina del mismo local se conectan al servidor por Wi-Fi/LAN. Un segundo restaurante
+requiere otra instalación, otra base de datos, su configuración, usuarios, catálogo, reportes y
+respaldos propios. No se enlazan las instalaciones ni se comparten ventas o sesiones.
+
+El identificador interno de restaurante conserva la compatibilidad con los pedidos y turnos de
+caja ya guardados. No se pueden crear más restaurantes dentro de la misma base. `V10` detiene la
+actualización si detecta varias sucursales preexistentes, para evitar mezclar o borrar sus datos.
 
 ## Opción 1: Essential Restaurante Local
 
-Dirigida a un restaurante pequeño o mediano que trabaja en una sola ubicación física.
+- Configuración, catálogo, usuarios y roles del restaurante.
+- Áreas, mesas, pedidos de salón y para llevar.
+- Captura de productos y modificadores; comandas para cocina y servicio.
+- Sincronización entre tablets conectadas a la red local.
+- Pagos, caja, reporte diario y respaldos.
+- Despliegue local con HTTPS. La operación no depende de internet.
 
-### Arquitectura
+Los doce bloques de esta edición están implementados. Faltan el piloto con tablets, el reinicio
+real del servidor y una restauración probada en una base separada antes de ofrecerla en producción.
 
-- Un equipo del restaurante ejecuta Spring Boot y PostgreSQL como servidor local.
-- Tablets, cajas y pantallas de cocina entran a Essential mediante el Wi-Fi o LAN del local.
-- La operación diaria continúa aunque falle internet.
-- La sucursal y las áreas se conservan en el modelo, pero una ubicación remota utiliza otra
-  instalación hasta contratar la opción multi-sucursal.
+## Opción 2: Restaurante Plus (alcance futuro)
 
-### Alcance para considerar terminada la edición
+Podría ampliar **cada instalación independiente** con inventario básico, insumos, recetas y
+mermas. La definición comercial y técnica se hará después del piloto.
 
-1. Configuración, catálogo, usuarios, permisos, sucursal, áreas y mesas.
-2. Mapa de mesas y apertura de pedidos desde tablet, barra, mostrador o para llevar.
-3. Captura de productos, cantidades, modificadores, observaciones y comensales.
-4. Comandas en cocina o barra con estados y actualización en tiempo real.
-5. Cobro con una o varias formas de pago y cierre del pedido.
-6. Apertura/cierre de caja y resumen diario.
-7. Respaldo y restauración guiados.
-8. Instalación documentada en la red local y acceso sencillo desde tablets.
+## Opción 3: Restaurante Pro (alcance futuro)
 
-No necesita WAN ni nube. Tampoco debe exponer PostgreSQL o Spring Boot directamente a internet.
+Podría agregar reservaciones, clientes frecuentes, promociones e integraciones según las
+necesidades del restaurante. También conservará el límite de un restaurante por instalación.
 
-## Opción 2: Essential Multi-sucursal
-
-Dirigida a un propietario que necesita consultar y coordinar restaurantes ubicados en redes
-diferentes.
-
-- Conectividad WAN protegida por VPN o despliegue central con HTTPS en la nube.
-- Catálogo, usuarios y permisos comunes para varias sucursales.
-- Supervisión y reportes consolidados desde otra ubicación.
-- Auditoría de cambios, copias de seguridad centralizadas y control de acceso remoto.
-- Estrategia de continuidad cuando una sucursal pierde su enlace a internet.
-
-Antes de construir esta opción deberá elegirse entre servidor central o sincronización entre
-instalaciones. Esa decisión afecta seguridad, costos, operación sin internet y mantenimiento.
-
-## Opción 3: Essential Restaurante Pro
-
-Dirigida a restaurantes que requieren administración adicional e integraciones.
-
-- Inventario, insumos, recetas, mermas y costo de platillos.
-- Clientes frecuentes, reservaciones, promociones y fidelización.
-- Analítica avanzada, metas y comparación entre sucursales.
-- Integraciones de reparto, facturación electrónica y contabilidad cuando se definan los países.
-- Mayor continuidad operativa, monitoreo y soporte administrado.
-
-## Situación actual
-
-| Medida                                | Estado                   |
-| ------------------------------------- | ------------------------ |
-| Bloques implementados                 | 12 de 12                 |
-| Avance por bloques                    | 100 %                    |
-| Validación pendiente                  | Prueba LAN/tablets real y simulacro de restauración |
-| Siguiente etapa                       | Piloto en un restaurante |
-
-La captura del pedido, la comanda de cocina, el cobro y el corte de caja desde tablets ya forman
-parte del sistema. La prioridad inmediata no es la WAN: la operación local ya forma un circuito
-completo e incluye reporte diario, recuperación guiada y despliegue Windows/LAN documentado.
-La aceptación de la edición requiere el piloto con tablets, reinicio del servidor y una
-restauración real de prueba. La conexión entre sucursales se diseñará después.
+Ninguna de estas opciones presupone WAN, sincronización entre locales ni reportes consolidados.
+Para dar servicio a otro establecimiento se instala una instancia distinta, con una base de datos
+nueva y una red local propia.

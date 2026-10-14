@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { auditTime, finalize, forkJoin, Subscription } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -32,7 +32,6 @@ import { StructureApiService } from '../../core/services/structure-api.service';
     ConfirmDialogModule,
     DatePipe,
     DialogModule,
-    FormsModule,
     InputNumberModule,
     InputTextModule,
     ReactiveFormsModule,
@@ -339,8 +338,8 @@ export class Orders implements OnInit, OnDestroy {
     if (this.operators().length === 0) {
       this.messages.add({
         severity: 'warn',
-        summary: 'Falta personal asignado',
-        detail: 'Asigna al menos un usuario activo a esta sucursal desde Estructura.',
+        summary: 'Falta personal activo',
+        detail: 'Crea o activa un usuario desde Usuarios.',
       });
       return;
     }
