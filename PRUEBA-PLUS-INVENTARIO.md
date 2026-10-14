@@ -1,5 +1,8 @@
 # Essential Plus · primer avance: inventario
 
+> Guía histórica del bloque 1. La rama creada por el usuario se llama `plus` y la entrega actual
+> es el bloque 2; para instalarla consulta `PRUEBA-PLUS-RECETAS.md`.
+
 ## Cómo separar las ediciones en Git
 
 Usa **ramas**, no carpetas copiadas para continuar el desarrollo. El historial de cambios queda
@@ -13,7 +16,7 @@ compartido y podrás incorporar una corrección de la edición base en Plus cuan
    git switch desarrollo
    git status
    git pull origin desarrollo
-   git switch -c edicion/plus
+   git switch -c plus
    ```
 
 3. Copia el contenido de este ZIP sobre el proyecto, conserva
@@ -27,9 +30,10 @@ compartido y podrás incorporar una corrección de la edición base en Plus cuan
    ```
 
 Si `git status` muestra cambios sin confirmar antes de `git pull` o `git switch`, termina o
-guarda esos cambios primero. **No crees `edicion/plus` desde el commit viejo que todavía no
+guarda esos cambios primero. **No crees `plus` desde el commit viejo que todavía no
 incluya el restaurante único.** La edición base se conserva en `desarrollo`; Plus avanza en
-`edicion/plus`. Cuando llegue Pro, podrá partir de una versión validada de Plus.
+`plus`. Si la rama `plus` ya existe, cámbiate a ella y actualízala; no vuelvas a crearla.
+Cuando llegue Pro, podrá partir de una versión validada de Plus.
 
 ## Instalación y datos
 
@@ -84,6 +88,6 @@ para ejecutarlos. Ejecuta `clean test` en tu equipo antes de publicar la rama.
 
 ## Instalaciones independientes
 
-`edicion/plus` es una rama del **código**. Cada restaurante que compre Plus tendrá su propia
+`plus` es una rama del **código**. Cada restaurante que compre Plus tendrá su propia
 instalación, base PostgreSQL, propietarios, catálogo, insumos, sesiones y respaldos. Crear una
 instalación para otro restaurante no significa duplicar la base con ventas y usuarios del primero.

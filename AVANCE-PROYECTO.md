@@ -1,15 +1,16 @@
 # Avance de Essential
 
-## Essential Plus · primer avance
+## Essential Plus · bloque 2 de 5
 
-Se toma la edición base de un restaurante por instalación como punto de partida. Plus agrega el
-módulo de **inventario local**: catálogo de insumos por pieza, kilo o litro; existencia y mínimo;
-compras, salidas, mermas y conteos; historial con responsable; control de concurrencia y
-reintentos. El inventario se actualiza manualmente. Recetas y consumo por pedido siguen
-pendientes y no se presentan como funciones disponibles todavía.
+La rama real de desarrollo es `plus`. El bloque 1 de inventario local ya fue probado y subido por
+el usuario. El bloque 2 incorpora recetas por producto y por opción extra: cada receta indica los
+insumos y cantidades para preparar una unidad. Se conservan las versiones y el último editor;
+no se pueden desactivar ni cambiar de unidad insumos usados por una receta.
 
-El desarrollo de Plus va en la rama recomendada `edicion/plus` después de confirmar la edición
-base en `desarrollo`. La guía de esta entrega es `PRUEBA-PLUS-INVENTARIO.md`.
+El avance de Plus es **2 de 5 bloques implementados (40 % por bloques)**. El bloque 3 hará el
+consumo automático al enviar comandas y las reversas auditables. **Las ventas todavía no consumen
+existencias**. La guía de esta entrega es `PRUEBA-PLUS-RECETAS.md`; el alcance completo está en
+`PLANES-Y-ALCANCE.md`.
 
 > **Decisión vigente (octubre de 2026):** Essential opera un solo restaurante por instalación y
 > base de datos. La migración `V10` cierra la creación de sucursales y elimina la asignación

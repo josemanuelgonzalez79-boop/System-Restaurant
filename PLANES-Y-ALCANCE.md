@@ -26,12 +26,18 @@ real del servidor y una restauración probada en una base separada antes de ofre
 ## Opción 2: Essential Plus (en desarrollo)
 
 Parte del código de Essential Restaurante Local y conserva **una instalación independiente por
-restaurante**. El primer módulo disponible registra insumos, unidad, mínimo, existencias, compras,
-salidas manuales, mermas y conteos físicos con historial y control de cambios entre tablets.
+restaurante**. Se desarrolla en la rama `plus` y se organiza en **cinco bloques**:
 
-Siguientes módulos previstos: recetas por producto, consumo de insumos asociado a pedidos,
-costeo básico y alertas operativas. Este primer módulo de inventario **no descuenta ingredientes
-automáticamente al vender**, porque todavía no hay recetas que indiquen las cantidades.
+| Bloque | Función | Estado |
+| --- | --- | --- |
+| 1 | Insumos, existencias, compras, salidas, mermas y conteos con historial | Probado y subido a `plus` |
+| 2 | Recetas por producto y opción extra, con cantidades por unidad | Implementado en esta entrega |
+| 3 | Consumo de recetas al enviar comandas y reversas auditables | Pendiente |
+| 4 | Costos por receta, costo de extras y márgenes por producto | Pendiente |
+| 5 | Reportes de inventario, alertas y conciliación de conteos | Pendiente |
+
+Definir una receta **todavía no descuenta ingredientes**. El consumo y las reversas de pedidos
+se implementarán en el bloque 3, con reglas explícitas para no duplicar movimientos.
 
 ## Opción 3: Essential Pro (alcance futuro)
 

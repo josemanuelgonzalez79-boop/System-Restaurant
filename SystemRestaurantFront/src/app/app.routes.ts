@@ -90,6 +90,13 @@ export const routes: Routes = [
     title: 'Inventario | Essential Plus',
   },
   {
+    path: 'recetas',
+    loadComponent: () =>
+      import('./features/recipes/recipes').then((component) => component.RecipesPage),
+    canActivate: [adminGuard],
+    title: 'Recetas | Essential Plus',
+  },
+  {
     path: 'usuarios',
     loadComponent: () => import('./features/users/users').then((component) => component.Users),
     canActivate: [ownerGuard],

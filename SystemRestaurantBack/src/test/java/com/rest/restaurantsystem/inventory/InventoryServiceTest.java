@@ -27,6 +27,7 @@ class InventoryServiceTest {
 
     @Mock IngredientRepository ingredients;
     @Mock InventoryMovementRepository movements;
+    @Mock RecipeLineRepository recipeLines;
     @Mock UserService users;
     @InjectMocks InventoryService service;
 

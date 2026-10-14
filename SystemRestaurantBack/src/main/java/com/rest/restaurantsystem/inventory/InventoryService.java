@@ -15,15 +15,18 @@ public class InventoryService {
 
     private final IngredientRepository ingredients;
     private final InventoryMovementRepository movements;
+    private final RecipeLineRepository recipeLines;
     private final UserService users;
 
     public InventoryService(
             IngredientRepository ingredients,
             InventoryMovementRepository movements,
+            RecipeLineRepository recipeLines,
             UserService users
     ) {
         this.ingredients = ingredients;
         this.movements = movements;
+        this.recipeLines = recipeLines;
         this.users = users;
     }
 
@@ -52,7 +55,7 @@ public class InventoryService {
     @Transactional
     public IngredientResponse update(Long id, IngredientRequest request) {
         validateMinimum(request);
-        Ingredient ingredient = getIngredient(id);
+        Ingredient ingredient = getLockedIngredient(id);
         if (request.version() == null || request.version() != ingredient.getVersion()) {
             throw new ConflictException("El insumo cambió en otra pantalla. Actualiza la lista e intenta de nuevo.");
         }
@@ -60,8 +63,9 @@ public class InventoryService {
             throw new ConflictException("Ya existe otro insumo con ese nombre.");
         }
         if (ingredient.getUnit() != request.unit()
-                && (ingredient.getStockQuantity().signum() > 0 || movements.existsByIngredientId(id))) {
-            throw new BadRequestException("No puedes cambiar la unidad de un insumo que ya tiene movimientos.");
+                && (ingredient.getStockQuantity().signum() > 0
+                || movements.existsByIngredientId(id) || recipeLines.existsByIngredientId(id))) {
+            throw new BadRequestException("No puedes cambiar la unidad de un insumo con movimientos o recetas.");
         }
         ingredient.update(request);
         return IngredientResponse.from(ingredients.saveAndFlush(ingredient));
@@ -69,9 +73,12 @@ public class InventoryService {
 
     @Transactional
     public IngredientResponse changeActive(Long id, boolean active) {
-        Ingredient ingredient = getIngredient(id);
+        Ingredient ingredient = getLockedIngredient(id);
         if (!active && ingredient.getStockQuantity().signum() > 0) {
             throw new BadRequestException("Registra la salida del inventario antes de desactivar el insumo.");
+        }
+        if (!active && recipeLines.existsByIngredientId(id)) {
+            throw new BadRequestException("Quita este insumo de las recetas antes de desactivarlo.");
         }
         ingredient.setActive(active);
         return IngredientResponse.from(ingredients.saveAndFlush(ingredient));
@@ -151,6 +158,11 @@ public class InventoryService {
 
     private Ingredient getIngredient(Long id) {
         return ingredients.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el insumo."));
+    }
+
+    private Ingredient getLockedIngredient(Long id) {
+        return ingredients.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el insumo."));
     }
 

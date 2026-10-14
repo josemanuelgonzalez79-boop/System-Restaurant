@@ -1,0 +1,200 @@
+<section class="recipe-heading">
+  <div>
+    <span class="eyebrow">Essential Plus · bloque 2 de 5</span>
+    <h1>Recetas de productos y extras</h1>
+    <p>Indica cuánto insumo se necesita para preparar una unidad de cada platillo u opción.</p>
+  </div>
+  <p-button
+    label="Actualizar catálogo"
+    icon="pi pi-refresh"
+    severity="secondary"
+    [outlined]="true"
+    [loading]="loading()"
+    (onClick)="refresh()"
+  />
+</section>
+
+<div class="recipe-intro">
+  <i class="pi pi-info-circle"></i>
+  <span
+    >Las recetas quedan listas para el siguiente bloque. Guardarlas todavía no descuenta inventario
+    al abrir, enviar o cobrar un pedido.</span
+  >
+</div>
+
+<section class="recipe-layout">
+  <div class="selector-card">
+    <span class="eyebrow">Catálogo</span>
+    <h2>¿Qué se prepara?</h2>
+    <p>
+      Selecciona un producto o la opción de un modificador. Una opción puede tener sus propios
+      insumos adicionales.
+    </p>
+    <label for="recipe-target">Producto u opción</label>
+    <p-select
+      inputId="recipe-target"
+      [ngModel]="selectedKey()"
+      (ngModelChange)="chooseTarget($event)"
+      [options]="targets()"
+      optionLabel="label"
+      optionValue="key"
+      [filter]="true"
+      filterBy="label"
+      placeholder="Selecciona del catálogo"
+    >
+      <ng-template #item let-target>
+        <span class="target-option"
+          ><small>{{ target.kind }}</small
+          >{{ target.label }}</span
+        >
+      </ng-template>
+    </p-select>
+    @if (selected(); as target) {
+      <div class="selected-target">
+        <span>{{ target.kind }}</span>
+        <strong>{{ target.label }}</strong>
+        @if (!target.active) {
+          <p-tag value="Inactivo en catálogo" severity="secondary" />
+        }
+      </div>
+    } @else if (!loading()) {
+      <p class="empty">Crea primero un producto en Catálogo para empezar una receta.</p>
+    }
+    <div class="selector-tip">
+      <i class="pi pi-lightbulb"></i>
+      <p>
+        Ejemplo: la hamburguesa utiliza pan y carne. La opción “queso extra” utiliza queso
+        adicional.
+      </p>
+    </div>
+  </div>
+
+  <div class="recipe-card">
+    @if (loadingRecipe()) {
+      <div class="empty">Cargando receta…</div>
+    } @else if (recipe(); as current) {
+      <header class="recipe-card-heading">
+        <div>
+          <span class="eyebrow">Por una unidad</span>
+          <h2>{{ current.ownerName }}</h2>
+          @if (current.updatedAt) {
+            <small
+              >Último cambio: {{ current.updatedAt | date: 'medium' }} ·
+              {{ current.updatedByUsername }}</small
+            >
+          } @else {
+            <small>Esta receta aún no se ha guardado.</small>
+          }
+        </div>
+        <p-tag [value]="draft().length + ' insumos'" severity="info" />
+      </header>
+
+      @if (draft().length === 0) {
+        <div class="empty recipe-empty">
+          <i class="pi pi-list"></i>
+          <strong>Sin insumos configurados</strong>
+          <span>Agrega los ingredientes que consume una unidad de este producto u opción.</span>
+        </div>
+      } @else {
+        <div class="line-list">
+          @for (line of draft(); track line.ingredientId) {
+            @if (ingredientFor(line.ingredientId); as ingredient) {
+              <article class="recipe-line">
+                <div class="line-label">
+                  <strong>{{ ingredient.name }}</strong>
+                  <small
+                    >Existencia: {{ ingredient.stockQuantity | number: '1.0-3' }}
+                    {{ unitLabel(ingredient.unit) }}</small
+                  >
+                  @if (!ingredient.active) {
+                    <p-tag value="Insumo inactivo" severity="warn" />
+                  }
+                </div>
+                <label [for]="'recipe-quantity-' + ingredient.id">
+                  <span>Por unidad ({{ unitLabel(ingredient.unit) }})</span>
+                  <p-inputnumber
+                    [inputId]="'recipe-quantity-' + ingredient.id"
+                    [ngModel]="line.quantity"
+                    (ngModelChange)="changeQuantity(ingredient.id, $event)"
+                    [min]="0"
+                    [maxFractionDigits]="ingredient.unit === 'PIECE' ? 0 : 3"
+                    [minFractionDigits]="0"
+                    [useGrouping]="false"
+                  />
+                </label>
+                <p-button
+                  icon="pi pi-trash"
+                  ariaLabel="Quitar insumo"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="removeLine(ingredient.id)"
+                />
+              </article>
+            }
+          }
+        </div>
+      }
+
+      <div class="add-line">
+        <h3>Agregar insumo</h3>
+        <div class="add-line-fields">
+          <label
+            ><span>Insumo disponible</span>
+            <p-select
+              [ngModel]="addIngredientId"
+              (ngModelChange)="addIngredientId = $event"
+              [options]="availableIngredients()"
+              optionLabel="name"
+              optionValue="id"
+              [filter]="true"
+              filterBy="name"
+              placeholder="Selecciona un insumo"
+              inputId="new-recipe-ingredient"
+            />
+          </label>
+          <label
+            ><span>Cantidad por unidad</span>
+            <p-inputnumber
+              [(ngModel)]="addQuantity"
+              inputId="new-recipe-quantity"
+              [min]="0"
+              [maxFractionDigits]="ingredientFor(addIngredientId)?.unit === 'PIECE' ? 0 : 3"
+              [minFractionDigits]="0"
+              [useGrouping]="false"
+            />
+          </label>
+          <p-button
+            label="Agregar"
+            icon="pi pi-plus"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="availableIngredients().length === 0"
+            (onClick)="addLine()"
+          />
+        </div>
+        @if (ingredients().length === 0) {
+          <p class="hint">Primero registra insumos desde Inventario.</p>
+        }
+      </div>
+
+      <footer class="recipe-actions">
+        <span>{{ hasChanges() ? 'Tienes cambios sin guardar' : 'Receta al día' }}</span>
+        <div>
+          @if (hasChanges()) {
+            <p-button label="Descartar" severity="secondary" [text]="true" (onClick)="discard()" />
+          }
+          <p-button
+            label="Guardar receta"
+            icon="pi pi-save"
+            [loading]="saving()"
+            [disabled]="!hasChanges() || loadingRecipe()"
+            (onClick)="save()"
+          />
+        </div>
+      </footer>
+    } @else {
+      <div class="empty">Selecciona un producto o una opción para editar su receta.</div>
+    }
+  </div>
+</section>
