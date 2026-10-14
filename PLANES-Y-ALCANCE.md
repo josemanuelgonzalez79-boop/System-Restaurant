@@ -32,14 +32,19 @@ restaurante**. Se desarrolla en la rama `plus` y se organiza en **cinco bloques*
 | --- | --- | --- |
 | 1 | Insumos, existencias, compras, salidas, mermas y conteos con historial | Probado y subido a `plus` |
 | 2 | Recetas por producto y opción extra, con cantidades por unidad | Probado y subido a `plus` |
-| 3 | Consumo de recetas al enviar comandas y reversas auditables | Implementado en esta entrega |
-| 4 | Costos por receta, costo de extras y márgenes por producto | Pendiente |
+| 3 | Consumo de recetas al enviar comandas y reversas auditables | Probado y subido a `plus` |
+| 4 | Costos por receta, costo de extras y márgenes por producto | Implementado en esta entrega |
 | 5 | Reportes de inventario, alertas y conciliación de conteos | Pendiente |
 
 Las partidas enviadas a cocina o servicio consumen la receta de producto y las recetas adicionales
 de las opciones elegidas. Una cancelación antes de comenzar revierte exactamente ese consumo;
 después de comenzar se conserva el consumo físico. Una partida cancelada deja de cobrarse. Los
 productos con ruta `NONE` no generan comandas y siguen fuera del consumo automático.
+
+Los costos de Plus son de referencia por unidad de insumo, registrados con motivo e historial.
+El margen es una estimación de materia prima sobre precio de venta; falta de receta o precio de
+insumo deja el margen pendiente. V14 conserva el costo vigente en cada nuevo consumo y su reversa.
+La compra de stock no recalcula el costo automáticamente.
 
 ## Opción 3: Essential Pro (alcance futuro)
 

@@ -59,6 +59,14 @@ class Recipe {
         return id;
     }
 
+    Long getProductId() {
+        return productId;
+    }
+
+    Long getModifierOptionId() {
+        return modifierOptionId;
+    }
+
     long getVersion() {
         return version;
     }

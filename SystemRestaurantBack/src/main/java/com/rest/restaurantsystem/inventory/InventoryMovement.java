@@ -44,6 +44,12 @@ class InventoryMovement {
     @Column(name = "stock_after", nullable = false, precision = 14, scale = 3, updatable = false)
     private BigDecimal stockAfter;
 
+    @Column(name = "unit_cost_snapshot", precision = 14, scale = 4, updatable = false)
+    private BigDecimal unitCostSnapshot;
+
+    @Column(name = "cost_amount_snapshot", precision = 28, scale = 7, updatable = false)
+    private BigDecimal costAmountSnapshot;
+
     @Column(nullable = false, length = 250, updatable = false)
     private String reason;
 
@@ -74,10 +80,24 @@ class InventoryMovement {
             Long recordedByUserId, String recordedByUsername,
             Long preparationItemId, Long reversesMovementId
     ) {
+        this(operationId, ingredientId, movementType, quantityDelta, stockAfter, reason,
+                recordedByUserId, recordedByUsername, preparationItemId, reversesMovementId,
+                null, null);
+    }
+
+    InventoryMovement(
+            UUID operationId, Long ingredientId, MovementType movementType,
+            BigDecimal quantityDelta, BigDecimal stockAfter, String reason,
+            Long recordedByUserId, String recordedByUsername,
+            Long preparationItemId, Long reversesMovementId,
+            BigDecimal unitCostSnapshot, BigDecimal costAmountSnapshot
+    ) {
         this.operationId = operationId;
         this.ingredientId = ingredientId;
         this.preparationItemId = preparationItemId;
         this.reversesMovementId = reversesMovementId;
+        this.unitCostSnapshot = unitCostSnapshot;
+        this.costAmountSnapshot = costAmountSnapshot;
         this.movementType = movementType;
         this.quantityDelta = quantityDelta;
         this.stockAfter = stockAfter;
@@ -116,6 +136,14 @@ class InventoryMovement {
 
     BigDecimal getStockAfter() {
         return stockAfter;
+    }
+
+    BigDecimal getUnitCostSnapshot() {
+        return unitCostSnapshot;
+    }
+
+    BigDecimal getCostAmountSnapshot() {
+        return costAmountSnapshot;
     }
 
     String getReason() {

@@ -65,6 +65,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
 - Essential Plus: recetas por producto y opción extra con cantidades de insumos por unidad.
 - Essential Plus: consumo por comanda, historial por partida, devolución antes de preparar y
   cancelaciones auditadas sin cargo en la cuenta.
+- Essential Plus: costos de referencia auditables, costo por receta y extra, utilidad bruta y
+  margen sobre venta; costo histórico por comanda.
 
 Rutas:
 
@@ -80,6 +82,7 @@ Rutas:
 /estructura
 /inventario
 /recetas
+/costos
 /configuracion
 /usuarios
 ```

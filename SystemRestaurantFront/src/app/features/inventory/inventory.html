@@ -192,6 +192,12 @@
             {{ unitLabel(ingredient.unit) }}</strong
           >
           · Mínimo: {{ ingredient.minimumQuantity | number: '1.0-3' }}
+          · Costo de referencia:
+          {{
+            ingredient.unitCost === null
+              ? 'pendiente'
+              : (ingredient.unitCost | currency: 'MXN' : 'symbol-narrow' : '1.2-4' : 'es-MX')
+          }}
         </p>
       </div>
     </header>
@@ -272,6 +278,20 @@
                   <span>{{ movement.reason }}</span>
                   @if (movement.preparationItemId) {
                     <small>Partida de comanda #{{ movement.preparationItemId }}</small>
+                  }
+                  @if (movement.costAmountSnapshot !== null) {
+                    <small
+                      >Costo registrado:
+                      {{
+                        movement.costAmountSnapshot
+                          | currency: 'MXN' : 'symbol-narrow' : '1.2-4' : 'es-MX'
+                      }}
+                      ({{
+                        movement.unitCostSnapshot
+                          | currency: 'MXN' : 'symbol-narrow' : '1.2-4' : 'es-MX'
+                      }}
+                      por {{ unitLabel(ingredient.unit) }})</small
+                    >
                   }
                   <small
                     >{{ movement.recordedByUsername }} ·

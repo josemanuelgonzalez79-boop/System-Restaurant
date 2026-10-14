@@ -106,6 +106,7 @@ src/main/resources/db/migration/V10__one_local_restaurant.sql
 src/main/resources/db/migration/V11__create_local_inventory.sql
 src/main/resources/db/migration/V12__create_product_recipes.sql
 src/main/resources/db/migration/V13__consume_recipes_on_dispatch.sql
+src/main/resources/db/migration/V14__recipe_costs_and_margin_snapshots.sql
 ```
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. `V4` incorpora
@@ -124,3 +125,7 @@ restaurante debe trasladarse a su propia instalación y base de datos.
 opciones. `V13` enlaza los movimientos automáticos con partidas de comanda y guarda el motivo de
 cancelación. El despacho descuenta los insumos en la misma transacción; si falta una receta o
 existencia, la comanda no sale. Una cancelación aún pendiente devuelve el consumo original.
+
+`V14` agrega costo de referencia auditado por insumo y costo congelado en nuevos movimientos
+automáticos de comanda y reversa. La API `/api/v1/costs` calcula márgenes actuales de materia
+prima para productos y extras; los costos no reescriben el historial anterior.

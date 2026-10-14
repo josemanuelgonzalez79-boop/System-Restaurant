@@ -41,6 +41,8 @@ public class SecurityConfig {
                         .hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers("/api/v1/recipes/**")
                         .hasAnyRole("OWNER", "ADMIN")
+                        .requestMatchers("/api/v1/costs/**")
+                        .hasAnyRole("OWNER", "ADMIN")
                         .requestMatchers("/api/v1/cash-registers/**")
                         .hasAnyRole("OWNER", "ADMIN", "MANAGER", "CASHIER")
                         .requestMatchers("/api/v1/reports/**")

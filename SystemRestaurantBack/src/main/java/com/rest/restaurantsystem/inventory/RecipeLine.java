@@ -39,6 +39,10 @@ class RecipeLine {
         return ingredientId;
     }
 
+    Long getRecipeId() {
+        return recipeId;
+    }
+
     BigDecimal getQuantity() {
         return quantity;
     }

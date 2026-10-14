@@ -35,6 +35,7 @@ class OrderConsumptionServiceTest {
         Recipe product = recipe(12L, RecipeOwnerType.PRODUCT, 7L);
         Recipe extra = recipe(13L, RecipeOwnerType.MODIFIER_OPTION, 9L);
         Ingredient ingredient = ingredient("Carne", "5.000");
+        ingredient.setUnitCost(new BigDecimal("100.0000"));
         when(recipes.findByProductId(7L)).thenReturn(Optional.of(product));
         when(recipes.findByModifierOptionId(9L)).thenReturn(Optional.of(extra));
         when(recipes.findByIdForUpdate(12L)).thenReturn(Optional.of(product));
@@ -52,6 +53,8 @@ class OrderConsumptionServiceTest {
         assertThat(saved.getValue().getQuantityDelta()).isEqualByComparingTo("-0.340");
         assertThat(saved.getValue().getPreparationItemId()).isEqualTo(50L);
         assertThat(saved.getValue().getMovementType()).isEqualTo(MovementType.ORDER_CONSUMPTION);
+        assertThat(saved.getValue().getUnitCostSnapshot()).isEqualByComparingTo("100.0000");
+        assertThat(saved.getValue().getCostAmountSnapshot()).isEqualByComparingTo("-34.0000000");
     }
 
     @Test
@@ -75,10 +78,12 @@ class OrderConsumptionServiceTest {
     @Test
     void returnsTheOriginalSnapshotEvenWhenRecipeChangesLater() {
         Ingredient ingredient = ingredient("Carne", "1.000");
+        ingredient.setUnitCost(new BigDecimal("200.0000"));
         InventoryMovement consumed = new InventoryMovement(
                 UUID.randomUUID(), 3L, MovementType.ORDER_CONSUMPTION,
                 new BigDecimal("-0.340"), new BigDecimal("4.660"),
-                "Comanda: Hamburguesa", 4L, "mesero", 50L, null);
+                "Comanda: Hamburguesa", 4L, "mesero", 50L, null,
+                new BigDecimal("100.0000"), new BigDecimal("-34.0000000"));
         ReflectionTestUtils.setField(consumed, "id", 31L);
         when(movements.findByPreparationItemIdAndMovementTypeOrderByIngredientIdAsc(
                 50L, MovementType.ORDER_CONSUMPTION)).thenReturn(List.of(consumed));
@@ -91,6 +96,8 @@ class OrderConsumptionServiceTest {
         verify(movements).saveAndFlush(saved.capture());
         assertThat(saved.getValue().getQuantityDelta()).isEqualByComparingTo("0.340");
         assertThat(saved.getValue().getReversesMovementId()).isEqualTo(31L);
+        assertThat(saved.getValue().getUnitCostSnapshot()).isEqualByComparingTo("100.0000");
+        assertThat(saved.getValue().getCostAmountSnapshot()).isEqualByComparingTo("34.0000000");
     }
 
     private Recipe recipe(Long id, RecipeOwnerType type, Long ownerId) {

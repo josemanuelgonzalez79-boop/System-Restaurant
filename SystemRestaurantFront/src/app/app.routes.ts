@@ -97,6 +97,12 @@ export const routes: Routes = [
     title: 'Recetas | Essential Plus',
   },
   {
+    path: 'costos',
+    loadComponent: () => import('./features/costs/costs').then((component) => component.CostsPage),
+    canActivate: [adminGuard],
+    title: 'Costos y márgenes | Essential Plus',
+  },
+  {
     path: 'usuarios',
     loadComponent: () => import('./features/users/users').then((component) => component.Users),
     canActivate: [ownerGuard],

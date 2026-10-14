@@ -36,6 +36,9 @@ class Ingredient {
     @Column(name = "minimum_quantity", nullable = false, precision = 14, scale = 3)
     private BigDecimal minimumQuantity;
 
+    @Column(name = "unit_cost", precision = 14, scale = 4)
+    private BigDecimal unitCost;
+
     @Column(nullable = false)
     private boolean active;
 
@@ -71,6 +74,10 @@ class Ingredient {
         this.stockQuantity = stockQuantity;
     }
 
+    void setUnitCost(BigDecimal unitCost) {
+        this.unitCost = unitCost;
+    }
+
     Long getId() {
         return id;
     }
@@ -89,6 +96,10 @@ class Ingredient {
 
     BigDecimal getMinimumQuantity() {
         return minimumQuantity;
+    }
+
+    BigDecimal getUnitCost() {
+        return unitCost;
     }
 
     boolean isActive() {

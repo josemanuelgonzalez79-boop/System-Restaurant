@@ -9,6 +9,7 @@ export interface Ingredient {
   unit: IngredientUnit;
   stockQuantity: number;
   minimumQuantity: number;
+  unitCost: number | null;
   lowStock: boolean;
   active: boolean;
   version: number;
@@ -39,6 +40,8 @@ export interface StockMovement {
   movementType: MovementType;
   quantityDelta: number;
   stockAfter: number;
+  unitCostSnapshot: number | null;
+  costAmountSnapshot: number | null;
   reason: string;
   recordedByUsername: string;
   occurredAt: string;

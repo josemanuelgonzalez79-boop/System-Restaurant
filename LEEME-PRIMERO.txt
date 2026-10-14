@@ -1,9 +1,8 @@
-ESSENTIAL PLUS — BLOQUE 3 DE 5: CONSUMO POR COMANDA
+ESSENTIAL PLUS — BLOQUE 4 DE 5: COSTOS Y MÁRGENES
 
-Esta entrega contiene el proyecto completo de la rama plus con inventario, recetas y consumo
-automático al enviar comandas. Reversa insumos si se cancela antes de iniciar preparación;
-las partidas canceladas dejan de cobrarse. Consulta PRUEBA-PLUS-CONSUMO.md para probar el
-bloque sobre la rama plus que ya subiste.
+Esta entrega contiene el proyecto completo de la rama plus con inventario, recetas, consumo y
+costos de referencia auditables. La nueva pantalla Costos muestra el costo y margen de platillos
+y extras; los nuevos consumos conservan su costo histórico. Consulta PRUEBA-PLUS-COSTOS.md.
 
 BASE HEREDADA — RESTAURANTE LOCAL (BLOQUES 1 AL 12)
 
@@ -70,7 +69,7 @@ SI YA EJECUTASTE LA VERSIÓN ANTERIOR
 3. Reemplaza los archivos del proyecto con esta versión.
 4. Vuelve a colocar tu secret.yml dentro de SystemRestaurantBack.
 5. No borres la base de datos ni ejecutes de nuevo los scripts manualmente.
-6. Inicia el backend. Flyway aplicará automáticamente V13 si V10, V11 y V12 ya están aplicadas.
+6. Inicia el backend. Flyway aplicará automáticamente V14 si V13 ya está aplicada.
    Si la base ya contiene varias sucursales, el arranque se detendrá sin borrar datos. Separa
    primero cada restaurante en instalaciones y bases independientes. No ejecutes V10 manualmente.
 7. Inicia Angular y abre http://localhost:4200.
@@ -134,6 +133,9 @@ PRUEBA RECOMENDADA
 - Exportar el CSV y abrir la vista de impresión/PDF.
 - Abrir Respaldos como propietario y descargar el ZIP.
 - Verificar el ZIP y realizar una restauración de prueba, sin promover ni cambiar la base actual.
+- Abrir Costos, asignar precio de referencia a cada insumo con motivo y revisar márgenes.
+- Enviar una comanda y comprobar que sus movimientos guardan el costo vigente.
+- Cambiar el precio de un insumo y verificar que el movimiento anterior conserve su costo.
 
 INSTALACIÓN LAN Y TABLETS
 
@@ -142,4 +144,4 @@ instalar el certificado raíz en las tablets y probar el arranque automático.
 El desarrollo de los 12 bloques está implementado. Falta aceptar la edición local
 con dos tablets y ensayar una restauración real antes de ponerla en producción.
 
-Consulta también PRUEBA-BLOQUE-11.md, AVANCE-PROYECTO.md y PLANES-Y-ALCANCE.md.
+Consulta también PRUEBA-PLUS-COSTOS.md, AVANCE-PROYECTO.md y PLANES-Y-ALCANCE.md.

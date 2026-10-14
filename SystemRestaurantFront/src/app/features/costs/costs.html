@@ -1,0 +1,286 @@
+<section class="cost-heading">
+  <div>
+    <span class="eyebrow">Essential Plus · bloque 4 de 5</span>
+    <h1>Costos y márgenes</h1>
+    <p>Conoce cuánto cuesta preparar cada platillo y qué deja su precio de venta.</p>
+  </div>
+  <p-button
+    label="Actualizar"
+    icon="pi pi-refresh"
+    severity="secondary"
+    [outlined]="true"
+    [loading]="loading()"
+    (onClick)="refresh()"
+  />
+</section>
+
+<div class="cost-notice">
+  <i class="pi pi-info-circle"></i>
+  <span>
+    Estimación de insumos al costo de referencia actual. El margen es sobre el precio de venta; aún
+    no considera mano de obra, renta, comisiones ni impuestos. Las comandas conservan el costo
+    vigente al enviarse.
+  </span>
+</div>
+
+<section class="cost-summary" aria-label="Cobertura de costos">
+  <article>
+    <i class="pi pi-box"></i>
+    <strong>{{ pricedIngredients() }} / {{ ingredients().length }}</strong>
+    <span>Insumos con costo</span>
+  </article>
+  <article>
+    <i class="pi pi-book"></i>
+    <strong>{{ completeProducts() }} / {{ catalog().length }}</strong>
+    <span>Productos con costo calculable</span>
+  </article>
+  <article>
+    <i class="pi pi-chart-line"></i>
+    <strong>{{ catalog().length - completeProducts() }}</strong>
+    <span>Productos pendientes de valorar</span>
+  </article>
+</section>
+
+<section class="cost-layout">
+  <article class="unit-cost-card">
+    <span class="eyebrow">1 · Costo de insumos</span>
+    <h2>Precio de referencia</h2>
+    <p>Registra lo que te cuesta una pieza, un kilogramo o un litro. Cada cambio queda auditado.</p>
+
+    @if (ingredients().length > 0) {
+      <label for="cost-ingredient">Insumo</label>
+      <p-select
+        inputId="cost-ingredient"
+        [ngModel]="selectedIngredientId()"
+        (ngModelChange)="selectIngredient($event)"
+        [options]="ingredients()"
+        optionLabel="name"
+        optionValue="id"
+        [filter]="true"
+        filterBy="name"
+        placeholder="Selecciona un insumo"
+      />
+      @if (selectedIngredient(); as ingredient) {
+        <div class="cost-editor">
+          <div class="editor-head">
+            <strong>{{ ingredient.name }}</strong>
+            <small>Por {{ unitLabel(ingredient.unit) }}</small>
+          </div>
+          <label for="cost-value">Costo unitario en MXN</label>
+          <p-inputnumber
+            inputId="cost-value"
+            [(ngModel)]="draftCost"
+            mode="currency"
+            currency="MXN"
+            locale="es-MX"
+            [min]="0"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="4"
+            placeholder="Ej. $80.00 por kg"
+          />
+          <label for="cost-reason">Motivo del cambio</label>
+          <textarea
+            pTextarea
+            id="cost-reason"
+            [(ngModel)]="draftReason"
+            maxlength="250"
+            rows="2"
+            placeholder="Ej. Nueva cotización del proveedor"
+          ></textarea>
+          <p-button
+            label="Guardar costo"
+            icon="pi pi-save"
+            [loading]="saving()"
+            [disabled]="draftCost === null || draftReason.trim().length < 5"
+            (onClick)="saveCost()"
+          />
+        </div>
+        <div class="cost-history">
+          <h3>Últimos cambios</h3>
+          @if (loadingHistory()) {
+            <p>Consultando historial…</p>
+          } @else if (history().length === 0) {
+            <p>Todavía no se ha registrado un costo para este insumo.</p>
+          } @else {
+            @for (change of history(); track change.id) {
+              <div class="history-row">
+                <strong>
+                  {{
+                    change.previousUnitCost === null
+                      ? 'Sin costo'
+                      : (change.previousUnitCost
+                        | currency: 'MXN' : 'symbol-narrow' : '1.2-4' : 'es-MX')
+                  }}
+                  → {{ change.newUnitCost | currency: 'MXN' : 'symbol-narrow' : '1.2-4' : 'es-MX' }}
+                </strong>
+                <small>{{ change.reason }}</small>
+                <small
+                  >{{ change.changedByUsername }} · {{ change.changedAt | date: 'medium' }}</small
+                >
+              </div>
+            }
+          }
+        </div>
+      }
+    } @else if (!loading()) {
+      <p class="empty">Crea primero un insumo desde Inventario.</p>
+    }
+  </article>
+
+  <article class="menu-cost-card">
+    <span class="eyebrow">2 · Menú</span>
+    <h2>Margen por producto</h2>
+    <p>El cálculo base no incluye opciones; abajo se muestra el efecto individual de cada extra.</p>
+    <label for="cost-search" class="sr-only">Buscar producto</label>
+    <input
+      pInputText
+      id="cost-search"
+      type="search"
+      placeholder="Buscar platillo o categoría"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+    />
+    <div class="product-list">
+      @for (product of visibleProducts(); track product.id) {
+        <button
+          type="button"
+          class="product-row"
+          [class.selected]="selectedProductId() === product.id"
+          (click)="selectProduct(product.id)"
+        >
+          <span
+            ><strong>{{ product.name }}</strong
+            ><small>{{ product.categoryName }}</small></span
+          >
+          <span class="row-trailing">
+            @if (product.marginPercent !== null) {
+              <b [class.negative]="product.marginPercent < 0"
+                >{{ product.marginPercent | number: '1.1-1' }} %</b
+              >
+            } @else {
+              <small>{{ costStatus(product.recipe) }}</small>
+            }
+          </span>
+        </button>
+      } @empty {
+        @if (!loading()) {
+          <p class="empty">No hay productos que coincidan. Revisa el Catálogo.</p>
+        }
+      }
+    </div>
+  </article>
+</section>
+
+@if (selectedProduct(); as product) {
+  <section class="detail-card">
+    <header class="detail-heading">
+      <div>
+        <span class="eyebrow">Detalle por unidad · sin opciones</span>
+        <h2>{{ product.name }}</h2>
+        <p>{{ product.categoryName }} · {{ product.active ? 'Activo' : 'Inactivo' }}</p>
+      </div>
+      @if (product.recipe.cost !== null) {
+        <p-tag value="Costo completo" severity="success" />
+      } @else {
+        <p-tag [value]="costStatus(product.recipe)" severity="warn" />
+      }
+    </header>
+    <div class="margin-grid">
+      <div>
+        <span>Precio de venta</span
+        ><strong>{{
+          product.price | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+        }}</strong>
+      </div>
+      <div>
+        <span>Costo de insumos</span
+        ><strong>{{
+          product.recipe.cost === null
+            ? 'Pendiente'
+            : (product.recipe.cost | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX')
+        }}</strong>
+      </div>
+      <div>
+        <span>Utilidad bruta</span
+        ><strong [class.negative]="product.grossProfit !== null && product.grossProfit < 0">{{
+          product.grossProfit === null
+            ? 'Pendiente'
+            : (product.grossProfit | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX')
+        }}</strong>
+      </div>
+      <div>
+        <span>Margen sobre venta</span
+        ><strong [class.negative]="product.marginPercent !== null && product.marginPercent < 0">{{
+          product.marginPercent === null ? '—' : (product.marginPercent | number: '1.1-1') + ' %'
+        }}</strong>
+      </div>
+    </div>
+    @if (!product.recipe.configured) {
+      <p class="detail-hint">Configura primero la receta de este producto.</p>
+    } @else {
+      @if (product.recipe.missingCosts.length > 0) {
+        <p class="detail-hint">Falta costo de: {{ product.recipe.missingCosts.join(', ') }}.</p>
+      }
+      <div class="breakdown">
+        <h3>Desglose de la receta</h3>
+        @for (line of product.recipe.lines; track line.ingredientId) {
+          <div class="breakdown-row">
+            <span
+              >{{ line.quantity | number: '1.0-3' }} {{ unitLabel(line.unit) }} ·
+              {{ line.ingredientName }}</span
+            >
+            <span>{{
+              line.lineCost === null
+                ? 'Sin costo'
+                : (line.lineCost | currency: 'MXN' : 'symbol-narrow' : '1.2-4' : 'es-MX')
+            }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (product.options.length > 0) {
+      <div class="extras">
+        <h3>Opciones y extras · impacto adicional</h3>
+        <p>Su precio y costo se suman al producto solamente cuando el cliente los selecciona.</p>
+        @for (option of product.options; track option.id) {
+          <article class="extra-row">
+            <div class="extra-title">
+              <strong>{{ option.groupName }} · {{ option.name }}</strong>
+              @if (!option.active) {
+                <small>Opción inactiva</small>
+              }
+              @if (option.recipe.missingCosts.length > 0) {
+                <small>Falta costo de: {{ option.recipe.missingCosts.join(', ') }}</small>
+              }
+            </div>
+            <div class="extra-numbers">
+              <span
+                >Precio
+                {{
+                  option.priceDelta | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                }}</span
+              >
+              <span
+                >Costo
+                {{
+                  option.recipe.cost === null
+                    ? costStatus(option.recipe)
+                    : (option.recipe.cost | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX')
+                }}</span
+              >
+              <strong
+                >Margen
+                {{
+                  option.marginPercent === null
+                    ? '—'
+                    : (option.marginPercent | number: '1.1-1') + ' %'
+                }}</strong
+              >
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+}

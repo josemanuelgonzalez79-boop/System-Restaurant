@@ -1,6 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -35,6 +36,7 @@ interface DraftLine {
     DatePipe,
     DecimalPipe,
     FormsModule,
+    RouterLink,
     ButtonModule,
     InputNumberModule,
     SelectModule,

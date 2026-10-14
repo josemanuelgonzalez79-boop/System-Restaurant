@@ -13,6 +13,8 @@ public record InventoryMovementResponse(
         MovementType movementType,
         BigDecimal quantityDelta,
         BigDecimal stockAfter,
+        BigDecimal unitCostSnapshot,
+        BigDecimal costAmountSnapshot,
         String reason,
         String recordedByUsername,
         Instant occurredAt
@@ -22,6 +24,7 @@ public record InventoryMovementResponse(
                 movement.getId(), movement.getOperationId(), movement.getIngredientId(),
                 movement.getPreparationItemId(), movement.getReversesMovementId(),
                 movement.getMovementType(), movement.getQuantityDelta(), movement.getStockAfter(),
+                movement.getUnitCostSnapshot(), movement.getCostAmountSnapshot(),
                 movement.getReason(), movement.getRecordedByUsername(), movement.getOccurredAt()
         );
     }

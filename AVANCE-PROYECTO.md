@@ -1,17 +1,16 @@
 # Avance de Essential
 
-## Essential Plus · bloque 3 de 5
+## Essential Plus · bloque 4 de 5
 
-La rama real de desarrollo es `plus`. El inventario local y las recetas de productos y extras ya
-fueron probados y subidos por el usuario. El bloque 3 descuenta esas recetas al enviar comandas,
-sin duplicar movimientos al reintentar y sin permitir existencias negativas. Las cantidades
-quedan guardadas como movimientos históricos ligados a cada partida. Cancelar una partida aún
-pendiente devuelve sus insumos; después de iniciar preparación, el consumo se conserva. Toda
-cancelación requiere motivo y la partida se retira del importe por cobrar.
+La rama real de desarrollo es `plus`. Los bloques 1 a 3 ya fueron probados y subidos por el
+usuario. El bloque 4 añade costo de referencia auditable por insumo, cálculo de costo y margen
+para productos y extras, y fotografía del costo monetario de cada nuevo consumo y reversa. Los
+productos sin receta o con algún insumo sin costo permanecen pendientes de valorar. El cálculo
+actual no altera los pedidos históricos, el cobro ni las cantidades descontadas.
 
-El avance de Plus es **3 de 5 bloques implementados (60 % por bloques)**. El bloque 4 calculará
-costos de recetas y márgenes; el bloque 5 incorporará reportes y conciliación de inventario. La
-guía de esta entrega es `PRUEBA-PLUS-CONSUMO.md` y el alcance completo está en
+El avance de Plus es **4 de 5 bloques implementados (80 % por bloques)**. El bloque 5 incorporará
+reportes de inventario, alertas y conciliación de conteos. La guía de esta entrega es
+`PRUEBA-PLUS-COSTOS.md` y el alcance completo está en
 `PLANES-Y-ALCANCE.md`.
 
 > **Decisión vigente (octubre de 2026):** Essential opera un solo restaurante por instalación y

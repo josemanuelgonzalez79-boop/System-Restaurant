@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { auditTime, finalize, interval, Subscription } from 'rxjs';
@@ -29,6 +29,7 @@ import { RealtimeService } from '../../core/services/realtime.service';
   imports: [
     DatePipe,
     DecimalPipe,
+    CurrencyPipe,
     ReactiveFormsModule,
     ButtonModule,
     InputNumberModule,

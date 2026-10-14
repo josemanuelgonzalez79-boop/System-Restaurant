@@ -107,12 +107,14 @@ public class OrderConsumptionService {
                 BigDecimal remaining = ingredient.getStockQuantity().subtract(entry.getValue());
                 ingredient.setStockQuantity(remaining);
                 ingredients.saveAndFlush(ingredient);
+                BigDecimal cost = ingredient.getUnitCost();
+                BigDecimal debit = cost == null ? null : entry.getValue().negate().multiply(cost);
                 movements.saveAndFlush(new InventoryMovement(
                         operationId(request.preparationItemId(), entry.getKey(), MovementType.ORDER_CONSUMPTION),
                         entry.getKey(), MovementType.ORDER_CONSUMPTION, entry.getValue().negate(),
                         remaining, "PED-%06d · ".formatted(request.orderId())
                                 + request.productName(), userId, username,
-                        request.preparationItemId(), null
+                        request.preparationItemId(), null, cost, debit
                 ));
             }
         }
@@ -147,7 +149,9 @@ public class OrderConsumptionService {
                     operationId(preparationItemId, original.getIngredientId(), MovementType.ORDER_REVERSAL),
                     original.getIngredientId(), MovementType.ORDER_REVERSAL, quantity, restored,
                     "Cancelación antes de preparar: " + reason, userId, username,
-                    preparationItemId, original.getId()
+                    preparationItemId, original.getId(), original.getUnitCostSnapshot(),
+                    original.getCostAmountSnapshot() == null ? null
+                            : original.getCostAmountSnapshot().negate()
             ));
         }
     }
