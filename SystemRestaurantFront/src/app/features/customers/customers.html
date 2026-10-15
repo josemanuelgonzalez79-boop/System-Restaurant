@@ -1,0 +1,262 @@
+<p-confirmDialog />
+
+<header class="page-title">
+  <div>
+    <span class="eyebrow">Essential Pro · bloque 2</span>
+    <h1>Clientes</h1>
+    <p>Recuerda cómo atenderlos y consulta sus visitas dentro de este restaurante.</p>
+  </div>
+  <p-button label="Nueva ficha" icon="pi pi-user-plus" (onClick)="newCustomer()" />
+</header>
+
+<section class="search-panel" aria-label="Buscar clientes">
+  <label for="customer-search">Nombre o teléfono</label>
+  <div class="search-controls">
+    <input
+      pInputText
+      id="customer-search"
+      type="search"
+      [value]="searchTerm()"
+      (input)="setSearch($any($event.target).value)"
+      (keyup.enter)="load()"
+      placeholder="Ej. Ana o 6671234567"
+    />
+    <p-button label="Buscar" icon="pi pi-search" severity="secondary" (onClick)="load()" />
+  </div>
+  <label class="archived-toggle">
+    <input
+      type="checkbox"
+      [checked]="includeArchived()"
+      (change)="toggleArchived($any($event.target).checked)"
+    />
+    Incluir fichas archivadas
+  </label>
+  <small>Se muestran hasta 100 coincidencias. Usa el nombre o teléfono para encontrar otras.</small>
+</section>
+
+<div class="customer-layout">
+  <section class="list-panel" aria-label="Fichas de clientes">
+    <div class="panel-heading">
+      <h2>Directorio</h2>
+      <span>{{ customers().length }} resultados</span>
+    </div>
+    <div class="customer-list">
+      @for (customer of customers(); track customer.id) {
+        <button
+          type="button"
+          class="customer-row"
+          [class.selected]="selected()?.id === customer.id"
+          (click)="select(customer)"
+        >
+          <span class="avatar">{{ customer.name.slice(0, 1).toUpperCase() }}</span>
+          <span class="row-info"
+            ><strong>{{ customer.name }}</strong>
+            <small>{{ customer.phone || customer.email || 'Sin contacto registrado' }}</small></span
+          >
+          @if (!customer.active) {
+            <p-tag value="Archivada" severity="secondary" />
+          }
+          <i class="pi pi-angle-right"></i>
+        </button>
+      } @empty {
+        <div class="empty-list">
+          <i class="pi pi-users"></i>
+          <p>{{ loading() ? 'Buscando clientes…' : 'No hay coincidencias para esta búsqueda.' }}</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <article class="profile-panel">
+    @if (selected(); as customer) {
+      <div class="profile-head">
+        <div>
+          <span class="eyebrow">Ficha #{{ customer.id }}</span>
+          <h2>{{ customer.name }}</h2>
+        </div>
+        <p-tag
+          [value]="customer.active ? 'Activa' : 'Archivada'"
+          [severity]="customer.active ? 'success' : 'secondary'"
+        />
+      </div>
+      <div class="contact-grid">
+        <div>
+          <span>Teléfono</span
+          ><strong>
+            @if (customer.phone) {
+              <a [href]="'tel:' + customer.phone">{{ customer.phone }}</a>
+            } @else {
+              Sin registrar
+            }
+          </strong>
+        </div>
+        <div>
+          <span>Correo</span
+          ><strong>
+            @if (customer.email) {
+              <a [href]="'mailto:' + customer.email">{{ customer.email }}</a>
+            } @else {
+              Sin registrar
+            }
+          </strong>
+        </div>
+      </div>
+
+      <section class="preference-card">
+        <h3><i class="pi pi-heart"></i> Preferencias de servicio</h3>
+        <p>{{ customer.preferences || 'Sin preferencias registradas.' }}</p>
+      </section>
+      <section class="preference-card dietary">
+        <h3><i class="pi pi-info-circle"></i> Indicaciones alimentarias</h3>
+        <p>{{ customer.dietaryNotes || 'Sin indicaciones registradas.' }}</p>
+        <small>Confirma siempre con el cliente antes de preparar un platillo.</small>
+      </section>
+
+      <div class="actions">
+        <p-button
+          label="Editar ficha"
+          icon="pi pi-pencil"
+          [outlined]="true"
+          [disabled]="saving()"
+          (onClick)="edit(customer)"
+        />
+        <p-button
+          [label]="customer.active ? 'Archivar' : 'Reactivar'"
+          [severity]="customer.active ? 'secondary' : 'success'"
+          [text]="true"
+          [disabled]="saving()"
+          (onClick)="changeActive(customer)"
+        />
+      </div>
+
+      <section class="activity">
+        <h3>Reservaciones y pedidos vinculados</h3>
+        @for (visit of history()?.visits ?? []; track $index) {
+          <div class="activity-row">
+            <span class="activity-icon"
+              ><i [class]="visit.reservationId ? 'pi pi-calendar' : 'pi pi-receipt'"></i
+            ></span>
+            <div>
+              <strong>{{ visitLabel(visit) }}</strong>
+              <small
+                >{{ visit.occurredAt | date: 'medium' }} ·
+                {{
+                  visit.servicePointName ||
+                    (visit.serviceMode === 'TAKEOUT' ? 'Para llevar' : 'Local')
+                }}</small
+              >
+            </div>
+            @if (visit.orderId) {
+              <a [routerLink]="['/pedidos', visit.orderId]">PED-{{ visit.orderId }}</a>
+            }
+          </div>
+        } @empty {
+          <p class="muted">Aún no hay visitas vinculadas a esta ficha.</p>
+        }
+      </section>
+      <section class="activity audit">
+        <h3>Cambios de la ficha</h3>
+        @for (change of history()?.changes ?? []; track change.id) {
+          <p>
+            <strong>{{ eventLabel(change.action) }}</strong> · {{ change.actorUsername }}
+            <small>{{ change.occurredAt | date: 'medium' }}</small>
+          </p>
+        }
+      </section>
+    } @else {
+      <div class="profile-empty">
+        <i class="pi pi-address-book"></i>
+        <h2>Conoce a tus clientes</h2>
+        <p>Selecciona una ficha para consultar sus indicaciones y visitas, o crea la primera.</p>
+      </div>
+    }
+  </article>
+</div>
+
+<p-dialog
+  [header]="editingId === null ? 'Nueva ficha' : 'Editar cliente'"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(94vw, 620px)' }"
+>
+  <form class="customer-form" [formGroup]="form" (ngSubmit)="save()">
+    <label for="customer-name"
+      >Nombre *<input
+        pInputText
+        id="customer-name"
+        formControlName="name"
+        maxlength="120"
+        autocomplete="name"
+        placeholder="Nombre y apellido"
+    /></label>
+    @if (form.controls.name.touched && form.controls.name.invalid) {
+      <small class="error">Escribe el nombre del cliente.</small>
+    }
+    <div class="form-pair">
+      <label for="customer-phone"
+        >Teléfono<input
+          pInputText
+          id="customer-phone"
+          formControlName="phone"
+          maxlength="30"
+          type="tel"
+          autocomplete="tel"
+          placeholder="7 a 15 dígitos"
+      /></label>
+      <label for="customer-email"
+        >Correo<input
+          pInputText
+          id="customer-email"
+          formControlName="email"
+          maxlength="120"
+          type="email"
+          autocomplete="email"
+          placeholder="Opcional"
+      /></label>
+    </div>
+    @if (form.controls.email.touched && form.controls.email.invalid) {
+      <small class="error">Revisa el formato del correo.</small>
+    }
+    @if (form.controls.phone.touched && form.controls.phone.invalid) {
+      <small class="error">El teléfono debe tener de 7 a 15 dígitos, sin letras.</small>
+    }
+    <label for="customer-preferences"
+      >Preferencias de servicio
+      <textarea
+        pTextarea
+        id="customer-preferences"
+        formControlName="preferences"
+        rows="3"
+        maxlength="500"
+        placeholder="Ej. Prefiere mesa junto a ventana"
+      ></textarea>
+    </label>
+    <label for="customer-dietary"
+      >Indicaciones alimentarias
+      <textarea
+        pTextarea
+        id="customer-dietary"
+        formControlName="dietaryNotes"
+        rows="3"
+        maxlength="300"
+        placeholder="Ej. Indica evitar frutos secos; confirmar al llegar"
+      ></textarea>
+    </label>
+    <small
+      >Las indicaciones solo son visibles para personal de reservaciones y caja. Confírmalas en cada
+      visita.</small
+    >
+    <div class="form-actions">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        type="button"
+        (onClick)="dialogVisible.set(false)"
+      />
+      <p-button label="Guardar ficha" icon="pi pi-check" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

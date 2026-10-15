@@ -61,8 +61,8 @@ datos. El plan inicial comprende cuatro bloques, sujeto a ajustes después de pr
 
 | Bloque | Función | Estado |
 | --- | --- | --- |
-| 1 | Reservaciones, agenda de mesas y llegada con pedido | Implementado en esta entrega; pendiente de prueba local |
-| 2 | Fichas de clientes y preferencias, con control de acceso | Planeado |
+| 1 | Reservaciones, agenda de mesas y llegada con pedido | Probado y subido a `pro` |
+| 2 | Fichas de clientes y preferencias, con control de acceso | Implementado en esta entrega; pendiente de prueba local |
 | 3 | Promociones y descuentos auditables durante el cobro | Planeado |
 | 4 | Integraciones y operaciones avanzadas que el piloto requiera | Alcance por concretar |
 
@@ -72,6 +72,13 @@ ocupar una mesa reservada dentro de los próximos 90 minutos; el mapa la señala
 datos del cliente al personal de mesas. Cancelación y ausencia liberan el
 horario y dejan historial. Los horarios se interpretan con la zona horaria del restaurante; no
 hay reservas compartidas entre instalaciones ni dependencia de internet.
+
+El bloque 2 agrega fichas locales con teléfono normalizado para prevenir duplicados, preferencias,
+indicaciones alimentarias y archivado reversible. Solo propietario, administrador, gerente y
+cajero consultan estas fichas. Las reservaciones pueden enlazarlas y los pedidos abiertos desde
+la agenda conservan ese vínculo. En Pedidos, esos roles también pueden vincular directamente una
+cuenta de mesa o para llevar. El historial muestra únicamente visitas vinculadas explícitamente;
+no se infiere identidad a partir de nombres iguales ni se migran datos de clientes antiguos.
 
 Ninguna de estas opciones presupone WAN, sincronización entre locales ni reportes consolidados.
 Para dar servicio a otro establecimiento se instala una instancia distinta, con una base de datos

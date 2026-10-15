@@ -1,5 +1,7 @@
 package com.rest.restaurantsystem.order;
 
+import com.rest.restaurantsystem.customer.CustomerResponse;
+import com.rest.restaurantsystem.customer.CustomerService;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
@@ -61,6 +63,9 @@ class OrderServiceTest {
     @Mock
     private ReservationService reservationService;
 
+    @Mock
+    private CustomerService customerService;
+
     @InjectMocks
     private OrderService service;
 
@@ -95,7 +100,8 @@ class OrderServiceTest {
     void openingFromReservationLinksTheCreatedOrderInOneTransaction() {
         OrderCreateRequest request = new OrderCreateRequest(1L, 20L, ServiceMode.DINE_IN,
                 10L, 2, "Ana", null, 7L);
-        mockValidUsersAndBranch();
+        mockValidUsersAndBranch(UserRole.CASHIER);
+        when(reservationService.beforeOrder(7L, 1L, 20L)).thenReturn(50L);
         when(servicePointService.findById(20L)).thenReturn(point(20L, 1L));
         when(repository.saveAndFlush(any(RestaurantOrder.class))).thenAnswer(invocation -> {
             RestaurantOrder order = invocation.getArgument(0);
@@ -107,8 +113,44 @@ class OrderServiceTest {
         OrderResponse result = service.create(request, "mesero");
 
         assertThat(result.folio()).isEqualTo("PED-000042");
+        verify(repository).saveAndFlush(org.mockito.ArgumentMatchers.argThat(
+                (RestaurantOrder order) -> order.getCustomerId().equals(50L)));
         verify(reservationService).beforeOrder(7L, 1L, 20L);
         verify(reservationService).afterOrder(7L, 42L, "mesero");
+    }
+
+    @Test
+    void walkInWithCustomerCopiesNameAndStoresLink() {
+        OrderCreateRequest request = new OrderCreateRequest(1L, 20L, ServiceMode.DINE_IN,
+                10L, 2, null, null, null, 50L);
+        mockValidUsersAndBranch(UserRole.CASHIER);
+        when(servicePointService.findById(20L)).thenReturn(point(20L, 1L));
+        when(customerService.requireActive(50L)).thenReturn(new CustomerResponse(50L, "Ana",
+                "6671234567", null, null, null, true, 0L, "caja", "caja",
+                Instant.EPOCH, Instant.EPOCH));
+        when(repository.saveAndFlush(any(RestaurantOrder.class))).thenAnswer(invocation -> {
+            RestaurantOrder order = invocation.getArgument(0);
+            ReflectionTestUtils.setField(order, "id", 42L);
+            order.onCreate();
+            return order;
+        });
+
+        OrderResponse response = service.create(request, "mesero");
+
+        assertThat(response.customerReference()).isEqualTo("Ana");
+        verify(repository).saveAndFlush(org.mockito.ArgumentMatchers.argThat(
+                (RestaurantOrder order) -> order.getCustomerId().equals(50L)));
+    }
+
+    @Test
+    void operatorCannotAttachCustomerProfile() {
+        mockValidUsersAndBranch();
+        when(servicePointService.findById(20L)).thenReturn(point(20L, 1L));
+        OrderCreateRequest request = new OrderCreateRequest(1L, 20L, ServiceMode.DINE_IN,
+                10L, 2, null, null, null, 50L);
+
+        assertThrows(BadRequestException.class, () -> service.create(request, "mesero"));
+        verify(repository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -232,8 +274,15 @@ class OrderServiceTest {
     }
 
     private void mockValidUsersAndBranch() {
+        mockValidUsersAndBranch(UserRole.OPERATOR);
+    }
+
+    private void mockValidUsersAndBranch(UserRole role) {
         when(branchService.findById(1L)).thenReturn(branch(1L));
-        when(userService.currentUser("mesero")).thenReturn(user(10L, "mesero", "Mesero"));
+        UserResponse person = user(10L, "mesero", "Mesero");
+        when(userService.currentUser("mesero")).thenReturn(new UserResponse(person.id(),
+                person.username(), person.fullName(), role, person.active(), person.mustChangePassword(),
+                person.version(), person.createdAt(), person.updatedAt()));
         when(userService.findById(10L)).thenReturn(user(10L, "mesero", "Mesero"));
         when(assignmentService.isAssigned(1L, 10L)).thenReturn(true);
     }

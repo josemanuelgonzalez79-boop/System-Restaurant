@@ -23,6 +23,8 @@ class Reservation {
     private Long branchId;
     @Column(name = "service_point_id", nullable = false)
     private Long servicePointId;
+    @Column(name = "customer_id")
+    private Long customerId;
     @Column(name = "guest_name", nullable = false, length = 120)
     private String guestName;
     @Column(name = "guest_phone", length = 30)
@@ -68,6 +70,7 @@ class Reservation {
 
     void reschedule(ReservationSaveRequest request, Instant start, Instant end, String username) {
         servicePointId = request.servicePointId();
+        customerId = request.customerId();
         guestName = request.guestName().trim();
         guestPhone = normalize(request.guestPhone());
         guestCount = request.guestCount();
@@ -97,6 +100,7 @@ class Reservation {
     Long getId() { return id; }
     Long getBranchId() { return branchId; }
     Long getServicePointId() { return servicePointId; }
+    Long getCustomerId() { return customerId; }
     String getGuestName() { return guestName; }
     String getGuestPhone() { return guestPhone; }
     int getGuestCount() { return guestCount; }

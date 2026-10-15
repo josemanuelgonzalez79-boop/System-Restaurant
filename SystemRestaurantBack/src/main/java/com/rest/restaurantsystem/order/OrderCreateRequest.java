@@ -13,12 +13,20 @@ public record OrderCreateRequest(
         @NotNull @Min(1) @Max(99) Integer guestCount,
         @Size(max = 120) String customerReference,
         @Size(max = 500) String notes,
-        Long reservationId
+        Long reservationId,
+        Long customerId
 ) {
     public OrderCreateRequest(Long branchId, Long servicePointId, ServiceMode serviceMode,
                               Long assignedUserId, Integer guestCount, String customerReference,
                               String notes) {
         this(branchId, servicePointId, serviceMode, assignedUserId, guestCount,
-                customerReference, notes, null);
+                customerReference, notes, null, null);
+    }
+
+    public OrderCreateRequest(Long branchId, Long servicePointId, ServiceMode serviceMode,
+                              Long assignedUserId, Integer guestCount, String customerReference,
+                              String notes, Long reservationId) {
+        this(branchId, servicePointId, serviceMode, assignedUserId, guestCount,
+                customerReference, notes, reservationId, null);
     }
 }

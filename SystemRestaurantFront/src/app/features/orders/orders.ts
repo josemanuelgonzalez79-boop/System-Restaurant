@@ -19,8 +19,10 @@ import {
   OrderStatus,
   RestaurantOrder,
 } from '../../core/models/order.model';
+import { RestaurantCustomer } from '../../core/models/customer.model';
 import { Branch, OperationalArea, ServicePoint } from '../../core/models/structure.model';
 import { AuthApiService } from '../../core/services/auth-api.service';
+import { CustomerApiService } from '../../core/services/customer-api.service';
 import { OrderApiService } from '../../core/services/order-api.service';
 import { RealtimeService } from '../../core/services/realtime.service';
 import { StructureApiService } from '../../core/services/structure-api.service';
@@ -46,6 +48,7 @@ import { StructureApiService } from '../../core/services/structure-api.service';
 export class Orders implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly orderApi = inject(OrderApiService);
+  private readonly customerApi = inject(CustomerApiService);
   private readonly structureApi = inject(StructureApiService);
   private readonly realtime = inject(RealtimeService);
   private readonly auth = inject(AuthApiService);
@@ -67,6 +70,9 @@ export class Orders implements OnInit, OnDestroy {
   protected readonly orders = signal<RestaurantOrder[]>([]);
   protected readonly operators = signal<OrderOperator[]>([]);
   protected readonly heldPointIds = signal<Set<number>>(new Set());
+  protected readonly customers = signal<RestaurantCustomer[]>([]);
+  protected customerSearch = '';
+  protected readonly canLinkCustomer = this.auth.canOperateCash();
 
   protected readonly selectedBranchId = signal<number | null>(null);
   protected readonly selectedAreaId = signal<number | null>(null);
@@ -123,6 +129,7 @@ export class Orders implements OnInit, OnDestroy {
 
   protected readonly orderForm = this.formBuilder.group({
     assignedUserId: this.formBuilder.control<number | null>(null, Validators.required),
+    customerId: this.formBuilder.control<number | null>(null),
     guestCount: this.formBuilder.nonNullable.control(1, [
       Validators.required,
       Validators.min(1),
@@ -170,11 +177,25 @@ export class Orders implements OnInit, OnDestroy {
     this.openDialog(null);
   }
 
+  protected loadCustomers(): void {
+    if (!this.canLinkCustomer) return;
+    this.customerApi.search(this.customerSearch).subscribe({
+      next: (items) => this.customers.set(items.filter((item) => item.active)),
+      error: () => {},
+    });
+  }
+
+  protected customerSelected(id: number | null): void {
+    const customer = this.customers().find((item) => item.id === id);
+    if (customer) this.orderForm.patchValue({ customerReference: customer.name });
+  }
+
   protected closeDialog(): void {
     this.dialogVisible.set(false);
     this.selectedPoint.set(null);
     this.orderForm.reset({
       assignedUserId: null,
+      customerId: null,
       guestCount: 1,
       customerReference: '',
       notes: '',
@@ -202,6 +223,7 @@ export class Orders implements OnInit, OnDestroy {
       assignedUserId: value.assignedUserId as number,
       guestCount: value.guestCount,
       customerReference: value.customerReference,
+      ...(this.canLinkCustomer ? { customerId: value.customerId } : {}),
       notes: value.notes,
     };
 
@@ -360,10 +382,12 @@ export class Orders implements OnInit, OnDestroy {
     this.selectedPoint.set(point);
     this.orderForm.reset({
       assignedUserId: defaultOperator.id,
+      customerId: null,
       guestCount: point ? 2 : 1,
       customerReference: '',
       notes: '',
     });
+    this.loadCustomers();
     this.dialogVisible.set(true);
   }
 

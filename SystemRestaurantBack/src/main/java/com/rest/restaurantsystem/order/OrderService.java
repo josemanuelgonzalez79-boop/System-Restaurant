@@ -1,5 +1,7 @@
 package com.rest.restaurantsystem.order;
 
+import com.rest.restaurantsystem.customer.CustomerResponse;
+import com.rest.restaurantsystem.customer.CustomerService;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
@@ -12,6 +14,7 @@ import com.rest.restaurantsystem.structure.BranchService;
 import com.rest.restaurantsystem.structure.ServicePointResponse;
 import com.rest.restaurantsystem.structure.ServicePointService;
 import com.rest.restaurantsystem.user.UserResponse;
+import com.rest.restaurantsystem.user.UserRole;
 import com.rest.restaurantsystem.user.UserService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ public class OrderService {
     private final BranchAssignmentService assignmentService;
     private final RealtimeEventPublisher realtimeEventPublisher;
     private final ReservationService reservationService;
+    private final CustomerService customerService;
 
     public OrderService(
             RestaurantOrderRepository repository,
@@ -45,7 +49,8 @@ public class OrderService {
             UserService userService,
             BranchAssignmentService assignmentService,
             RealtimeEventPublisher realtimeEventPublisher,
-            ReservationService reservationService
+            ReservationService reservationService,
+            CustomerService customerService
     ) {
         this.repository = repository;
         this.preparationItemRepository = preparationItemRepository;
@@ -56,6 +61,7 @@ public class OrderService {
         this.assignmentService = assignmentService;
         this.realtimeEventPublisher = realtimeEventPublisher;
         this.reservationService = reservationService;
+        this.customerService = customerService;
     }
 
     @Transactional(readOnly = true)
@@ -130,12 +136,25 @@ public class OrderService {
         if (request.serviceMode() == ServiceMode.TAKEOUT && request.reservationId() != null) {
             throw new BadRequestException("Una reservación debe abrirse en su mesa, no para llevar.");
         }
-        if (request.serviceMode() == ServiceMode.DINE_IN) {
-            reservationService.beforeOrder(request.reservationId(), request.branchId(),
-                    request.servicePointId());
+        if ((request.reservationId() != null || request.customerId() != null)
+                && !canManageCustomers(currentUser.role())) {
+            throw new BadRequestException("Tu usuario no tiene permiso para vincular clientes o reservaciones.");
         }
+        Long reservationCustomerId = request.serviceMode() == ServiceMode.DINE_IN
+                ? reservationService.beforeOrder(request.reservationId(), request.branchId(),
+                        request.servicePointId()) : null;
+        if (request.reservationId() != null && request.customerId() != null
+                && !request.customerId().equals(reservationCustomerId)) {
+            throw new BadRequestException("El cliente elegido no coincide con el de la reservación.");
+        }
+        Long customerId = request.reservationId() != null ? reservationCustomerId : request.customerId();
 
         RestaurantOrder order = new RestaurantOrder(request, currentUser.id());
+        if (customerId != null) {
+            CustomerResponse customer = request.reservationId() != null ? null
+                    : customerService.requireActive(customerId);
+            order.linkCustomer(customerId, customer == null ? null : customer.name());
+        }
         try {
             RestaurantOrder saved = repository.saveAndFlush(order);
             reservationService.afterOrder(request.reservationId(), saved.getId(), currentUsername);
@@ -223,6 +242,11 @@ public class OrderService {
         if (repository.existsByServicePointIdAndStatusIn(point.id(), ACTIVE_STATUSES)) {
             throw new ConflictException("La mesa o punto ya tiene un pedido abierto.");
         }
+    }
+
+    private boolean canManageCustomers(UserRole role) {
+        return role == UserRole.OWNER || role == UserRole.ADMIN
+                || role == UserRole.MANAGER || role == UserRole.CASHIER;
     }
 
     private UserResponse validateAssignedUser(Long branchId, Long userId) {

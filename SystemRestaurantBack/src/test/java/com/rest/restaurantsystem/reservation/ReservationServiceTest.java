@@ -1,5 +1,7 @@
 package com.rest.restaurantsystem.reservation;
 
+import com.rest.restaurantsystem.customer.CustomerResponse;
+import com.rest.restaurantsystem.customer.CustomerService;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.order.OrderOccupancyService;
@@ -46,6 +48,7 @@ class ReservationServiceTest {
     @Mock OrderOccupancyService occupancy;
     @Mock UserService users;
     @Mock RealtimeEventPublisher realtime;
+    @Mock CustomerService customers;
     @InjectMocks ReservationService service;
 
     @Test
@@ -92,6 +95,30 @@ class ReservationServiceTest {
         assertEquals(42L, reservation.getOrderId());
         verify(events).save(any(ReservationEvent.class));
         verify(realtime).publish(any(), eq(1L), any(), any(), any());
+    }
+
+    @Test
+    void linkedProfileSnapshotsNameAndPhoneAtBooking() {
+        ReservationSaveRequest linked = new ReservationSaveRequest(20L, request().startLocal(),
+                90, "No usar este nombre", null, 2, null, 50L, null);
+        when(customers.requireActive(50L)).thenReturn(new CustomerResponse(50L, "Ana",
+                "667 123 4567", null, "Mesa tranquila", null, true, 0L, "caja", "caja",
+                Instant.EPOCH, Instant.EPOCH));
+        when(branches.findAll()).thenReturn(List.of(branch()));
+        when(points.findById(20L)).thenReturn(point());
+        when(areas.findById(5L)).thenReturn(area());
+        when(users.currentUser("caja")).thenReturn(user());
+        when(reservations.saveAndFlush(any(Reservation.class))).thenAnswer(invocation -> {
+            Reservation saved = invocation.getArgument(0);
+            ReflectionTestUtils.setField(saved, "id", 11L);
+            return saved;
+        });
+
+        ReservationResponse response = service.create(linked, "caja");
+
+        assertEquals(50L, response.customerId());
+        assertEquals("Ana", response.guestName());
+        assertEquals("667 123 4567", response.guestPhone());
     }
 
     private ReservationSaveRequest request() {

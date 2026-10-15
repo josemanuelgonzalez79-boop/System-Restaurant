@@ -1,6 +1,27 @@
 :host {
   display: block;
 }
+.customer-picker {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  margin: 0.8rem 0;
+}
+.customer-search-row {
+  display: flex;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.customer-search-row input {
+  flex: 1;
+  min-width: 0;
+}
+.customer-picker p-select,
+:host ::ng-deep .customer-picker .p-select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
 
 .page-heading {
   display: flex;

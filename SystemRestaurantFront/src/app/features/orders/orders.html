@@ -275,6 +275,42 @@
       </div>
     </div>
 
+    @if (canLinkCustomer) {
+      <div class="customer-picker">
+        <label for="order-customer-search">Buscar cliente registrado</label>
+        <div class="customer-search-row">
+          <input
+            pInputText
+            id="order-customer-search"
+            type="search"
+            [value]="customerSearch"
+            (input)="customerSearch = $any($event.target).value"
+            (keyup.enter)="$event.preventDefault(); loadCustomers()"
+            placeholder="Nombre o teléfono"
+          />
+          <p-button
+            type="button"
+            label="Buscar"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="loadCustomers()"
+          />
+        </div>
+        <p-select
+          inputId="order-customer"
+          formControlName="customerId"
+          [options]="customers()"
+          optionLabel="name"
+          optionValue="id"
+          [showClear]="true"
+          [filter]="true"
+          filterBy="name,phone"
+          placeholder="Sin ficha vinculada"
+          (onChange)="customerSelected($event.value)"
+        />
+      </div>
+    }
+
     <label>
       <span>Responsable o mesero</span>
       <p-select
@@ -311,6 +347,7 @@
         <input
           pInputText
           formControlName="customerReference"
+          [readOnly]="orderForm.controls.customerId.value !== null"
           placeholder="Opcional"
           autocomplete="off"
         />

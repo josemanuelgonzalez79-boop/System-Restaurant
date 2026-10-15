@@ -71,6 +71,13 @@ export const routes: Routes = [
     title: 'Reservaciones | Essential Pro',
   },
   {
+    path: 'clientes',
+    loadComponent: () =>
+      import('./features/customers/customers').then((component) => component.CustomersPage),
+    canActivate: [cashierGuard],
+    title: 'Clientes | Essential Pro',
+  },
+  {
     path: 'reporte-diario',
     loadComponent: () =>
       import('./features/daily-report/daily-report').then((component) => component.DailyReportPage),

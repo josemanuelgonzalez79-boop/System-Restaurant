@@ -71,6 +71,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
   conteos físicos sin cambios parciales.
 - Essential Pro: agenda de reservaciones por mesa, duración, cancelación, ausencia e historial;
   llegada enlazada al pedido, sin traslapes y con actualización entre tablets.
+- Essential Pro: fichas de clientes con contacto, preferencias, indicaciones alimentarias,
+  historial de visitas vinculadas, archivado reversible y selección en reservaciones o pedidos.
 
 Rutas:
 
@@ -89,6 +91,7 @@ Rutas:
 /recetas
 /costos
 /reservaciones
+/clientes
 /configuracion
 /usuarios
 ```

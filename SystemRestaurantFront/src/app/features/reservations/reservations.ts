@@ -15,6 +15,7 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 
 import { OrderOperator } from '../../core/models/order.model';
+import { RestaurantCustomer } from '../../core/models/customer.model';
 import {
   Reservation,
   ReservationEvent,
@@ -22,6 +23,7 @@ import {
 } from '../../core/models/reservation.model';
 import { Branch, OperationalArea, ServicePoint } from '../../core/models/structure.model';
 import { AuthApiService } from '../../core/services/auth-api.service';
+import { CustomerApiService } from '../../core/services/customer-api.service';
 import { OrderApiService } from '../../core/services/order-api.service';
 import { RealtimeService } from '../../core/services/realtime.service';
 import { ReservationApiService } from '../../core/services/reservation-api.service';
@@ -49,6 +51,7 @@ import { StructureApiService } from '../../core/services/structure-api.service';
 export class ReservationsPage implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(ReservationApiService);
+  private readonly customerApi = inject(CustomerApiService);
   private readonly ordersApi = inject(OrderApiService);
   private readonly structure = inject(StructureApiService);
   private readonly realtime = inject(RealtimeService);
@@ -71,6 +74,7 @@ export class ReservationsPage implements OnInit, OnDestroy {
   protected readonly points = signal<ServicePoint[]>([]);
   protected readonly operators = signal<OrderOperator[]>([]);
   protected readonly reservations = signal<Reservation[]>([]);
+  protected readonly customers = signal<RestaurantCustomer[]>([]);
   protected readonly selected = signal<Reservation | null>(null);
   protected readonly history = signal<ReservationEvent[]>([]);
   protected readonly search = signal('');
@@ -108,6 +112,7 @@ export class ReservationsPage implements OnInit, OnDestroy {
 
   protected readonly form = this.formBuilder.group({
     servicePointId: this.formBuilder.control<number | null>(null, Validators.required),
+    customerId: this.formBuilder.control<number | null>(null),
     startLocal: this.formBuilder.nonNullable.control('', Validators.required),
     durationMinutes: this.formBuilder.nonNullable.control(90, Validators.required),
     guestName: this.formBuilder.nonNullable.control('', [
@@ -137,9 +142,11 @@ export class ReservationsPage implements OnInit, OnDestroy {
   protected maximumDate = '';
   protected assignedUserId: number | null = null;
   protected cancelReason = '';
+  protected customerSearch = '';
   private editingVersion: number | null = null;
 
   ngOnInit(): void {
+    this.loadCustomers();
     this.lookup = forkJoin({
       branches: this.structure.findBranches(),
       assigned: this.ordersApi.findBranches(),
@@ -223,6 +230,7 @@ export class ReservationsPage implements OnInit, OnDestroy {
     this.editingVersion = null;
     this.form.reset({
       servicePointId: this.availablePoints()[0]?.id ?? null,
+      customerId: null,
       startLocal: this.defaultStart(),
       durationMinutes: 90,
       guestName: '',
@@ -239,6 +247,7 @@ export class ReservationsPage implements OnInit, OnDestroy {
     this.editingVersion = item.version;
     this.form.reset({
       servicePointId: item.servicePointId,
+      customerId: item.customerId,
       startLocal: this.localDateTime(item.startAt),
       durationMinutes: Math.round((Date.parse(item.endAt) - Date.parse(item.startAt)) / 60000),
       guestName: item.guestName,
@@ -246,7 +255,26 @@ export class ReservationsPage implements OnInit, OnDestroy {
       guestCount: item.guestCount,
       notes: item.notes ?? '',
     });
+    if (item.customerId !== null && !this.customers().some((c) => c.id === item.customerId)) {
+      this.customerApi.find(item.customerId).subscribe({
+        next: (customer) => this.customers.update((items) => [customer, ...items]),
+        error: () => {},
+      });
+    }
     this.dialogVisible.set(true);
+  }
+
+  protected loadCustomers(): void {
+    this.customerApi.search(this.customerSearch).subscribe({
+      next: (items) => this.customers.set(items.filter((customer) => customer.active)),
+      error: () => {},
+    });
+  }
+
+  protected customerSelected(id: number | null): void {
+    const customer = this.customers().find((item) => item.id === id);
+    if (customer)
+      this.form.patchValue({ guestName: customer.name, guestPhone: customer.phone ?? '' });
   }
 
   protected save(): void {
@@ -258,6 +286,7 @@ export class ReservationsPage implements OnInit, OnDestroy {
     const value = this.form.getRawValue();
     const payload = {
       servicePointId: value.servicePointId!,
+      customerId: value.customerId,
       startLocal: value.startLocal,
       durationMinutes: value.durationMinutes,
       guestName: value.guestName.trim(),

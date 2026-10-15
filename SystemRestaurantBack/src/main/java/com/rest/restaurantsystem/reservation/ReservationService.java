@@ -1,5 +1,7 @@
 package com.rest.restaurantsystem.reservation;
 
+import com.rest.restaurantsystem.customer.CustomerResponse;
+import com.rest.restaurantsystem.customer.CustomerService;
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
@@ -36,11 +38,13 @@ public class ReservationService {
     private final OrderOccupancyService occupancy;
     private final UserService users;
     private final RealtimeEventPublisher realtime;
+    private final CustomerService customers;
 
     public ReservationService(ReservationRepository reservations, ReservationEventRepository events,
                               BranchService branches, ServicePointService points,
                               OperationalAreaService areas, OrderOccupancyService occupancy,
-                              UserService users, RealtimeEventPublisher realtime) {
+                              UserService users, RealtimeEventPublisher realtime,
+                              CustomerService customers) {
         this.reservations = reservations;
         this.events = events;
         this.branches = branches;
@@ -49,6 +53,7 @@ public class ReservationService {
         this.occupancy = occupancy;
         this.users = users;
         this.realtime = realtime;
+        this.customers = customers;
     }
 
     @Transactional(readOnly = true)
@@ -81,6 +86,7 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse create(ReservationSaveRequest request, String username) {
+        request = withCustomerSnapshot(request);
         BranchResponse branch = localBranch();
         Period period = validatePeriod(request, branch);
         validatePoint(branch.id(), request.servicePointId());
@@ -103,6 +109,7 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse update(Long id, ReservationSaveRequest request, String username) {
+        request = withCustomerSnapshot(request);
         BranchResponse branch = localBranch();
         Period period = validatePeriod(request, branch);
         validatePoint(branch.id(), request.servicePointId());
@@ -156,14 +163,14 @@ public class ReservationService {
 
     /** Called by OrderService inside its order-creation transaction, after the point row is locked. */
     @Transactional
-    public void beforeOrder(Long reservationId, Long branchId, Long pointId) {
+    public Long beforeOrder(Long reservationId, Long branchId, Long pointId) {
         if (reservationId == null) {
             Instant now = Instant.now();
             if (reservations.overlaps(pointId, List.of(ReservationStatus.BOOKED),
                     now, now.plusSeconds(90 * 60L), -1L)) {
                 throw new ConflictException("Esta mesa está reservada próximamente. Abre la cuenta desde Reservaciones.");
             }
-            return;
+            return null;
         }
         Reservation reservation = locked(reservationId);
         if (reservation.getStatus() != ReservationStatus.BOOKED
@@ -176,6 +183,7 @@ public class ReservationService {
                 || !now.isBefore(reservation.getEndAt())) {
             throw new BadRequestException("Puedes sentar al cliente desde 30 minutos antes y hasta el fin del horario reservado.");
         }
+        return reservation.getCustomerId();
     }
 
     @Transactional
@@ -242,6 +250,14 @@ public class ReservationService {
         }
     }
 
+    private ReservationSaveRequest withCustomerSnapshot(ReservationSaveRequest request) {
+        if (request.customerId() == null) return request;
+        CustomerResponse customer = customers.requireActive(request.customerId());
+        return new ReservationSaveRequest(request.servicePointId(), request.startLocal(),
+                request.durationMinutes(), customer.name(), customer.phone(), request.guestCount(),
+                request.notes(), customer.id(), request.expectedVersion());
+    }
+
     private BranchResponse localBranch() {
         return branches.findAll().stream().findFirst()
                 .orElseThrow(() -> new BadRequestException("Configura primero el restaurante local."));
@@ -259,7 +275,7 @@ public class ReservationService {
 
     private ReservationResponse response(Reservation item, BranchResponse branch) {
         ServicePointResponse point = points.findById(item.getServicePointId());
-        return new ReservationResponse(item.getId(), item.getBranchId(), point.id(),
+        return new ReservationResponse(item.getId(), item.getBranchId(), point.id(), item.getCustomerId(),
                 point.name(), point.areaName(), item.getGuestName(), item.getGuestPhone(),
                 item.getGuestCount(), item.getNotes(), item.getStartAt(), item.getEndAt(),
                 branch.timezone(), item.getStatus(), item.getOrderId(),

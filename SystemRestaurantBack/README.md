@@ -143,3 +143,11 @@ necesarios en el libro de movimientos y rechaza cambios simultáneos sin aplicar
 reservaciones traslapadas por mesa; cancelar o registrar una ausencia libera el intervalo.
 `/api/v1/reservations` administra la agenda en la zona horaria local y el pedido acepta un
 `reservationId` opcional para sentar al cliente y vincular la cuenta en una sola transacción.
+
+`V17` incorpora fichas locales de clientes y auditoría de sus cambios sin modificar pedidos ni
+reservaciones existentes. El teléfono normalizado evita duplicados; las fichas se archivan sin
+borrar el historial. `/api/v1/customers` solo está disponible para propietario, administrador,
+gerente y cajero. Las reservas y pedidos admiten `customerId` opcional; el pedido originado en
+una reserva hereda su cliente. Los operadores no pueden adjuntar identificadores de clientes o
+reservaciones mediante la API de pedidos. Las notas alimentarias se muestran únicamente al
+personal autorizado, y no se envían a cocina automáticamente.

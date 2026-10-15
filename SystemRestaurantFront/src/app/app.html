@@ -22,6 +22,7 @@
           <a routerLink="/preparacion" routerLinkActive="active">Preparación</a>
           @if (auth.canOperateCash()) {
             <a routerLink="/reservaciones" routerLinkActive="active">Reservaciones</a>
+            <a routerLink="/clientes" routerLinkActive="active">Clientes</a>
             <a routerLink="/caja" routerLinkActive="active">Caja</a>
           }
           @if (auth.canViewReports()) {

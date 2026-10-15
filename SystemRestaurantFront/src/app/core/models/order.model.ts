@@ -37,6 +37,7 @@ export interface OrderCreatePayload {
   customerReference: string;
   notes: string;
   reservationId?: number;
+  customerId?: number | null;
 }
 
 export interface OrderOperator {

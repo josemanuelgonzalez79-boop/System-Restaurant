@@ -4,6 +4,7 @@ export interface Reservation {
   id: number;
   branchId: number;
   servicePointId: number;
+  customerId: number | null;
   servicePointName: string;
   areaName: string;
   guestName: string;
@@ -25,6 +26,7 @@ export interface Reservation {
 
 export interface ReservationSavePayload {
   servicePointId: number;
+  customerId?: number | null;
   startLocal: string;
   durationMinutes: number;
   guestName: string;

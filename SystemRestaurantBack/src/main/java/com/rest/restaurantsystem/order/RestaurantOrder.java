@@ -27,6 +27,8 @@ class RestaurantOrder {
 
     @Column(name = "service_point_id")
     private Long servicePointId;
+    @Column(name = "customer_id")
+    private Long customerId;
 
     @Column(name = "assigned_user_id", nullable = false)
     private Long assignedUserId;
@@ -92,6 +94,11 @@ class RestaurantOrder {
         updatedAt = Instant.now();
     }
 
+    void linkCustomer(Long id, String name) {
+        customerId = id;
+        if (customerReference == null && name != null) customerReference = name;
+    }
+
     Long getId() {
         return id;
     }
@@ -103,6 +110,8 @@ class RestaurantOrder {
     Long getServicePointId() {
         return servicePointId;
     }
+
+    Long getCustomerId() { return customerId; }
 
     Long getAssignedUserId() {
         return assignedUserId;

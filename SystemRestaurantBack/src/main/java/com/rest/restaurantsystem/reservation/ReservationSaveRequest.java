@@ -16,5 +16,13 @@ public record ReservationSaveRequest(
         @Size(max = 30) String guestPhone,
         @NotNull @Min(1) @Max(99) Integer guestCount,
         @Size(max = 500) String notes,
+        Long customerId,
         Long expectedVersion
-) { }
+) {
+    public ReservationSaveRequest(Long servicePointId, LocalDateTime startLocal, Integer durationMinutes,
+                                  String guestName, String guestPhone, Integer guestCount, String notes,
+                                  Long expectedVersion) {
+        this(servicePointId, startLocal, durationMinutes, guestName, guestPhone, guestCount,
+                notes, null, expectedVersion);
+    }
+}

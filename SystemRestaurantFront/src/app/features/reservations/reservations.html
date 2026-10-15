@@ -2,7 +2,7 @@
 
 <header class="reservations-heading">
   <div>
-    <span class="eyebrow">Essential Pro · bloque 1</span>
+    <span class="eyebrow">Essential Pro · agenda</span>
     <h1>Reservaciones</h1>
     <p>Una agenda para el restaurante local, conectada con las mesas y las cuentas.</p>
   </div>
@@ -148,6 +148,11 @@
             >Abrir pedido PED-{{ item.orderId }}</a
           >
         }
+        @if (item.customerId) {
+          <a class="order-link" [routerLink]="['/clientes']" [queryParams]="{ id: item.customerId }"
+            >Ver ficha del cliente</a
+          >
+        }
 
         @if (item.status === 'BOOKED') {
           <div class="seat-panel">
@@ -246,6 +251,47 @@
   [style]="{ width: 'min(94vw, 610px)' }"
 >
   <form class="reservation-form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="customer-lookup">
+      <label for="reservation-customer-search"
+        >Buscar ficha por nombre o teléfono
+        <input
+          pInputText
+          id="reservation-customer-search"
+          type="search"
+          [value]="customerSearch"
+          (input)="customerSearch = $any($event.target).value"
+          (keyup.enter)="$event.preventDefault(); loadCustomers()"
+          placeholder="Opcional: también puedes registrar a un invitado nuevo"
+      /></label>
+      <p-button
+        type="button"
+        label="Buscar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="loadCustomers()"
+      />
+    </div>
+    <label for="reservation-customer"
+      >Vincular cliente registrado (opcional)
+      <p-select
+        inputId="reservation-customer"
+        formControlName="customerId"
+        [options]="customers()"
+        optionLabel="name"
+        optionValue="id"
+        [showClear]="true"
+        [filter]="true"
+        filterBy="name,phone"
+        placeholder="Sin ficha vinculada"
+        (onChange)="customerSelected($event.value)"
+      />
+    </label>
+    @if (form.controls.customerId.value) {
+      <small
+        >El nombre y teléfono de la reserva se tomarán de la ficha al guardar. Las indicaciones
+        alimentarias deben confirmarse y anotarse en el pedido cuando correspondan.</small
+      >
+    }
     <div class="form-pair">
       <label for="reservation-name"
         >Nombre de la persona
@@ -253,6 +299,7 @@
           pInputText
           id="reservation-name"
           formControlName="guestName"
+          [readOnly]="form.controls.customerId.value !== null"
           maxlength="120"
           placeholder="Nombre para recibirla"
       /></label>
@@ -262,6 +309,7 @@
           pInputText
           id="reservation-phone"
           formControlName="guestPhone"
+          [readOnly]="form.controls.customerId.value !== null"
           maxlength="30"
           inputmode="tel"
           placeholder="Para confirmar la llegada"

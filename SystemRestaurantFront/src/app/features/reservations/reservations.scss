@@ -259,6 +259,19 @@ p {
   gap: 0.95rem;
   padding: 0.35rem 0;
 }
+.customer-lookup {
+  display: flex;
+  align-items: end;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.customer-lookup label {
+  min-width: 0;
+  flex: 1;
+}
+.reservation-form input[readonly] {
+  opacity: 0.8;
+}
 .reservation-form label {
   display: grid;
   min-width: 0;
@@ -308,6 +321,9 @@ p {
   }
 }
 @media (max-width: 600px) {
+  .customer-lookup {
+    flex-wrap: wrap;
+  }
   .form-pair,
   .detail-grid {
     grid-template-columns: 1fr;
