@@ -6,6 +6,9 @@ import java.util.List;
 public record OrderPaymentSummaryResponse(
         OrderDetailResponse orderDetail,
         List<PaymentResponse> payments,
+        List<OrderDiscountResponse> discounts,
+        BigDecimal subtotal,
+        BigDecimal discountAmount,
         BigDecimal total,
         BigDecimal paid,
         BigDecimal balance,

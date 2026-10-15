@@ -1,0 +1,118 @@
+<section class="heading">
+  <div>
+    <span class="eyebrow">Essential Pro · ventas</span>
+    <h1>Promociones</h1>
+    <p>Crea ofertas por fecha. En Cobro se aplican antes de recibir el primer pago.</p>
+  </div>
+  <p-button label="Nueva promoción" icon="pi pi-plus" (onClick)="openNew()" />
+</section>
+
+<section class="promotion-grid" aria-label="Promociones del restaurante">
+  @for (promotion of promotions(); track promotion.id) {
+    <article class="promotion-card">
+      <header>
+        <span class="promo-code">{{ promotion.code }}</span>
+        <p-tag
+          [value]="validity(promotion)"
+          [severity]="validity(promotion) === 'Vigente' ? 'success' : 'secondary'"
+        />
+      </header>
+      <h2>{{ promotion.name }}</h2>
+      <strong class="promo-value">
+        @if (promotion.discountType === 'PERCENT') {
+          {{ promotion.discountValue }} %
+        } @else {
+          {{ promotion.discountValue | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+        }
+      </strong>
+      <p>
+        Compra mínima:
+        {{ promotion.minimumSubtotal | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+      </p>
+      <p>
+        Del {{ promotion.startsOn | date: 'mediumDate' }} al
+        {{ promotion.endsOn | date: 'mediumDate' }}
+      </p>
+      <footer>
+        <small>Actualizó {{ promotion.updatedByUsername }}</small>
+        <p-button
+          label="Editar"
+          icon="pi pi-pencil"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="openEdit(promotion)"
+        />
+      </footer>
+    </article>
+  } @empty {
+    <div class="empty-state">
+      <i class="pi pi-ticket"></i>
+      <strong>{{ loading() ? 'Cargando…' : 'Aún no hay promociones' }}</strong>
+      <span>Agrega una para ofrecerla al momento de cobrar.</span>
+    </div>
+  }
+</section>
+
+<p-dialog
+  header="{{ editing() ? 'Editar promoción' : 'Nueva promoción' }}"
+  [modal]="true"
+  [visible]="dialogVisible()"
+  [style]="{ width: 'min(94vw, 580px)' }"
+  (visibleChange)="$event ? null : dialogVisible.set(false)"
+>
+  <form class="promotion-form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="two-col">
+      <label
+        >Clave<input pInputText formControlName="code" placeholder="EJ. MARTES10" maxlength="24"
+      /></label>
+      <label
+        >Tipo<p-select
+          formControlName="discountType"
+          [options]="typeOptions"
+          optionLabel="label"
+          optionValue="value"
+      /></label>
+    </div>
+    @if (form.controls.code.touched && form.controls.code.invalid) {
+      <small class="error">La clave requiere 3 a 24 letras, números o guiones.</small>
+    }
+    <label
+      >Nombre<input
+        pInputText
+        formControlName="name"
+        placeholder="Descuento de la semana"
+        maxlength="100"
+    /></label>
+    <div class="two-col">
+      <label
+        >Valor {{ form.controls.discountType.value === 'PERCENT' ? '(%)' : '(MXN)' }}
+        <p-inputnumber formControlName="discountValue" [min]="0.01" [maxFractionDigits]="2"
+      /></label>
+      <label
+        >Compra mínima (MXN)<p-inputnumber
+          formControlName="minimumSubtotal"
+          [min]="0"
+          [maxFractionDigits]="2"
+      /></label>
+    </div>
+    <div class="two-col">
+      <label>Desde<input type="date" formControlName="startsOn" /></label>
+      <label>Hasta<input type="date" formControlName="endsOn" /></label>
+    </div>
+    <label class="check"><input type="checkbox" formControlName="active" /> Promoción activa</label>
+    <p class="hint">
+      Solo se permite una promoción o descuento manual por cuenta. El total nunca puede quedar en
+      cero.
+    </p>
+    <div class="actions">
+      <p-button
+        type="button"
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="dialogVisible.set(false)"
+      />
+      <p-button type="submit" label="Guardar" icon="pi pi-check" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

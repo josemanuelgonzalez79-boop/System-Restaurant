@@ -26,6 +26,7 @@
             <a routerLink="/caja" routerLinkActive="active">Caja</a>
           }
           @if (auth.canViewReports()) {
+            <a routerLink="/promociones" routerLinkActive="active">Promociones</a>
             <a routerLink="/reporte-diario" routerLinkActive="active">Reporte</a>
           }
           @if (auth.canAdminister()) {

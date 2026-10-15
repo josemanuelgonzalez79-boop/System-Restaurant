@@ -151,3 +151,10 @@ gerente y cajero. Las reservas y pedidos admiten `customerId` opcional; el pedid
 una reserva hereda su cliente. Los operadores no pueden adjuntar identificadores de clientes o
 reservaciones mediante la API de pedidos. Las notas alimentarias se muestran únicamente al
 personal autorizado, y no se envían a cocina automáticamente.
+
+`V18` agrega promociones y descuentos auditables de cuenta. `/api/v1/promotions` permite a
+propietario, administrador y gerente crear o editar ofertas vigentes por fecha del restaurante;
+caja puede consultar las disponibles. `/api/v1/orders/{orderId}/discounts` aplica una promoción
+o un descuento manual autorizado antes del primer cobro. Solo se admite uno activo; importe,
+nombre y condiciones quedan congelados en el historial, junto con anulaciones y motivos. Los
+cobros usan el saldo neto y la modificación concurrente de la cuenta se rechaza por versión.

@@ -43,6 +43,7 @@ public class PreparationService {
     private final OrderItemModifierRepository orderModifierRepository;
     private final RestaurantOrderRepository orderRepository;
     private final OrderPaymentRepository paymentRepository;
+    private final OrderDiscountRepository discountRepository;
     private final OrderService orderService;
     private final OrderItemService orderItemService;
     private final UserService userService;
@@ -57,6 +58,7 @@ public class PreparationService {
             OrderItemModifierRepository orderModifierRepository,
             RestaurantOrderRepository orderRepository,
             OrderPaymentRepository paymentRepository,
+            OrderDiscountRepository discountRepository,
             OrderService orderService,
             OrderItemService orderItemService,
             UserService userService,
@@ -70,6 +72,7 @@ public class PreparationService {
         this.orderModifierRepository = orderModifierRepository;
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
+        this.discountRepository = discountRepository;
         this.orderService = orderService;
         this.orderItemService = orderItemService;
         this.userService = userService;
@@ -264,6 +267,9 @@ public class PreparationService {
             }
             if (paymentRepository.existsByOrderIdAndStatus(order.getId(), PaymentStatus.ACTIVE)) {
                 throw new BadRequestException("Anula primero los cobros activos antes de cancelar la partida.");
+            }
+            if (discountRepository.existsByOrderIdAndStatus(order.getId(), OrderDiscountStatus.ACTIVE)) {
+                throw new BadRequestException("Anula primero el descuento antes de cancelar la partida.");
             }
             UserResponse user = userService.currentUser(currentUsername);
             if (item.getStatus() == PreparationStatus.PENDING) {

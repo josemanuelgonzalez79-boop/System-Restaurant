@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +35,9 @@ class PaymentServiceTest {
 
     @Mock
     private OrderPaymentRepository paymentRepository;
+
+    @Mock
+    private OrderDiscountRepository discountRepository;
 
     @Mock
     private RestaurantOrderRepository orderRepository;
@@ -151,6 +155,31 @@ class PaymentServiceTest {
         );
 
         assertThat(exception.getMessage()).contains("$20.00");
+    }
+
+    @Test
+    void rejectsGrossPaymentWhenDiscountReducedOutstandingBalance() {
+        UUID operationId = UUID.randomUUID();
+        OrderDiscount discount = new OrderDiscount(UUID.randomUUID(), 42L, null,
+                OrderDiscountSource.MANUAL, null, "Descuento autorizado",
+                com.rest.restaurantsystem.promotion.DiscountType.FIXED,
+                new BigDecimal("15.00"), new BigDecimal("100.00"),
+                new BigDecimal("15.00"), "Atención por demora", 10L);
+        mockAccessibleOrder();
+        when(paymentRepository.findByOrderIdAndOperationId(42L, operationId))
+                .thenReturn(Optional.empty());
+        when(orderItemService.buildDetail(order)).thenReturn(detail);
+        when(paymentRepository.sumActiveByOrderId(42L)).thenReturn(BigDecimal.ZERO);
+        when(discountRepository.findByOrderIdAndStatus(42L, OrderDiscountStatus.ACTIVE))
+                .thenReturn(Optional.of(discount));
+
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> service.add(42L, new PaymentCreateRequest(operationId,
+                        new BigDecimal("100.00"), new BigDecimal("100.00"),
+                        PaymentMethod.CASH, null, null, null, 0), "cajero"));
+
+        assertThat(exception.getMessage()).contains("$85.00");
+        verify(paymentRepository, never()).saveAndFlush(any());
     }
 
     @Test

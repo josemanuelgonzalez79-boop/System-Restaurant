@@ -62,8 +62,8 @@ datos. El plan inicial comprende cuatro bloques, sujeto a ajustes después de pr
 | Bloque | Función | Estado |
 | --- | --- | --- |
 | 1 | Reservaciones, agenda de mesas y llegada con pedido | Probado y subido a `pro` |
-| 2 | Fichas de clientes y preferencias, con control de acceso | Implementado en esta entrega; pendiente de prueba local |
-| 3 | Promociones y descuentos auditables durante el cobro | Planeado |
+| 2 | Fichas de clientes y preferencias, con control de acceso | Probado y subido a `pro` |
+| 3 | Promociones y descuentos auditables durante el cobro | Implementado en esta entrega; pendiente de prueba local |
 | 4 | Integraciones y operaciones avanzadas que el piloto requiera | Alcance por concretar |
 
 La reserva ocupa un intervalo específico de una mesa o salón y PostgreSQL impide traslapes.
@@ -79,6 +79,14 @@ cajero consultan estas fichas. Las reservaciones pueden enlazarlas y los pedidos
 la agenda conservan ese vínculo. En Pedidos, esos roles también pueden vincular directamente una
 cuenta de mesa o para llevar. El historial muestra únicamente visitas vinculadas explícitamente;
 no se infiere identidad a partir de nombres iguales ni se migran datos de clientes antiguos.
+
+El bloque 3 incorpora promociones vigentes por fecha local, clave única, porcentaje o importe
+fijo y compra mínima. Propietario, administrador y gerente las configuran; caja puede aplicar
+una promoción a una cuenta antes del primer cobro. Los descuentos manuales exigen uno de esos
+tres roles y un motivo. Solo hay un descuento activo por pedido; el importe se congela y las
+anulaciones conservan usuario, motivo y fecha. La cuenta se cobra sobre el total neto, pero el
+reporte de productos conserva su importe bruto para que no se asigne arbitrariamente un
+descuento de cuenta a cada producto. No se descuentan pedidos ya pagados ni se combinan ofertas.
 
 Ninguna de estas opciones presupone WAN, sincronización entre locales ni reportes consolidados.
 Para dar servicio a otro establecimiento se instala una instancia distinta, con una base de datos

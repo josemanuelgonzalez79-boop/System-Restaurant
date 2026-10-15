@@ -216,7 +216,7 @@
         </div>
       </dl>
       <div class="order-total">
-        <span>Valor de pedidos completados</span>
+        <span>Valor neto de pedidos completados (después de descuentos)</span>
         <strong>{{
           daily.orders.completedOrderValue
             | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
@@ -267,6 +267,10 @@
         <div>
           <span class="eyebrow">Consumo</span>
           <h2>Productos más vendidos</h2>
+          <small
+            >Importes brutos por producto; los descuentos se muestran en el valor neto del
+            pedido.</small
+          >
         </div>
         <p-tag value="Top 10" severity="secondary" />
       </header>

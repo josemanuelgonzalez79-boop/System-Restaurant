@@ -46,6 +46,9 @@ class OrderServiceTest {
     private OrderPaymentRepository paymentRepository;
 
     @Mock
+    private OrderDiscountRepository discountRepository;
+
+    @Mock
     private BranchService branchService;
 
     @Mock

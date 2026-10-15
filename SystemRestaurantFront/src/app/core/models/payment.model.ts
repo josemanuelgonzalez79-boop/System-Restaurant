@@ -25,9 +25,30 @@ export interface OrderPayment {
   voidReason: string | null;
 }
 
+export interface OrderDiscount {
+  id: number;
+  source: 'PROMOTION' | 'MANUAL';
+  code: string | null;
+  name: string;
+  discountType: 'PERCENT' | 'FIXED';
+  discountValue: number;
+  baseSubtotal: number;
+  amount: number;
+  reason: string | null;
+  status: 'ACTIVE' | 'VOIDED';
+  appliedByUserName: string;
+  appliedAt: string;
+  voidedByUserName: string | null;
+  voidedAt: string | null;
+  voidReason: string | null;
+}
+
 export interface PaymentSummary {
   orderDetail: OrderDetail;
   payments: OrderPayment[];
+  discounts: OrderDiscount[];
+  subtotal: number;
+  discountAmount: number;
   total: number;
   paid: number;
   balance: number;

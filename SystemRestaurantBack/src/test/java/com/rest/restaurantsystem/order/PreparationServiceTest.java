@@ -56,6 +56,9 @@ class PreparationServiceTest {
     private OrderPaymentRepository paymentRepository;
 
     @Mock
+    private OrderDiscountRepository discountRepository;
+
+    @Mock
     private OrderService orderService;
 
     @Mock

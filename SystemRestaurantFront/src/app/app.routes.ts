@@ -78,6 +78,13 @@ export const routes: Routes = [
     title: 'Clientes | Essential Pro',
   },
   {
+    path: 'promociones',
+    loadComponent: () =>
+      import('./features/promotions/promotions').then((component) => component.PromotionsPage),
+    canActivate: [reportGuard],
+    title: 'Promociones | Essential Pro',
+  },
+  {
     path: 'reporte-diario',
     loadComponent: () =>
       import('./features/daily-report/daily-report').then((component) => component.DailyReportPage),

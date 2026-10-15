@@ -136,6 +136,9 @@ public class DailyReportQueryRepository {
                     LEFT JOIN modifier_totals modifier ON modifier.order_item_id = item.id
                     WHERE item.cancelled_at IS NULL
                     GROUP BY item.order_id
+                ), active_discounts AS (
+                    SELECT order_id, COALESCE(SUM(amount), 0) AS discount_amount
+                    FROM order_discounts WHERE status = 'ACTIVE' GROUP BY order_id
                 )
                 SELECT COUNT(*) FILTER (
                            WHERE orders.opened_at >= :startAt AND orders.opened_at < :endAt
@@ -163,12 +166,13 @@ public class DailyReportQueryRepository {
                        COALESCE(SUM(orders.guest_count) FILTER (
                            WHERE orders.opened_at >= :startAt AND orders.opened_at < :endAt
                        ), 0) AS guest_count,
-                       COALESCE(SUM(completed.order_total) FILTER (
+                       COALESCE(SUM(completed.order_total - COALESCE(discounts.discount_amount, 0)) FILTER (
                            WHERE orders.status = 'COMPLETED'
                              AND orders.closed_at >= :startAt AND orders.closed_at < :endAt
                        ), 0) AS completed_order_value
                 FROM restaurant_orders orders
                 LEFT JOIN completed_order_totals completed ON completed.order_id = orders.id
+                LEFT JOIN active_discounts discounts ON discounts.order_id = orders.id
                 WHERE orders.branch_id = :branchId
                   AND orders.opened_at < :endAt
                 """,

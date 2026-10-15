@@ -14,9 +14,17 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 
-import { OrderPayment, PaymentMethod, PaymentSummary } from '../../core/models/payment.model';
+import {
+  OrderDiscount,
+  OrderPayment,
+  PaymentMethod,
+  PaymentSummary,
+} from '../../core/models/payment.model';
+import { DiscountType, Promotion } from '../../core/models/promotion.model';
 import { AuthApiService } from '../../core/services/auth-api.service';
+import { DiscountApiService } from '../../core/services/discount-api.service';
 import { PaymentApiService } from '../../core/services/payment-api.service';
+import { PromotionApiService } from '../../core/services/promotion-api.service';
 import { RealtimeService } from '../../core/services/realtime.service';
 
 @Component({
@@ -44,6 +52,8 @@ export class PaymentPage implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly paymentApi = inject(PaymentApiService);
+  private readonly discountApi = inject(DiscountApiService);
+  private readonly promotionApi = inject(PromotionApiService);
   private readonly realtime = inject(RealtimeService);
   protected readonly auth = inject(AuthApiService);
   private readonly messages = inject(MessageService);
@@ -63,6 +73,35 @@ export class PaymentPage implements OnInit, OnDestroy {
   protected readonly tenderedAmount = signal(0);
   protected readonly voidDialogVisible = signal(false);
   protected readonly selectedPayment = signal<OrderPayment | null>(null);
+  protected readonly promotions = signal<Promotion[]>([]);
+  protected readonly discountSaving = signal(false);
+  protected readonly discountVoidVisible = signal(false);
+  protected readonly discountVoiding = signal(false);
+  protected readonly selectedDiscount = signal<OrderDiscount | null>(null);
+  protected readonly discountMode = signal<'PROMOTION' | 'MANUAL'>('PROMOTION');
+  protected readonly discountTypes = [
+    { label: 'Porcentaje', value: 'PERCENT' as DiscountType },
+    { label: 'Importe fijo', value: 'FIXED' as DiscountType },
+  ];
+  protected readonly promotionOptions = computed(() =>
+    this.promotions()
+      .filter((offer) => (this.summary()?.subtotal ?? 0) >= offer.minimumSubtotal)
+      .map((offer) => ({ label: `${offer.code} · ${offer.name}`, value: offer.id })),
+  );
+  protected readonly activeDiscount = computed(
+    () => this.summary()?.discounts.find((discount) => discount.status === 'ACTIVE') ?? null,
+  );
+  protected readonly canManualDiscount = computed(() => this.auth.canViewReports());
+  protected readonly discountEligible = computed(() => {
+    const summary = this.summary();
+    return (
+      !!summary &&
+      this.orderActive() &&
+      summary.subtotal > 0 &&
+      !this.activeDiscount() &&
+      summary.paid === 0
+    );
+  });
 
   protected readonly methodOptions: Array<{
     value: PaymentMethod;
@@ -104,6 +143,15 @@ export class PaymentPage implements OnInit, OnDestroy {
   protected readonly voidForm = this.formBuilder.nonNullable.group({
     reason: ['', [Validators.required, Validators.maxLength(250)]],
   });
+  protected readonly discountForm = this.formBuilder.nonNullable.group({
+    promotionId: [null as number | null],
+    manualType: ['PERCENT' as DiscountType],
+    manualValue: [10, [Validators.min(0.01)]],
+    reason: ['', Validators.maxLength(250)],
+  });
+  protected readonly discountVoidForm = this.formBuilder.nonNullable.group({
+    reason: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(250)]],
+  });
 
   ngOnInit(): void {
     if (!Number.isInteger(this.orderId) || this.orderId <= 0) {
@@ -112,6 +160,7 @@ export class PaymentPage implements OnInit, OnDestroy {
     }
     this.bindFormSignals();
     this.load(false);
+    if (this.auth.canOperateCash()) this.loadPromotions();
   }
 
   ngOnDestroy(): void {
@@ -220,6 +269,94 @@ export class PaymentPage implements OnInit, OnDestroy {
       });
   }
 
+  protected setDiscountMode(mode: 'PROMOTION' | 'MANUAL'): void {
+    this.discountMode.set(mode);
+  }
+
+  protected applyDiscount(): void {
+    const current = this.summary();
+    if (!current || !this.discountEligible() || this.discountSaving()) return;
+    const value = this.discountForm.getRawValue();
+    if (this.discountMode() === 'MANUAL' && !this.canManualDiscount()) return;
+    if (
+      (this.discountMode() === 'PROMOTION' && !value.promotionId) ||
+      (this.discountMode() === 'MANUAL' &&
+        (!value.manualValue ||
+          value.reason.trim().length < 5 ||
+          (value.manualType === 'PERCENT' && value.manualValue > 90)))
+    ) {
+      this.discountForm.markAllAsTouched();
+      this.messages.add({
+        severity: 'warn',
+        summary: 'Revisa el descuento',
+        detail: 'Selecciona una promoción o escribe un valor y motivo de al menos 5 caracteres.',
+      });
+      return;
+    }
+    this.discountSaving.set(true);
+    this.discountApi
+      .apply(this.orderId, {
+        operationId: this.newOperationId(),
+        orderVersion: current.orderDetail.order.version,
+        ...(this.discountMode() === 'PROMOTION'
+          ? { promotionId: value.promotionId! }
+          : {
+              manualType: value.manualType,
+              manualValue: value.manualValue,
+              reason: value.reason.trim(),
+            }),
+      })
+      .pipe(finalize(() => this.discountSaving.set(false)))
+      .subscribe({
+        next: (updated) => {
+          this.setSummary(updated);
+          this.messages.add({
+            severity: 'success',
+            summary: 'Descuento aplicado',
+            detail: 'El nuevo saldo ya refleja el importe autorizado.',
+          });
+        },
+        error: () => this.load(false),
+      });
+  }
+
+  protected openDiscountVoid(discount: OrderDiscount): void {
+    this.selectedDiscount.set(discount);
+    this.discountVoidForm.reset({ reason: '' });
+    this.discountVoidVisible.set(true);
+  }
+
+  protected voidDiscount(): void {
+    const current = this.summary();
+    const discount = this.selectedDiscount();
+    if (!current || !discount || this.discountVoidForm.invalid || this.discountVoiding()) {
+      this.discountVoidForm.markAllAsTouched();
+      return;
+    }
+    this.discountVoiding.set(true);
+    this.discountApi
+      .voidDiscount(
+        this.orderId,
+        discount.id,
+        current.orderDetail.order.version,
+        this.discountVoidForm.controls.reason.value.trim(),
+      )
+      .pipe(finalize(() => this.discountVoiding.set(false)))
+      .subscribe({
+        next: (updated) => {
+          this.setSummary(updated);
+          this.discountVoidVisible.set(false);
+          this.selectedDiscount.set(null);
+          this.messages.add({
+            severity: 'warn',
+            summary: 'Descuento anulado',
+            detail: 'El movimiento permanece en el historial.',
+          });
+        },
+        error: () => this.load(false),
+      });
+  }
+
   protected closeOrder(): void {
     const current = this.summary();
     if (!current?.canClose) {
@@ -314,6 +451,13 @@ export class PaymentPage implements OnInit, OnDestroy {
         this.setSummary(summary, !silent);
         this.watchOrder(summary.orderDetail.order.branchId);
       });
+  }
+
+  private loadPromotions(): void {
+    this.promotionApi.findAll(true).subscribe({
+      next: (promotions) => this.promotions.set(promotions),
+      error: () => {},
+    });
   }
 
   private setSummary(summary: PaymentSummary, resetForm = true): void {

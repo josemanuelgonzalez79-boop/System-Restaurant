@@ -32,6 +32,7 @@ public class OrderService {
     private final RestaurantOrderRepository repository;
     private final PreparationItemRepository preparationItemRepository;
     private final OrderPaymentRepository paymentRepository;
+    private final OrderDiscountRepository discountRepository;
     private final BranchService branchService;
     private final ServicePointService servicePointService;
     private final UserService userService;
@@ -44,6 +45,7 @@ public class OrderService {
             RestaurantOrderRepository repository,
             PreparationItemRepository preparationItemRepository,
             OrderPaymentRepository paymentRepository,
+            OrderDiscountRepository discountRepository,
             BranchService branchService,
             ServicePointService servicePointService,
             UserService userService,
@@ -55,6 +57,7 @@ public class OrderService {
         this.repository = repository;
         this.preparationItemRepository = preparationItemRepository;
         this.paymentRepository = paymentRepository;
+        this.discountRepository = discountRepository;
         this.branchService = branchService;
         this.servicePointService = servicePointService;
         this.userService = userService;
@@ -205,6 +208,10 @@ public class OrderService {
             throw new BadRequestException(
                     "Anula primero los cobros activos antes de cancelar el pedido."
             );
+        }
+        if (request.status() == OrderStatus.CANCELLED
+                && discountRepository.existsByOrderIdAndStatus(order.getId(), OrderDiscountStatus.ACTIVE)) {
+            throw new BadRequestException("Anula primero el descuento antes de cancelar el pedido.");
         }
         order.changeStatus(request.status());
         RestaurantOrder saved = repository.saveAndFlush(order);

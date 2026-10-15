@@ -142,6 +142,68 @@ h2 {
   gap: 1rem;
 }
 
+.payment-actions {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.discount-card .discount-switch {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.discount-card small {
+  color: var(--p-text-muted-color);
+}
+.active-discount,
+.discount-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+  border-radius: 0.7rem;
+  background: var(--p-green-50);
+  color: var(--p-green-800);
+}
+.discount-banner {
+  margin: 0 0 1rem;
+}
+.account-lines footer.account-subtotal {
+  font-size: 0.9rem;
+  border-top: 1px solid var(--p-content-border-color);
+}
+.account-lines footer.account-discount {
+  color: var(--p-green-700);
+  border-top: 0;
+  font-size: 0.9rem;
+}
+.discount-history {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+.discount-history h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+}
+.discount-history article {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  border-top: 1px dashed var(--p-content-border-color);
+}
+.discount-history article.voided {
+  opacity: 0.65;
+}
+.discount-history small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--p-text-muted-color);
+}
+
 .payment-card,
 .history-card {
   min-width: 0;

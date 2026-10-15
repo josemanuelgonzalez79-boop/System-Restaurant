@@ -30,6 +30,7 @@ public class PaymentService {
             EnumSet.of(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER);
 
     private final OrderPaymentRepository paymentRepository;
+    private final OrderDiscountRepository discountRepository;
     private final RestaurantOrderRepository orderRepository;
     private final OrderItemRepository itemRepository;
     private final PreparationItemRepository preparationItemRepository;
@@ -41,6 +42,7 @@ public class PaymentService {
 
     public PaymentService(
             OrderPaymentRepository paymentRepository,
+            OrderDiscountRepository discountRepository,
             RestaurantOrderRepository orderRepository,
             OrderItemRepository itemRepository,
             PreparationItemRepository preparationItemRepository,
@@ -51,6 +53,7 @@ public class PaymentService {
             RealtimeEventPublisher realtimeEventPublisher
     ) {
         this.paymentRepository = paymentRepository;
+        this.discountRepository = discountRepository;
         this.orderRepository = orderRepository;
         this.itemRepository = itemRepository;
         this.preparationItemRepository = preparationItemRepository;
@@ -87,7 +90,8 @@ public class PaymentService {
             throw new BadRequestException("Agrega productos al pedido antes de registrar un cobro.");
         }
         BigDecimal paid = paymentRepository.sumActiveByOrderId(orderId);
-        BigDecimal balance = detail.total().subtract(paid);
+        BigDecimal discount = activeDiscount(orderId);
+        BigDecimal balance = detail.total().subtract(discount).subtract(paid);
         if (balance.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("El pedido ya está totalmente pagado.");
         }
@@ -249,12 +253,19 @@ public class PaymentService {
         OrderDetailResponse detail = orderItemService.buildDetail(order);
         List<OrderPayment> entities = paymentRepository
                 .findByOrderIdOrderByReceivedAtAscIdAsc(order.getId());
+        List<OrderDiscount> discounts = discountRepository
+                .findByOrderIdOrderByAppliedAtAscIdAsc(order.getId());
+        BigDecimal discountAmount = discounts.stream()
+                .filter(item -> item.getStatus() == OrderDiscountStatus.ACTIVE)
+                .map(OrderDiscount::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = detail.total().subtract(discountAmount);
         BigDecimal paid = entities.stream()
                 .filter(payment -> payment.getStatus() == PaymentStatus.ACTIVE)
                 .map(OrderPayment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal balance = detail.total().subtract(paid).max(BigDecimal.ZERO);
-        boolean settled = detail.total().compareTo(BigDecimal.ZERO) > 0
+        BigDecimal balance = total.subtract(paid).max(BigDecimal.ZERO);
+        boolean settled = total.compareTo(BigDecimal.ZERO) > 0
                 && balance.compareTo(BigDecimal.ZERO) == 0;
         String blockingReason = closeBlockingReason(order, detail, settled, balance);
         CashRegisterReference openCashRegister = cashRegisterService
@@ -264,7 +275,10 @@ public class PaymentService {
         return new OrderPaymentSummaryResponse(
                 detail,
                 entities.stream().map(this::toResponse).toList(),
+                discounts.stream().map(this::toDiscountResponse).toList(),
                 detail.total(),
+                discountAmount,
+                total,
                 paid,
                 balance,
                 settled,
@@ -328,6 +342,23 @@ public class PaymentService {
                 payment.getVoidedAt(),
                 payment.getVoidReason()
         );
+    }
+
+    private BigDecimal activeDiscount(Long orderId) {
+        return discountRepository.findByOrderIdAndStatus(orderId, OrderDiscountStatus.ACTIVE)
+                .map(OrderDiscount::getAmount).orElse(BigDecimal.ZERO);
+    }
+
+    private OrderDiscountResponse toDiscountResponse(OrderDiscount discount) {
+        UserResponse appliedBy = userService.findById(discount.getAppliedByUserId());
+        UserResponse voidedBy = discount.getVoidedByUserId() == null ? null
+                : userService.findById(discount.getVoidedByUserId());
+        return new OrderDiscountResponse(discount.getId(), discount.getSource().name(),
+                discount.getCodeSnapshot(), discount.getNameSnapshot(), discount.getDiscountType(),
+                discount.getDiscountValue(), discount.getBaseSubtotal(), discount.getAmount(),
+                discount.getReason(), discount.getStatus().name(), appliedBy.fullName(),
+                discount.getAppliedAt(), voidedBy == null ? null : voidedBy.fullName(),
+                discount.getVoidedAt(), discount.getVoidReason());
     }
 
     private void publishChanged(RestaurantOrder order) {

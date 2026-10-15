@@ -55,6 +55,24 @@
     </article>
   </section>
 
+  @if (current.discountAmount > 0) {
+    <div class="discount-banner">
+      <span
+        >Subtotal
+        {{ current.subtotal | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</span
+      >
+      <strong
+        >Descuento −{{
+          current.discountAmount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+        }}</strong
+      >
+      <span
+        >Total a pagar
+        {{ current.total | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</span
+      >
+    </div>
+  }
+
   @if (current.settled) {
     <div class="settled-banner">
       <i class="pi pi-check-circle"></i>
@@ -84,125 +102,229 @@
   }
 
   <section class="payment-layout">
-    <article class="payment-card no-print">
-      <header>
-        <span class="eyebrow">Nuevo movimiento</span>
-        <h2>Registrar cobro</h2>
-        <p>Puedes dividir la cuenta entre varias formas de pago.</p>
-      </header>
-
-      @if (!orderActive()) {
-        <div class="info-note">
-          <i class="pi pi-lock"></i>
-          El pedido está cerrado; sus cobros permanecen disponibles para consulta e impresión.
-        </div>
-      } @else if (current.settled) {
-        <div class="info-note success">
-          <i class="pi pi-check-circle"></i>
-          No hace falta registrar otro cobro.
-        </div>
-      } @else if (!cashRegisterOpen()) {
-        <div class="info-note">
-          <i class="pi pi-lock"></i>
-          Esperando la apertura de caja de {{ current.orderDetail.order.branchName }}.
-        </div>
-      } @else {
-        <form [formGroup]="paymentForm" (ngSubmit)="submitPayment()">
-          <label>
-            <span>Importe que se aplicará</span>
-            <div class="amount-field">
-              <p-inputnumber
-                formControlName="amount"
-                mode="currency"
-                currency="MXN"
-                locale="es-MX"
-                [min]="0.01"
-                [max]="current.balance"
-              />
+    <div class="payment-actions no-print">
+      @if (auth.canOperateCash()) {
+        <article class="payment-card discount-card">
+          <header>
+            <span class="eyebrow">Antes del primer cobro</span>
+            <h2>Promoción o descuento</h2>
+            <p>
+              Se permite uno por cuenta. El importe queda guardado aunque después cambie la
+              promoción.
+            </p>
+          </header>
+          @if (activeDiscount(); as active) {
+            <div class="active-discount">
+              <strong>{{ active.code || active.name }}</strong>
+              <span
+                >−{{ active.amount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</span
+              >
+            </div>
+            @if (orderActive() && current.paid === 0) {
               <p-button
-                type="button"
-                label="Usar saldo"
+                label="Anular descuento"
+                icon="pi pi-ban"
                 severity="secondary"
                 [outlined]="true"
-                (onClick)="applyBalance()"
+                (onClick)="openDiscountVoid(active)"
               />
+            }
+          } @else if (discountEligible()) {
+            <div class="discount-switch">
+              <p-button
+                label="Promoción"
+                [outlined]="discountMode() !== 'PROMOTION'"
+                (onClick)="setDiscountMode('PROMOTION')"
+              />
+              @if (canManualDiscount()) {
+                <p-button
+                  label="Manual"
+                  [outlined]="discountMode() !== 'MANUAL'"
+                  (onClick)="setDiscountMode('MANUAL')"
+                />
+              }
             </div>
-          </label>
-
-          <label>
-            <span>Forma de pago</span>
-            <p-select
-              formControlName="method"
-              [options]="methodOptions"
-              optionLabel="label"
-              optionValue="value"
-            >
-              <ng-template #selectedItem let-selected>
-                <span class="method-option"
-                  ><i [class]="selected.icon"></i>{{ selected.label }}</span
-                >
-              </ng-template>
-              <ng-template #item let-method>
-                <span class="method-option"><i [class]="method.icon"></i>{{ method.label }}</span>
-              </ng-template>
-            </p-select>
-          </label>
-
-          @if (selectedMethod() === 'CASH') {
-            <label>
-              <span>Efectivo recibido</span>
-              <p-inputnumber
-                formControlName="tenderedAmount"
-                mode="currency"
-                currency="MXN"
-                locale="es-MX"
-                [min]="paymentForm.controls.amount.value"
+            <form [formGroup]="discountForm" (ngSubmit)="applyDiscount()">
+              @if (discountMode() === 'PROMOTION') {
+                <label
+                  >Promoción vigente
+                  <p-select
+                    formControlName="promotionId"
+                    [options]="promotionOptions()"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Selecciona una promoción"
+                    [showClear]="true"
+                  />
+                </label>
+                @if (promotionOptions().length === 0) {
+                  <small>No hay promociones vigentes para este subtotal.</small>
+                }
+              } @else {
+                <label
+                  >Tipo
+                  <p-select
+                    formControlName="manualType"
+                    [options]="discountTypes"
+                    optionLabel="label"
+                    optionValue="value"
+                  />
+                </label>
+                <label
+                  >Valor
+                  {{ discountForm.controls.manualType.value === 'PERCENT' ? '(%)' : '(MXN)' }}
+                  <p-inputnumber
+                    formControlName="manualValue"
+                    [min]="0.01"
+                    [maxFractionDigits]="2"
+                  />
+                </label>
+                <label
+                  >Motivo de autorización (mínimo 5 caracteres)
+                  <textarea
+                    pTextarea
+                    formControlName="reason"
+                    rows="2"
+                    placeholder="Ej. atención por demora"
+                    maxlength="250"
+                  ></textarea>
+                </label>
+              }
+              <p-button
+                type="submit"
+                label="Aplicar descuento"
+                icon="pi pi-ticket"
+                [loading]="discountSaving()"
               />
-            </label>
-            <div class="change-preview">
-              <span>Cambio a entregar</span>
-              <strong>{{
-                cashChange() | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
-              }}</strong>
+            </form>
+          } @else {
+            <div class="info-note">
+              Agrega productos antes de descontar; después del primer cobro ya no se modifica el
+              descuento.
             </div>
           }
-
-          @if (selectedMethod() === 'OTHER') {
-            <label>
-              <span>Nombre de la forma de pago</span>
-              <input pInputText formControlName="methodLabel" placeholder="Ej. Vale o monedero" />
-            </label>
-          }
-
-          <label>
-            <span>Referencia</span>
-            <input
-              pInputText
-              formControlName="reference"
-              placeholder="Autorización, folio o últimos dígitos (opcional)"
-            />
-          </label>
-
-          <label>
-            <span>Nota</span>
-            <textarea
-              pTextarea
-              formControlName="notes"
-              rows="2"
-              placeholder="Observación opcional del cobro"
-            ></textarea>
-          </label>
-
-          <p-button
-            type="submit"
-            label="Registrar cobro"
-            icon="pi pi-wallet"
-            [loading]="saving()"
-            [disabled]="paymentForm.invalid"
-          />
-        </form>
+        </article>
       }
-    </article>
+      <article class="payment-card">
+        <header>
+          <span class="eyebrow">Nuevo movimiento</span>
+          <h2>Registrar cobro</h2>
+          <p>Puedes dividir la cuenta entre varias formas de pago.</p>
+        </header>
+
+        @if (!orderActive()) {
+          <div class="info-note">
+            <i class="pi pi-lock"></i>
+            El pedido está cerrado; sus cobros permanecen disponibles para consulta e impresión.
+          </div>
+        } @else if (current.settled) {
+          <div class="info-note success">
+            <i class="pi pi-check-circle"></i>
+            No hace falta registrar otro cobro.
+          </div>
+        } @else if (!cashRegisterOpen()) {
+          <div class="info-note">
+            <i class="pi pi-lock"></i>
+            Esperando la apertura de caja de {{ current.orderDetail.order.branchName }}.
+          </div>
+        } @else {
+          <form [formGroup]="paymentForm" (ngSubmit)="submitPayment()">
+            <label>
+              <span>Importe que se aplicará</span>
+              <div class="amount-field">
+                <p-inputnumber
+                  formControlName="amount"
+                  mode="currency"
+                  currency="MXN"
+                  locale="es-MX"
+                  [min]="0.01"
+                  [max]="current.balance"
+                />
+                <p-button
+                  type="button"
+                  label="Usar saldo"
+                  severity="secondary"
+                  [outlined]="true"
+                  (onClick)="applyBalance()"
+                />
+              </div>
+            </label>
+
+            <label>
+              <span>Forma de pago</span>
+              <p-select
+                formControlName="method"
+                [options]="methodOptions"
+                optionLabel="label"
+                optionValue="value"
+              >
+                <ng-template #selectedItem let-selected>
+                  <span class="method-option"
+                    ><i [class]="selected.icon"></i>{{ selected.label }}</span
+                  >
+                </ng-template>
+                <ng-template #item let-method>
+                  <span class="method-option"><i [class]="method.icon"></i>{{ method.label }}</span>
+                </ng-template>
+              </p-select>
+            </label>
+
+            @if (selectedMethod() === 'CASH') {
+              <label>
+                <span>Efectivo recibido</span>
+                <p-inputnumber
+                  formControlName="tenderedAmount"
+                  mode="currency"
+                  currency="MXN"
+                  locale="es-MX"
+                  [min]="paymentForm.controls.amount.value"
+                />
+              </label>
+              <div class="change-preview">
+                <span>Cambio a entregar</span>
+                <strong>{{
+                  cashChange() | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                }}</strong>
+              </div>
+            }
+
+            @if (selectedMethod() === 'OTHER') {
+              <label>
+                <span>Nombre de la forma de pago</span>
+                <input pInputText formControlName="methodLabel" placeholder="Ej. Vale o monedero" />
+              </label>
+            }
+
+            <label>
+              <span>Referencia</span>
+              <input
+                pInputText
+                formControlName="reference"
+                placeholder="Autorización, folio o últimos dígitos (opcional)"
+              />
+            </label>
+
+            <label>
+              <span>Nota</span>
+              <textarea
+                pTextarea
+                formControlName="notes"
+                rows="2"
+                placeholder="Observación opcional del cobro"
+              ></textarea>
+            </label>
+
+            <p-button
+              type="submit"
+              label="Registrar cobro"
+              icon="pi pi-wallet"
+              [loading]="saving()"
+              [disabled]="paymentForm.invalid"
+            />
+          </form>
+        }
+      </article>
+    </div>
 
     <article class="history-card">
       <header>
@@ -242,13 +364,60 @@
             }}</strong>
           </article>
         }
+        <footer class="account-subtotal">
+          <span>Subtotal</span>
+          <strong>{{
+            current.subtotal | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+          }}</strong>
+        </footer>
+        @if (current.discountAmount > 0) {
+          <footer class="account-discount">
+            <span>Descuento</span>
+            <strong
+              >−{{
+                current.discountAmount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+              }}</strong
+            >
+          </footer>
+        }
         <footer>
-          <span>Total</span>
+          <span>Total a pagar</span>
           <strong>{{
             current.total | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
           }}</strong>
         </footer>
       </section>
+
+      @if (current.discounts.length > 0) {
+        <section class="discount-history">
+          <h3>Descuentos · historial</h3>
+          @for (discount of current.discounts; track discount.id) {
+            <article [class.voided]="discount.status === 'VOIDED'">
+              <div>
+                <strong>{{ discount.code || discount.name }}</strong>
+                <small
+                  >{{ discount.source === 'MANUAL' ? 'Manual' : 'Promoción' }} ·
+                  {{ discount.appliedByUserName }} · {{ discount.appliedAt | date: 'short' }}</small
+                >
+                @if (discount.reason) {
+                  <small>Motivo: {{ discount.reason }}</small>
+                }
+                @if (discount.status === 'VOIDED') {
+                  <small
+                    >Anuló {{ discount.voidedByUserName }} ·
+                    {{ discount.voidedAt | date: 'short' }} · {{ discount.voidReason }}</small
+                  >
+                }
+              </div>
+              <strong
+                >−{{
+                  discount.amount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                }}</strong
+              >
+            </article>
+          }
+        </section>
+      }
 
       <div class="payment-list">
         @for (payment of current.payments; track payment.id) {
@@ -392,6 +561,43 @@
           severity="danger"
           [loading]="voiding()"
           [disabled]="voidForm.invalid"
+        />
+      </div>
+    </form>
+  }
+</p-dialog>
+
+<p-dialog
+  header="Anular descuento"
+  [modal]="true"
+  [visible]="discountVoidVisible()"
+  [style]="{ width: 'min(94vw, 500px)' }"
+  (visibleChange)="$event ? null : discountVoidVisible.set(false)"
+>
+  @if (selectedDiscount(); as discount) {
+    <form [formGroup]="discountVoidForm" (ngSubmit)="voidDiscount()" class="void-form">
+      <p>
+        Se restaurará el subtotal de la cuenta. {{ discount.code || discount.name }} quedará en el
+        historial.
+      </p>
+      <label
+        >Motivo de anulación (mínimo 5 caracteres)
+        <textarea pTextarea formControlName="reason" rows="3" maxlength="250"></textarea>
+      </label>
+      <div class="dialog-actions">
+        <p-button
+          type="button"
+          label="Conservar"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="discountVoidVisible.set(false)"
+        />
+        <p-button
+          type="submit"
+          label="Anular"
+          severity="danger"
+          [loading]="discountVoiding()"
+          [disabled]="discountVoidForm.invalid"
         />
       </div>
     </form>

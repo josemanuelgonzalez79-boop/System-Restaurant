@@ -30,6 +30,7 @@ public class OrderItemService {
     private final OrderItemModifierRepository modifierRepository;
     private final RestaurantOrderRepository orderRepository;
     private final OrderPaymentRepository paymentRepository;
+    private final OrderDiscountRepository discountRepository;
     private final OrderService orderService;
     private final ProductService productService;
     private final ModifierGroupService modifierGroupService;
@@ -40,6 +41,7 @@ public class OrderItemService {
             OrderItemModifierRepository modifierRepository,
             RestaurantOrderRepository orderRepository,
             OrderPaymentRepository paymentRepository,
+            OrderDiscountRepository discountRepository,
             OrderService orderService,
             ProductService productService,
             ModifierGroupService modifierGroupService,
@@ -49,6 +51,7 @@ public class OrderItemService {
         this.modifierRepository = modifierRepository;
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
+        this.discountRepository = discountRepository;
         this.orderService = orderService;
         this.productService = productService;
         this.modifierGroupService = modifierGroupService;
@@ -152,6 +155,11 @@ public class OrderItemService {
         if (paymentRepository.existsByOrderIdAndStatus(orderId, PaymentStatus.ACTIVE)) {
             throw new BadRequestException(
                     "La cuenta tiene cobros registrados. Anúlalos antes de modificar productos."
+            );
+        }
+        if (discountRepository.existsByOrderIdAndStatus(orderId, OrderDiscountStatus.ACTIVE)) {
+            throw new BadRequestException(
+                    "La cuenta tiene un descuento activo. Anúlalo antes de modificar productos."
             );
         }
         if (order.getVersion() != version) {
