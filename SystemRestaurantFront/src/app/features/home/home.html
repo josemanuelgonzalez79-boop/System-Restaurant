@@ -1,90 +1,208 @@
-<section class="hero">
-  <div>
-    <span class="eyebrow">Essential</span>
-    <h1>Lo esencial de tu negocio, en un solo lugar</h1>
-    <p>
-      Una plataforma local y modular para organizar productos, usuarios y operación sin depender de
-      servicios públicos en la nube.
-    </p>
-    <div class="hero-actions">
-      <a routerLink="/pedidos" class="primary-link">
-        <i class="pi pi-receipt"></i>
-        Abrir mesas y pedidos
-      </a>
-      @if (auth.canAdminister()) {
-        <a routerLink="/catalogo" class="secondary-link">
-          <i class="pi pi-book"></i>
-          Administrar catálogo
+<div class="dashboard">
+  <section class="welcome" aria-labelledby="home-title">
+    <div class="welcome-content">
+      <span class="edition"><span class="edition-dot"></span> Essential Base</span>
+      <p class="kicker">Tu restaurante, en este momento</p>
+      <h1 id="home-title">Hola, {{ auth.user()?.fullName }}.</h1>
+      <p class="welcome-copy">
+        @if (branch(); as restaurant) {
+          Así va <strong>{{ restaurant.name }}</strong
+          >. Revisa lo que necesita atención y continúa la operación.
+        } @else {
+          Todo lo necesario para atender a tus clientes desde un solo lugar.
+        }
+      </p>
+      <div class="welcome-actions">
+        <a routerLink="/pedidos" class="action-primary">
+          <i class="pi pi-plus-circle" aria-hidden="true"></i> Abrir pedido
         </a>
-      } @else {
-        <span class="secondary-link">Sesión activa: {{ auth.user()?.fullName }}</span>
+        <a routerLink="/preparacion" class="action-secondary">
+          <i class="pi pi-bell" aria-hidden="true"></i> Ver preparación
+        </a>
+      </div>
+    </div>
+    <div class="welcome-art" aria-hidden="true">
+      <div class="art-ring"></div>
+      <i class="pi pi-shop"></i>
+    </div>
+  </section>
+
+  <div class="section-heading">
+    <div>
+      <span class="section-kicker">OPERACIÓN</span>
+      <h2>Lo que pasa ahora</h2>
+    </div>
+    <div class="sync-tools">
+      @if (updatedAt(); as updated) {
+        <span>Actualizado {{ updated | date: 'shortTime' }}</span>
       }
+      <button type="button" class="refresh-button" [disabled]="refreshing()" (click)="retry()">
+        <i class="pi pi-refresh" aria-hidden="true"></i>
+        {{ refreshing() ? 'Actualizando…' : 'Actualizar' }}
+      </button>
     </div>
   </div>
 
-  <p-button
-    label="Comprobar backend"
-    icon="pi pi-server"
-    [loading]="loading()"
-    (onClick)="checkBackend()"
-  />
-</section>
+  @if (error()) {
+    <div class="notice error" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <span>No se pudieron actualizar los datos. Revisa la conexión e inténtalo de nuevo.</span>
+      @if (loaded()) {
+        <small>Se muestra la última información disponible.</small>
+      }
+    </div>
+  }
 
-<section class="cards">
-  <p-card header="Base operativa">
-    <div class="status-line">
-      <p-tag value="Listo" severity="success" />
-      <span>Categorías y orden de aparición</span>
+  @if (loading() && !loaded()) {
+    <div class="notice" role="status">Cargando la actividad del restaurante…</div>
+  } @else if (!branch() && !error()) {
+    <div class="notice empty" role="status">
+      <i class="pi pi-map-marker" aria-hidden="true"></i>
+      <div>
+        <strong>Tu usuario aún no tiene acceso al restaurante.</strong>
+        <span>Un propietario puede asignarte desde Estructura para mostrar aquí la operación.</span>
+      </div>
+      @if (auth.canAdminister()) {
+        <a routerLink="/estructura">Ir a Estructura</a>
+      }
     </div>
-    <div class="status-line">
-      <p-tag value="Listo" severity="success" />
-      <span>Productos, precios y disponibilidad</span>
-    </div>
-    <div class="status-line">
-      <p-tag value="Listo" severity="success" />
-      <span>Configuración adaptable por giro</span>
-    </div>
-    <div class="status-line">
-      <p-tag value="Listo" severity="success" />
-      <span>Usuarios, roles y sesiones seguras</span>
-    </div>
-    <div class="status-line">
-      <p-tag value="Listo" severity="success" />
-      <span>Áreas, mesas y puntos de atención</span>
-    </div>
-    <div class="status-line">
-      <p-tag value="Nuevo" severity="info" />
-      <span>Mapa de mesas y apertura de pedidos</span>
-    </div>
-  </p-card>
+  } @else if (loaded()) {
+    <section class="metrics" aria-label="Resumen operativo">
+      <a routerLink="/pedidos" class="metric metric-orders">
+        <span class="metric-icon"><i class="pi pi-receipt" aria-hidden="true"></i></span>
+        <span class="metric-label">Pedidos activos</span>
+        <strong>{{ orders().length }}</strong>
+        <span class="metric-foot"
+          >Ver mesas y pedidos <i class="pi pi-arrow-up-right" aria-hidden="true"></i
+        ></span>
+      </a>
+      <a routerLink="/pedidos" class="metric metric-tables">
+        <span class="metric-icon"><i class="pi pi-th-large" aria-hidden="true"></i></span>
+        <span class="metric-label">Mesas ocupadas</span>
+        <strong>{{ occupiedTables() }}</strong>
+        <span class="metric-foot"
+          >Abrir mapa de mesas <i class="pi pi-arrow-up-right" aria-hidden="true"></i
+        ></span>
+      </a>
+      <a routerLink="/preparacion" class="metric metric-kitchen">
+        <span class="metric-icon"><i class="pi pi-stopwatch" aria-hidden="true"></i></span>
+        <span class="metric-label">Por preparar</span>
+        <strong>{{ pendingItems() + preparingItems() }}</strong>
+        <span class="metric-foot"
+          >{{ pendingItems() }} por iniciar · {{ preparingItems() }} en proceso</span
+        >
+      </a>
+      <a routerLink="/preparacion" class="metric metric-ready">
+        <span class="metric-icon"><i class="pi pi-check-circle" aria-hidden="true"></i></span>
+        <span class="metric-label">Listas para entregar</span>
+        <strong>{{ readyItems() }}</strong>
+        <span class="metric-foot"
+          >Revisar comandas <i class="pi pi-arrow-up-right" aria-hidden="true"></i
+        ></span>
+      </a>
+    </section>
 
-  <p-card header="Estado del backend">
-    @if (loading()) {
-      <div class="loading-box">
-        <p-progress-spinner ariaLabel="Consultando backend" strokeWidth="5" />
-      </div>
-    } @else if (health(); as currentHealth) {
-      <div class="status-line">
-        <span>Aplicación</span>
-        <strong>{{ currentHealth.application }}</strong>
-      </div>
-      <div class="status-line">
-        <span>API</span>
-        <p-tag
-          [value]="currentHealth.status"
-          [severity]="currentHealth.status === 'UP' ? 'success' : 'warn'"
-        />
-      </div>
-      <div class="status-line">
-        <span>PostgreSQL</span>
-        <p-tag
-          [value]="currentHealth.database"
-          [severity]="currentHealth.database === 'UP' ? 'success' : 'danger'"
-        />
-      </div>
-      <small>Última revisión: {{ currentHealth.timestamp | date: 'medium' }}</small>
-    } @else {
-      <p class="muted">Inicia el backend en el puerto <code>3211</code> y comprueba la conexión.</p>
-    }
-  </p-card>
-</section>
+    <div class="work-grid">
+      <section class="panel orders-panel" aria-labelledby="orders-title">
+        <div class="panel-heading">
+          <div>
+            <span class="section-kicker">EN SERVICIO</span>
+            <h2 id="orders-title">Pedidos recientes</h2>
+          </div>
+          <a routerLink="/pedidos"
+            >Ver todos <i class="pi pi-arrow-right" aria-hidden="true"></i
+          ></a>
+        </div>
+        @if (recentOrders().length) {
+          <ul class="order-list">
+            @for (order of recentOrders(); track order.id) {
+              <li>
+                <a [routerLink]="['/pedidos', order.id]">
+                  <span class="order-symbol"
+                    ><i
+                      class="pi"
+                      [class.pi-shopping-bag]="order.serviceMode === 'TAKEOUT'"
+                      [class.pi-map-marker]="order.serviceMode === 'DINE_IN'"
+                      aria-hidden="true"
+                    ></i
+                  ></span>
+                  <span class="order-description"
+                    ><strong>{{ orderLocation(order) }}</strong
+                    ><small>{{ order.folio }} · {{ order.assignedUserName }}</small></span
+                  >
+                  <span class="order-time">{{ order.openedAt | date: 'shortTime' }}</span>
+                  <i class="pi pi-chevron-right order-chevron" aria-hidden="true"></i>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else {
+          <div class="empty-orders">
+            <i class="pi pi-sparkles" aria-hidden="true"></i>
+            <strong>Todo tranquilo por ahora</strong>
+            <p>Cuando abras un pedido aparecerá aquí.</p>
+            <a routerLink="/pedidos">Ir a pedidos</a>
+          </div>
+        }
+      </section>
+
+      <aside class="side-stack">
+        @if (auth.canOperateCash()) {
+          <section class="panel cash-panel" aria-labelledby="cash-title">
+            <div class="panel-heading">
+              <div>
+                <span class="section-kicker">TURNO ACTUAL</span>
+                <h2 id="cash-title">Caja</h2>
+              </div>
+              <span class="cash-indicator" [class.is-open]="cash()"
+                ><i></i>{{ cash() ? 'Abierta' : 'Cerrada' }}</span
+              >
+            </div>
+            <p>
+              {{
+                cash()
+                  ? 'El turno está listo para registrar cobros.'
+                  : 'Abre un turno para comenzar a cobrar.'
+              }}
+            </p>
+            <a routerLink="/caja"
+              >{{ cash() ? 'Ver caja' : 'Abrir caja' }}
+              <i class="pi pi-arrow-right" aria-hidden="true"></i
+            ></a>
+          </section>
+        }
+        <section class="panel shortcuts" aria-labelledby="shortcuts-title">
+          <div class="panel-heading">
+            <div>
+              <span class="section-kicker">ACCESOS RÁPIDOS</span>
+              <h2 id="shortcuts-title">A un toque</h2>
+            </div>
+          </div>
+          <div class="shortcut-grid">
+            <a routerLink="/pedidos"
+              ><i class="pi pi-th-large" aria-hidden="true"></i><span>Mesas</span></a
+            >
+            <a routerLink="/preparacion"
+              ><i class="pi pi-bell" aria-hidden="true"></i><span>Preparación</span></a
+            >
+            @if (auth.canViewReports()) {
+              <a routerLink="/reporte-diario"
+                ><i class="pi pi-chart-bar" aria-hidden="true"></i><span>Reporte</span></a
+              >
+            }
+            @if (auth.canAdminister()) {
+              <a routerLink="/catalogo"
+                ><i class="pi pi-book" aria-hidden="true"></i><span>Catálogo</span></a
+              >
+            }
+            @if (auth.isOwner()) {
+              <a routerLink="/respaldos"
+                ><i class="pi pi-download" aria-hidden="true"></i><span>Respaldos</span></a
+              >
+            }
+          </div>
+        </section>
+      </aside>
+    </div>
+  }
+</div>
