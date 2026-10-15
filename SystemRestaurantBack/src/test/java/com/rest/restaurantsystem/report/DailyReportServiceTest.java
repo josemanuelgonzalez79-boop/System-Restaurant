@@ -84,6 +84,14 @@ class DailyReportServiceTest {
                         0
                 )
         ));
+        when(repository.findTipMetrics(1L, start(), end())).thenReturn(List.of(
+                new DailyReportQueryRepository.TipMetricRow(
+                        PaymentMethod.CASH, 21L, "Ana", new BigDecimal("20.00"),
+                        new BigDecimal("5.00")),
+                new DailyReportQueryRepository.TipMetricRow(
+                        PaymentMethod.CARD, 21L, "Ana", new BigDecimal("10.00"),
+                        BigDecimal.ZERO)
+        ));
         when(repository.findOrderMetrics(1L, start(), end())).thenReturn(
                 new DailyReportQueryRepository.OrderMetricsRow(
                         11,
@@ -138,11 +146,15 @@ class DailyReportServiceTest {
         assertThat(report.periodStart()).isEqualTo(start());
         assertThat(report.periodEnd()).isEqualTo(end());
         assertThat(report.sales().netCollected()).isEqualByComparingTo("1650.00");
+        assertThat(report.tips().netAmount()).isEqualByComparingTo("25.00");
+        assertThat(report.tips().beneficiaries().getFirst().netAmount())
+                .isEqualByComparingTo("25.00");
+        assertThat(report.cash().cashTips()).isEqualByComparingTo("15.00");
         assertThat(report.orders().averageTicket()).isEqualByComparingTo("165.00");
         assertThat(report.hourlySales()).hasSize(24);
         assertThat(report.hourlySales().get(14).netAmount()).isEqualByComparingTo("600.00");
         assertThat(report.topProducts().getFirst().rank()).isEqualTo(1);
-        assertThat(report.cash().expectedCashFlow()).isEqualByComparingTo("1680.00");
+        assertThat(report.cash().expectedCashFlow()).isEqualByComparingTo("1695.00");
     }
 
     @Test

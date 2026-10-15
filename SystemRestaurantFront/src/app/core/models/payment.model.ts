@@ -9,6 +9,8 @@ export interface OrderPayment {
   operationId: string;
   cashRegisterSessionId: number | null;
   amount: number;
+  tipAmount: number;
+  tipBeneficiaryName: string | null;
   tenderedAmount: number;
   changeAmount: number;
   method: PaymentMethod;
@@ -51,6 +53,7 @@ export interface PaymentSummary {
   discountAmount: number;
   total: number;
   paid: number;
+  tipTotal: number;
   balance: number;
   settled: boolean;
   canClose: boolean;
@@ -62,6 +65,7 @@ export interface PaymentSummary {
 export interface PaymentCreatePayload {
   operationId: string;
   amount: number;
+  tipAmount: number;
   tenderedAmount: number;
   method: PaymentMethod;
   methodLabel: string;

@@ -48,6 +48,10 @@ export interface CashRegisterSummary {
   cardPayments: number;
   transferPayments: number;
   otherPayments: number;
+  cashTips: number;
+  cardTips: number;
+  transferTips: number;
+  otherTips: number;
   cashIn: number;
   cashOut: number;
   expectedCash: number;

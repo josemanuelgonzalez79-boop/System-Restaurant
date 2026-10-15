@@ -75,6 +75,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
   historial de visitas vinculadas, archivado reversible y selección en reservaciones o pedidos.
 - Essential Pro: promociones administrables y descuentos manuales autorizados en Cobro;
   subtotal, descuento, total neto y auditoría impresos en el comprobante.
+- Essential Pro: propina voluntaria separada del consumo al cobrar; desglose en Caja, corte,
+  comprobante y Reporte diario con CSV por forma de pago y responsable del pedido.
 
 Rutas:
 

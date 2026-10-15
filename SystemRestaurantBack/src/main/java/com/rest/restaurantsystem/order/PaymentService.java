@@ -102,8 +102,15 @@ public class PaymentService {
             );
         }
 
-        BigDecimal tenderedAmount = validateTenderedAmount(request);
+        BigDecimal tipAmount = request.tipAmount() == null ? BigDecimal.ZERO : request.tipAmount();
+        if (tipAmount.signum() < 0 || tipAmount.scale() > 2
+                || tipAmount.compareTo(request.amount()) > 0) {
+            throw new BadRequestException("La propina debe ser de $0 a un máximo igual al importe del cobro.");
+        }
+        BigDecimal tenderedAmount = validateTenderedAmount(request, tipAmount);
         String methodLabel = validateMethodLabel(request);
+        UserResponse beneficiary = tipAmount.signum() == 0 ? null
+                : userService.findById(order.getAssignedUserId());
         CashRegisterReference cashRegister = cashRegisterService.lockOpenForPayment(
                 order.getBranchId()
         );
@@ -118,7 +125,10 @@ public class PaymentService {
                         methodLabel,
                         request.reference(),
                         request.notes(),
-                        currentUser.id()
+                        currentUser.id(),
+                        tipAmount,
+                        beneficiary == null ? null : beneficiary.id(),
+                        beneficiary == null ? null : beneficiary.fullName()
                 )
         );
         order.touch();
@@ -210,24 +220,25 @@ public class PaymentService {
         }
     }
 
-    private BigDecimal validateTenderedAmount(PaymentCreateRequest request) {
+    private BigDecimal validateTenderedAmount(PaymentCreateRequest request, BigDecimal tipAmount) {
+        BigDecimal charged = request.amount().add(tipAmount);
         BigDecimal tendered = request.tenderedAmount() == null
-                ? request.amount()
+                ? charged
                 : request.tenderedAmount();
         if (request.method() == PaymentMethod.CASH) {
-            if (tendered.compareTo(request.amount()) < 0) {
+            if (tendered.compareTo(charged) < 0) {
                 throw new BadRequestException(
-                        "El efectivo recibido debe cubrir el importe que se aplicará."
+                        "El efectivo recibido debe cubrir consumo y propina."
                 );
             }
             return tendered;
         }
-        if (tendered.compareTo(request.amount()) != 0) {
+        if (tendered.compareTo(charged) != 0) {
             throw new BadRequestException(
-                    "En pagos distintos de efectivo, el importe recibido debe coincidir con el aplicado."
+                    "En pagos distintos de efectivo, el importe recibido debe ser consumo más propina."
             );
         }
-        return request.amount();
+        return charged;
     }
 
     private String validateMethodLabel(PaymentCreateRequest request) {
@@ -264,6 +275,10 @@ public class PaymentService {
                 .filter(payment -> payment.getStatus() == PaymentStatus.ACTIVE)
                 .map(OrderPayment::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal tips = entities.stream()
+                .filter(payment -> payment.getStatus() == PaymentStatus.ACTIVE)
+                .map(OrderPayment::getTipAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal balance = total.subtract(paid).max(BigDecimal.ZERO);
         boolean settled = total.compareTo(BigDecimal.ZERO) > 0
                 && balance.compareTo(BigDecimal.ZERO) == 0;
@@ -280,6 +295,7 @@ public class PaymentService {
                 discountAmount,
                 total,
                 paid,
+                tips,
                 balance,
                 settled,
                 blockingReason == null,
@@ -327,6 +343,8 @@ public class PaymentService {
                 payment.getOperationId(),
                 payment.getCashRegisterSessionId(),
                 payment.getAmount(),
+                payment.getTipAmount(),
+                payment.getTipBeneficiaryName(),
                 payment.getTenderedAmount(),
                 payment.getChangeAmount(),
                 payment.getMethod(),

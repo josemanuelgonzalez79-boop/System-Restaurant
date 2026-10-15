@@ -34,6 +34,15 @@ class OrderPayment {
     @Column(nullable = false, precision = 12, scale = 2, updatable = false)
     private BigDecimal amount;
 
+    @Column(name = "tip_amount", nullable = false, precision = 12, scale = 2, updatable = false)
+    private BigDecimal tipAmount;
+
+    @Column(name = "tip_beneficiary_user_id", updatable = false)
+    private Long tipBeneficiaryUserId;
+
+    @Column(name = "tip_beneficiary_name", length = 120, updatable = false)
+    private String tipBeneficiaryName;
+
     @Column(name = "tendered_amount", nullable = false, precision = 12, scale = 2, updatable = false)
     private BigDecimal tenderedAmount;
 
@@ -84,10 +93,23 @@ class OrderPayment {
             String notes,
             Long receivedByUserId
     ) {
+        this(operationId, orderId, cashRegisterSessionId, amount, tenderedAmount, method,
+                methodLabel, reference, notes, receivedByUserId, BigDecimal.ZERO, null, null);
+    }
+
+    OrderPayment(
+            UUID operationId, Long orderId, Long cashRegisterSessionId,
+            BigDecimal amount, BigDecimal tenderedAmount, PaymentMethod method,
+            String methodLabel, String reference, String notes, Long receivedByUserId,
+            BigDecimal tipAmount, Long tipBeneficiaryUserId, String tipBeneficiaryName
+    ) {
         this.operationId = operationId;
         this.orderId = orderId;
         this.cashRegisterSessionId = cashRegisterSessionId;
         this.amount = amount;
+        this.tipAmount = tipAmount;
+        this.tipBeneficiaryUserId = tipBeneficiaryUserId;
+        this.tipBeneficiaryName = tipBeneficiaryName;
         this.tenderedAmount = tenderedAmount;
         this.method = method;
         this.methodLabel = normalizeOptional(methodLabel);
@@ -105,8 +127,12 @@ class OrderPayment {
     }
 
     BigDecimal getChangeAmount() {
-        return tenderedAmount.subtract(amount);
+        return tenderedAmount.subtract(amount).subtract(tipAmount);
     }
+
+    BigDecimal getTipAmount() { return tipAmount; }
+    Long getTipBeneficiaryUserId() { return tipBeneficiaryUserId; }
+    String getTipBeneficiaryName() { return tipBeneficiaryName; }
 
     Long getId() {
         return id;

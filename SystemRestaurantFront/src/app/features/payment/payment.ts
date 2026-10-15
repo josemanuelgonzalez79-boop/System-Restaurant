@@ -70,6 +70,7 @@ export class PaymentPage implements OnInit, OnDestroy {
   protected readonly summary = signal<PaymentSummary | null>(null);
   protected readonly selectedMethod = signal<PaymentMethod>('CASH');
   protected readonly enteredAmount = signal(0);
+  protected readonly enteredTip = signal(0);
   protected readonly tenderedAmount = signal(0);
   protected readonly voidDialogVisible = signal(false);
   protected readonly selectedPayment = signal<OrderPayment | null>(null);
@@ -120,7 +121,7 @@ export class PaymentPage implements OnInit, OnDestroy {
   });
   protected readonly cashChange = computed(() =>
     this.selectedMethod() === 'CASH'
-      ? Math.max(0, this.tenderedAmount() - this.enteredAmount())
+      ? Math.max(0, this.tenderedAmount() - this.enteredAmount() - this.enteredTip())
       : 0,
   );
   protected readonly orderActive = computed(() => {
@@ -133,6 +134,7 @@ export class PaymentPage implements OnInit, OnDestroy {
 
   protected readonly paymentForm = this.formBuilder.nonNullable.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
+    tipAmount: [0, [Validators.required, Validators.min(0)]],
     tenderedAmount: [0, [Validators.required, Validators.min(0.01)]],
     method: ['CASH' as PaymentMethod, Validators.required],
     methodLabel: ['', Validators.maxLength(60)],
@@ -170,7 +172,9 @@ export class PaymentPage implements OnInit, OnDestroy {
   protected applyBalance(): void {
     const balance = this.summary()?.balance ?? 0;
     this.paymentForm.controls.amount.setValue(balance);
-    this.paymentForm.controls.tenderedAmount.setValue(balance);
+    this.paymentForm.controls.tenderedAmount.setValue(
+      balance + this.paymentForm.controls.tipAmount.value,
+    );
   }
 
   protected submitPayment(): void {
@@ -188,6 +192,18 @@ export class PaymentPage implements OnInit, OnDestroy {
       });
       return;
     }
+    if (
+      value.tipAmount < 0 ||
+      value.tipAmount > value.amount ||
+      Math.abs(Math.round(value.tipAmount * 100) - value.tipAmount * 100) > 0.000001
+    ) {
+      this.messages.add({
+        severity: 'warn',
+        summary: 'Revisa la propina',
+        detail: 'La propina puede ser de $0 hasta el importe de este cobro, con dos decimales.',
+      });
+      return;
+    }
     if (value.method === 'OTHER' && !value.methodLabel.trim()) {
       this.messages.add({
         severity: 'warn',
@@ -196,11 +212,12 @@ export class PaymentPage implements OnInit, OnDestroy {
       });
       return;
     }
-    if (value.method === 'CASH' && value.tenderedAmount < value.amount) {
+    const totalCharge = value.amount + value.tipAmount;
+    if (value.method === 'CASH' && value.tenderedAmount < totalCharge) {
       this.messages.add({
         severity: 'warn',
         summary: 'Efectivo insuficiente',
-        detail: 'El efectivo recibido debe cubrir el importe aplicado.',
+        detail: 'El efectivo recibido debe cubrir consumo y propina.',
       });
       return;
     }
@@ -210,7 +227,8 @@ export class PaymentPage implements OnInit, OnDestroy {
       .add(this.orderId, {
         operationId: this.newOperationId(),
         amount: value.amount,
-        tenderedAmount: value.method === 'CASH' ? value.tenderedAmount : value.amount,
+        tipAmount: value.tipAmount,
+        tenderedAmount: value.method === 'CASH' ? value.tenderedAmount : totalCharge,
         method: value.method,
         methodLabel: value.methodLabel,
         reference: value.reference,
@@ -224,9 +242,11 @@ export class PaymentPage implements OnInit, OnDestroy {
           severity: 'success',
           summary: 'Cobro registrado',
           detail:
-            value.method === 'CASH' && value.tenderedAmount > value.amount
-              ? `Entrega de cambio: ${this.currency(value.tenderedAmount - value.amount)}.`
-              : 'El saldo del pedido fue actualizado.',
+            value.method === 'CASH' && value.tenderedAmount > totalCharge
+              ? `Entrega de cambio: ${this.currency(value.tenderedAmount - totalCharge)}.`
+              : value.tipAmount > 0
+                ? `Consumo y propina registrados por separado.`
+                : 'El saldo del pedido fue actualizado.',
         });
       });
   }
@@ -416,7 +436,9 @@ export class PaymentPage implements OnInit, OnDestroy {
       .subscribe((method) => {
         this.selectedMethod.set(method);
         if (method !== 'CASH') {
-          this.paymentForm.controls.tenderedAmount.setValue(this.paymentForm.controls.amount.value);
+          this.paymentForm.controls.tenderedAmount.setValue(
+            this.paymentForm.controls.amount.value + this.paymentForm.controls.tipAmount.value,
+          );
         }
       });
     this.paymentForm.controls.amount.valueChanges
@@ -424,9 +446,17 @@ export class PaymentPage implements OnInit, OnDestroy {
       .subscribe((amount) => {
         this.enteredAmount.set(amount);
         if (this.paymentForm.controls.method.value !== 'CASH') {
-          this.paymentForm.controls.tenderedAmount.setValue(amount, { emitEvent: false });
-          this.tenderedAmount.set(amount);
+          const charge = amount + this.paymentForm.controls.tipAmount.value;
+          this.paymentForm.controls.tenderedAmount.setValue(charge, { emitEvent: false });
+          this.tenderedAmount.set(charge);
         }
+      });
+    this.paymentForm.controls.tipAmount.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((tip) => {
+        this.enteredTip.set(tip);
+        const charge = this.paymentForm.controls.amount.value + tip;
+        this.paymentForm.controls.tenderedAmount.setValue(charge);
       });
     this.paymentForm.controls.tenderedAmount.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -467,6 +497,7 @@ export class PaymentPage implements OnInit, OnDestroy {
       if (!this.orderActive() || summary.settled || currentAmount > summary.balance) {
         const nextAmount = this.orderActive() && !summary.settled ? summary.balance : 0;
         this.paymentForm.controls.amount.setValue(nextAmount);
+        this.paymentForm.controls.tipAmount.setValue(0);
         this.paymentForm.controls.tenderedAmount.setValue(nextAmount);
       }
       return;
@@ -474,6 +505,7 @@ export class PaymentPage implements OnInit, OnDestroy {
     const amount = summary.settled || !this.orderActive() ? 0 : summary.balance;
     this.paymentForm.reset({
       amount,
+      tipAmount: 0,
       tenderedAmount: amount,
       method: 'CASH',
       methodLabel: '',
@@ -482,6 +514,7 @@ export class PaymentPage implements OnInit, OnDestroy {
     });
     this.selectedMethod.set('CASH');
     this.enteredAmount.set(amount);
+    this.enteredTip.set(0);
     this.tenderedAmount.set(amount);
   }
 

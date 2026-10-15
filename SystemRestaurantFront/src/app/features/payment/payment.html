@@ -251,6 +251,26 @@
             </label>
 
             <label>
+              <span>Propina para {{ current.orderDetail.order.assignedUserName }} (opcional)</span>
+              <p-inputnumber
+                formControlName="tipAmount"
+                mode="currency"
+                currency="MXN"
+                locale="es-MX"
+                [min]="0"
+                [max]="paymentForm.controls.amount.value"
+              />
+              <small>Se registra aparte de la venta; máximo igual al importe de este cobro.</small>
+            </label>
+            <div class="tip-charge-preview">
+              <span>Consumo + propina</span>
+              <strong>{{
+                paymentForm.controls.amount.value + paymentForm.controls.tipAmount.value
+                  | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+              }}</strong>
+            </div>
+
+            <label>
               <span>Forma de pago</span>
               <p-select
                 formControlName="method"
@@ -277,7 +297,7 @@
                   mode="currency"
                   currency="MXN"
                   locale="es-MX"
-                  [min]="paymentForm.controls.amount.value"
+                  [min]="paymentForm.controls.amount.value + paymentForm.controls.tipAmount.value"
                 />
               </label>
               <div class="change-preview">
@@ -386,6 +406,21 @@
             current.total | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
           }}</strong>
         </footer>
+        @if (current.tipTotal > 0) {
+          <footer class="account-tip">
+            <span>Propinas cobradas (aparte)</span>
+            <strong>{{
+              current.tipTotal | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}</strong>
+          </footer>
+          <footer>
+            <span>Consumo + propinas</span>
+            <strong>{{
+              current.total + current.tipTotal
+                | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}</strong>
+          </footer>
+        }
       </section>
 
       @if (current.discounts.length > 0) {
@@ -439,6 +474,12 @@
               <strong>{{ paymentMethodLabel(payment) }}</strong>
               <span>{{ payment.folio }} · {{ payment.receivedAt | date: 'short' }}</span>
               <small>Registró: {{ payment.receivedByUserName }}</small>
+              @if (payment.tipAmount > 0) {
+                <small class="tip-detail">
+                  Propina para {{ payment.tipBeneficiaryName }}:
+                  {{ payment.tipAmount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+                </small>
+              }
               @if (payment.reference) {
                 <small>Referencia: {{ payment.reference }}</small>
               }
@@ -466,6 +507,13 @@
               <strong>{{
                 payment.amount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
               }}</strong>
+              @if (payment.tipAmount > 0) {
+                <small
+                  >+
+                  {{ payment.tipAmount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+                  propina</small
+                >
+              }
               <p-tag
                 [value]="payment.status === 'ACTIVE' ? 'Aplicado' : 'Anulado'"
                 [severity]="payment.status === 'ACTIVE' ? 'success' : 'danger'"
@@ -530,6 +578,10 @@
           <span>
             {{ payment.amount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }} ·
             {{ paymentMethodLabel(payment) }}
+            @if (payment.tipAmount > 0) {
+              · {{ payment.tipAmount | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }} de
+              propina
+            }
           </span>
         </div>
       </div>

@@ -8,6 +8,25 @@ export interface DailySalesSummary {
   voidedPaymentCount: number;
 }
 
+export interface DailyTipsSummary {
+  grossAmount: number;
+  voidedAmount: number;
+  netAmount: number;
+  methods: Array<{
+    method: PaymentMethod;
+    grossAmount: number;
+    voidedAmount: number;
+    netAmount: number;
+  }>;
+  beneficiaries: Array<{
+    userId: number;
+    userName: string;
+    grossAmount: number;
+    voidedAmount: number;
+    netAmount: number;
+  }>;
+}
+
 export interface DailyOrderSummary {
   openedCount: number;
   completedCount: number;
@@ -63,6 +82,7 @@ export interface DailyCashSummary {
   openAtEndCount: number;
   openingAmount: number;
   cashPayments: number;
+  cashTips: number;
   cashInGross: number;
   cashInVoided: number;
   cashInNet: number;
@@ -106,6 +126,7 @@ export interface DailyReport {
   periodEnd: string;
   generatedAt: string;
   sales: DailySalesSummary;
+  tips: DailyTipsSummary;
   orders: DailyOrderSummary;
   paymentMethods: DailyPaymentMethodSummary[];
   hourlySales: HourlySalesSummary[];

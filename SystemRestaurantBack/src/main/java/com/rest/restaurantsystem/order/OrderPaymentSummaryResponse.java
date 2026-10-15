@@ -11,6 +11,7 @@ public record OrderPaymentSummaryResponse(
         BigDecimal discountAmount,
         BigDecimal total,
         BigDecimal paid,
+        BigDecimal tipTotal,
         BigDecimal balance,
         boolean settled,
         boolean canClose,

@@ -24,6 +24,7 @@ describe('PaymentApiService', () => {
     const payload: PaymentCreatePayload = {
       operationId: '117e81b6-d15a-42a0-b2bc-4ff36b398e54',
       amount: 100,
+      tipAmount: 15,
       tenderedAmount: 200,
       method: 'CASH',
       methodLabel: '',

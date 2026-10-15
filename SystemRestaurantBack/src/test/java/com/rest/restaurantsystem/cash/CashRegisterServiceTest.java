@@ -179,6 +179,8 @@ class CashRegisterServiceTest {
         when(sessionRepository.findLockedById(12L)).thenReturn(Optional.of(session));
         when(paymentRepository.sumActiveByCashRegisterAndMethod(12L, PaymentMethod.CASH))
                 .thenReturn(new BigDecimal("300.00"));
+        when(paymentRepository.sumActiveTipsByCashRegisterAndMethod(12L, PaymentMethod.CASH))
+                .thenReturn(new BigDecimal("15.00"));
         when(movementRepository.sumActiveByType(12L, CashMovementType.CASH_IN))
                 .thenReturn(new BigDecimal("50.00"));
         when(movementRepository.sumActiveByType(12L, CashMovementType.CASH_OUT))
@@ -187,13 +189,14 @@ class CashRegisterServiceTest {
 
         CashRegisterSummaryResponse result = service.close(
                 12L,
-                new CashRegisterCloseRequest(0, new BigDecimal("825.00"), "Faltante revisado"),
+                new CashRegisterCloseRequest(0, new BigDecimal("840.00"), "Faltante revisado"),
                 "cajero"
         );
 
         assertThat(result.session().status()).isEqualTo(CashRegisterStatus.CLOSED);
-        assertThat(result.session().expectedCashAtClose()).isEqualByComparingTo("830.00");
-        assertThat(result.session().countedCashAtClose()).isEqualByComparingTo("825.00");
+        assertThat(result.session().expectedCashAtClose()).isEqualByComparingTo("845.00");
+        assertThat(result.session().countedCashAtClose()).isEqualByComparingTo("840.00");
+        assertThat(result.cashTips()).isEqualByComparingTo("15.00");
         assertThat(result.session().differenceAtClose()).isEqualByComparingTo("-5.00");
     }
 

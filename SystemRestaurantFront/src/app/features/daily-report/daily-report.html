@@ -225,6 +225,74 @@
     </article>
   </section>
 
+  <article class="report-card tips-card">
+    <header>
+      <div>
+        <span class="eyebrow">Personal</span>
+        <h2>Propinas registradas</h2>
+        <small
+          >Separadas de la venta neta. La propina se asigna al responsable del pedido al
+          cobrar.</small
+        >
+      </div>
+      <p-tag
+        [value]="
+          (daily.tips.netAmount
+            | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX') || ''
+        "
+        severity="success"
+      />
+    </header>
+    <div class="tips-layout">
+      <div>
+        <h3>Por forma de pago</h3>
+        <dl>
+          @for (method of daily.tips.methods; track method.method) {
+            <div>
+              <dt>{{ paymentMethodLabel(method.method) }}</dt>
+              <dd>
+                {{
+                  method.netAmount
+                    | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                }}
+              </dd>
+            </div>
+          }
+        </dl>
+      </div>
+      <div>
+        <h3>Por responsable</h3>
+        @if (daily.tips.beneficiaries.length > 0) {
+          <dl>
+            @for (person of daily.tips.beneficiaries; track person.userId) {
+              <div>
+                <dt>{{ person.userName }}</dt>
+                <dd>
+                  {{
+                    person.netAmount
+                      | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+                  }}
+                </dd>
+              </div>
+            }
+          </dl>
+        } @else {
+          <p>No se registraron propinas en esta fecha.</p>
+        }
+      </div>
+    </div>
+    <footer>
+      Recibidas
+      {{
+        daily.tips.grossAmount | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}
+      · Anuladas
+      {{
+        daily.tips.voidedAmount | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}
+    </footer>
+  </article>
+
   <article class="report-card hourly-card">
     <header>
       <div>
@@ -326,6 +394,15 @@
           <dd>
             {{
               daily.cash.cashPayments
+                | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
+            }}
+          </dd>
+        </div>
+        <div>
+          <dt>Propinas en efectivo</dt>
+          <dd>
+            {{
+              daily.cash.cashTips
                 | currency: daily.currencyCode : 'symbol-narrow' : '1.2-2' : 'es-MX'
             }}
           </dd>

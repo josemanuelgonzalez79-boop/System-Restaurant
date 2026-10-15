@@ -10,6 +10,8 @@ public record PaymentResponse(
         UUID operationId,
         Long cashRegisterSessionId,
         BigDecimal amount,
+        BigDecimal tipAmount,
+        String tipBeneficiaryName,
         BigDecimal tenderedAmount,
         BigDecimal changeAmount,
         PaymentMethod method,

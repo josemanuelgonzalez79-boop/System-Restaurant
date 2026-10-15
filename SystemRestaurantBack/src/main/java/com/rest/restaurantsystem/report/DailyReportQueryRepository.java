@@ -66,6 +66,42 @@ public class DailyReportQueryRepository {
         );
     }
 
+    List<TipMetricRow> findTipMetrics(Long branchId, Instant start, Instant end) {
+        return jdbc.query(
+                """
+                SELECT payment.method, payment.tip_beneficiary_user_id,
+                       payment.tip_beneficiary_name,
+                       COALESCE(SUM(payment.tip_amount) FILTER (
+                           WHERE payment.received_at >= :startAt
+                             AND payment.received_at < :endAt
+                       ), 0) AS gross_amount,
+                       COALESCE(SUM(payment.tip_amount) FILTER (
+                           WHERE payment.status = 'VOIDED'
+                             AND payment.voided_at >= :startAt
+                             AND payment.voided_at < :endAt
+                       ), 0) AS voided_amount
+                FROM order_payments payment
+                JOIN restaurant_orders orders ON orders.id = payment.order_id
+                WHERE orders.branch_id = :branchId
+                  AND payment.tip_amount > 0
+                  AND ((payment.received_at >= :startAt AND payment.received_at < :endAt)
+                       OR (payment.status = 'VOIDED'
+                           AND payment.voided_at >= :startAt AND payment.voided_at < :endAt))
+                GROUP BY payment.method, payment.tip_beneficiary_user_id,
+                         payment.tip_beneficiary_name
+                ORDER BY payment.tip_beneficiary_name, payment.method
+                """,
+                parameters(branchId, start, end),
+                (result, rowNumber) -> new TipMetricRow(
+                        PaymentMethod.valueOf(result.getString("method")),
+                        result.getLong("tip_beneficiary_user_id"),
+                        result.getString("tip_beneficiary_name"),
+                        result.getBigDecimal("gross_amount"),
+                        result.getBigDecimal("voided_amount")
+                )
+        );
+    }
+
     List<DailyReportResponse.HourlySalesSummary> findHourlySales(
             Long branchId,
             Instant start,
@@ -455,6 +491,9 @@ public class DailyReportQueryRepository {
             long voidedCount
     ) {
     }
+
+    record TipMetricRow(PaymentMethod method, Long beneficiaryId, String beneficiaryName,
+                        BigDecimal grossAmount, BigDecimal voidedAmount) { }
 
     record OrderMetricsRow(
             long openedCount,

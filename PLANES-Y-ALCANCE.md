@@ -63,8 +63,8 @@ datos. El plan inicial comprende cuatro bloques, sujeto a ajustes después de pr
 | --- | --- | --- |
 | 1 | Reservaciones, agenda de mesas y llegada con pedido | Probado y subido a `pro` |
 | 2 | Fichas de clientes y preferencias, con control de acceso | Probado y subido a `pro` |
-| 3 | Promociones y descuentos auditables durante el cobro | Implementado en esta entrega; pendiente de prueba local |
-| 4 | Integraciones y operaciones avanzadas que el piloto requiera | Alcance por concretar |
+| 3 | Promociones y descuentos auditables durante el cobro | Probado y subido a `pro` |
+| 4 | Propinas voluntarias en cobros, corte de caja y reporte diario | Implementado; pendiente de prueba local |
 
 La reserva ocupa un intervalo específico de una mesa o salón y PostgreSQL impide traslapes.
 Un cliente que llega puede sentarse y abrir un pedido vinculado. El pedido normal no puede
@@ -87,6 +87,19 @@ tres roles y un motivo. Solo hay un descuento activo por pedido; el importe se c
 anulaciones conservan usuario, motivo y fecha. La cuenta se cobra sobre el total neto, pero el
 reporte de productos conserva su importe bruto para que no se asigne arbitrariamente un
 descuento de cuenta a cada producto. No se descuentan pedidos ya pagados ni se combinan ofertas.
+
+El bloque 4 registra propinas voluntarias en cada cobro y las atribuye al responsable
+del pedido en ese momento. Consumo y propina se muestran y contabilizan por separado:
+la propina no reduce el saldo ni incrementa la venta neta o el ticket promedio.
+El efectivo esperado de caja sí incluye propinas en efectivo. Una anulación revierte
+ambos importes y conserva el rastro de auditoría. El reporte diario y su CSV muestran
+propinas por método y responsable, con la misma regla de fecha local usada por las
+ventas. Un cobro no admite una propina mayor al importe aplicado. Esta primera versión
+registra el dinero recibido; no gestiona reparto, retiro de propinas ni nómina.
+
+Con este bloque queda implementado el alcance inicial de cuatro bloques de Pro; su
+cierre comercial requiere pasar las pruebas locales del bloque y el recorrido integral
+de las tres versiones en el restaurante piloto.
 
 Ninguna de estas opciones presupone WAN, sincronización entre locales ni reportes consolidados.
 Para dar servicio a otro establecimiento se instala una instancia distinta, con una base de datos

@@ -76,7 +76,7 @@
       <strong>{{
         summary.expectedCash | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
       }}</strong>
-      <small>Fondo + ventas + entradas − salidas</small>
+      <small>Fondo + ventas en efectivo + propinas en efectivo + entradas − salidas</small>
     </article>
     <article>
       <span>Ventas en efectivo</span>
@@ -86,11 +86,18 @@
       <small>Aplicadas a pedidos</small>
     </article>
     <article>
-      <span>Pagos electrónicos</span>
+      <span>Ventas electrónicas</span>
       <strong>{{
         electronicPayments() | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
       }}</strong>
       <small>Tarjeta, transferencia y otros</small>
+    </article>
+    <article>
+      <span>Propinas en efectivo</span>
+      <strong>{{
+        summary.cashTips | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX'
+      }}</strong>
+      <small>En el arqueo, separadas de las ventas</small>
     </article>
     <article>
       <span>Movimientos manuales</span>
@@ -123,10 +130,18 @@
           </dd>
         </div>
         <div>
+          <dt>Propinas en efectivo</dt>
+          <dd>{{ summary.cashTips | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</dd>
+        </div>
+        <div>
           <dt>Tarjetas</dt>
           <dd>
             {{ summary.cardPayments | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
           </dd>
+        </div>
+        <div>
+          <dt>Propinas en tarjeta</dt>
+          <dd>{{ summary.cardTips | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</dd>
         </div>
         <div>
           <dt>Transferencias</dt>
@@ -135,10 +150,20 @@
           </dd>
         </div>
         <div>
+          <dt>Propinas en transferencia</dt>
+          <dd>
+            {{ summary.transferTips | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
+          </dd>
+        </div>
+        <div>
           <dt>Otros pagos</dt>
           <dd>
             {{ summary.otherPayments | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}
           </dd>
+        </div>
+        <div>
+          <dt>Otras propinas</dt>
+          <dd>{{ summary.otherTips | currency: 'MXN' : 'symbol-narrow' : '1.2-2' : 'es-MX' }}</dd>
         </div>
         <div class="positive">
           <dt>Entradas manuales</dt>

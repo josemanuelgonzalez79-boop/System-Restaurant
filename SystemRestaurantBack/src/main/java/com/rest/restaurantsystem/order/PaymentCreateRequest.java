@@ -16,6 +16,13 @@ public record PaymentCreateRequest(
         @Size(max = 60) String methodLabel,
         @Size(max = 120) String reference,
         @Size(max = 250) String notes,
+        @DecimalMin("0.00") @Digits(integer = 10, fraction = 2) BigDecimal tipAmount,
         long orderVersion
 ) {
+    public PaymentCreateRequest(UUID operationId, BigDecimal amount, BigDecimal tenderedAmount,
+                                PaymentMethod method, String methodLabel, String reference,
+                                String notes, long orderVersion) {
+        this(operationId, amount, tenderedAmount, method, methodLabel, reference, notes,
+                BigDecimal.ZERO, orderVersion);
+    }
 }

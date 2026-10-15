@@ -78,7 +78,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    void registersCashPaymentAndCalculatesChange() {
+    void registersCashPaymentWithTipWithoutIncreasingOrderBalance() {
         UUID operationId = UUID.randomUUID();
         List<OrderPayment> savedPayments = new ArrayList<>();
         mockAccessibleOrder();
@@ -110,14 +110,17 @@ class PaymentServiceTest {
                         null,
                         null,
                         null,
+                        new BigDecimal("15.00"),
                         0
                 ),
                 "cajero"
         );
 
         assertThat(result.paid()).isEqualByComparingTo("100.00");
+        assertThat(result.tipTotal()).isEqualByComparingTo("15.00");
         assertThat(result.balance()).isZero();
-        assertThat(result.payments().getFirst().changeAmount()).isEqualByComparingTo("50.00");
+        assertThat(result.payments().getFirst().changeAmount()).isEqualByComparingTo("35.00");
+        assertThat(result.payments().getFirst().tipBeneficiaryName()).isEqualTo("Caja principal");
         verify(realtimeEventPublisher).publish(
                 RealtimeEventType.PAYMENT_CHANGED,
                 1L,
@@ -125,6 +128,51 @@ class PaymentServiceTest {
                 null,
                 null
         );
+    }
+
+    @Test
+    void rejectsElectronicChargeThatDoesNotIncludeItsTip() {
+        UUID operationId = UUID.randomUUID();
+        mockAccessibleOrder();
+        when(paymentRepository.findByOrderIdAndOperationId(42L, operationId))
+                .thenReturn(Optional.empty());
+        when(orderItemService.buildDetail(order)).thenReturn(detail);
+        when(paymentRepository.sumActiveByOrderId(42L)).thenReturn(BigDecimal.ZERO);
+
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> service.add(42L, new PaymentCreateRequest(operationId,
+                        new BigDecimal("100.00"), new BigDecimal("100.00"),
+                        PaymentMethod.CARD, null, "AUT-123", null,
+                        new BigDecimal("15.00"), 0), "cajero"));
+
+        assertThat(exception.getMessage()).contains("consumo más propina");
+        verify(paymentRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void voidingPaymentReversesConsumptionAndTipTogether() {
+        OrderPayment payment = new OrderPayment(UUID.randomUUID(), 42L, 12L,
+                new BigDecimal("100.00"), new BigDecimal("115.00"), PaymentMethod.CARD,
+                null, "AUT-123", null, 10L,
+                new BigDecimal("15.00"), 10L, "Caja principal");
+        ReflectionTestUtils.setField(payment, "id", 80L);
+        payment.onCreate();
+        mockAccessibleOrder();
+        when(paymentRepository.findById(80L)).thenReturn(Optional.of(payment));
+        when(paymentRepository.saveAndFlush(payment)).thenReturn(payment);
+        when(orderRepository.saveAndFlush(order)).thenReturn(order);
+        when(orderItemService.buildDetail(order)).thenReturn(detail);
+        when(paymentRepository.findByOrderIdOrderByReceivedAtAscIdAsc(42L))
+                .thenReturn(List.of(payment));
+        when(userService.findById(10L)).thenReturn(cashier);
+
+        OrderPaymentSummaryResponse result = service.voidPayment(42L, 80L,
+                new PaymentVoidRequest(0, "Cobro duplicado"), "cajero");
+
+        assertThat(result.paid()).isZero();
+        assertThat(result.tipTotal()).isZero();
+        assertThat(result.balance()).isEqualByComparingTo("100.00");
+        assertThat(result.payments().getFirst().status()).isEqualTo(PaymentStatus.VOIDED);
     }
 
     @Test

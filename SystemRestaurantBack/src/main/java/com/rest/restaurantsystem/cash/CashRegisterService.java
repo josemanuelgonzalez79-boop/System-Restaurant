@@ -300,11 +300,16 @@ public class CashRegisterService {
         BigDecimal cardPayments = paymentTotal(session.getId(), PaymentMethod.CARD);
         BigDecimal transferPayments = paymentTotal(session.getId(), PaymentMethod.TRANSFER);
         BigDecimal otherPayments = paymentTotal(session.getId(), PaymentMethod.OTHER);
+        BigDecimal cashTips = tipTotal(session.getId(), PaymentMethod.CASH);
+        BigDecimal cardTips = tipTotal(session.getId(), PaymentMethod.CARD);
+        BigDecimal transferTips = tipTotal(session.getId(), PaymentMethod.TRANSFER);
+        BigDecimal otherTips = tipTotal(session.getId(), PaymentMethod.OTHER);
         BigDecimal cashIn = movementTotal(session.getId(), CashMovementType.CASH_IN);
         BigDecimal cashOut = movementTotal(session.getId(), CashMovementType.CASH_OUT);
         BigDecimal expectedCash = session.getStatus() == CashRegisterStatus.CLOSED
                 ? session.getExpectedCashAtClose()
-                : session.getOpeningAmount().add(cashPayments).add(cashIn).subtract(cashOut);
+                : session.getOpeningAmount().add(cashPayments).add(cashTips)
+                        .add(cashIn).subtract(cashOut);
         String blockingReason = closeBlockingReason(session);
 
         return new CashRegisterSummaryResponse(
@@ -317,6 +322,10 @@ public class CashRegisterService {
                 cardPayments,
                 transferPayments,
                 otherPayments,
+                cashTips,
+                cardTips,
+                transferTips,
+                otherTips,
                 cashIn,
                 cashOut,
                 expectedCash,
@@ -328,12 +337,18 @@ public class CashRegisterService {
     private BigDecimal calculateExpectedCash(CashRegisterSession session) {
         return session.getOpeningAmount()
                 .add(paymentTotal(session.getId(), PaymentMethod.CASH))
+                .add(tipTotal(session.getId(), PaymentMethod.CASH))
                 .add(movementTotal(session.getId(), CashMovementType.CASH_IN))
                 .subtract(movementTotal(session.getId(), CashMovementType.CASH_OUT));
     }
 
     private BigDecimal paymentTotal(Long sessionId, PaymentMethod method) {
         BigDecimal total = paymentRepository.sumActiveByCashRegisterAndMethod(sessionId, method);
+        return total == null ? BigDecimal.ZERO : total;
+    }
+
+    private BigDecimal tipTotal(Long sessionId, PaymentMethod method) {
+        BigDecimal total = paymentRepository.sumActiveTipsByCashRegisterAndMethod(sessionId, method);
         return total == null ? BigDecimal.ZERO : total;
     }
 

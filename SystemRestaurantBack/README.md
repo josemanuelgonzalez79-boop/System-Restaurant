@@ -158,3 +158,9 @@ caja puede consultar las disponibles. `/api/v1/orders/{orderId}/discounts` aplic
 o un descuento manual autorizado antes del primer cobro. Solo se admite uno activo; importe,
 nombre y condiciones quedan congelados en el historial, junto con anulaciones y motivos. Los
 cobros usan el saldo neto y la modificación concurrente de la cuenta se rechaza por versión.
+
+`V19` añade propinas voluntarias al cobro y un beneficiario congelado (responsable del pedido
+al cobrar). `tipAmount` es opcional y vale cero para clientes anteriores. `amount` continúa
+siendo el importe aplicado al saldo de consumo; `tenderedAmount` debe cubrir ambos importes.
+La caja incluye propinas en efectivo en el arqueo. Reporte diario agrupa propinas por método y
+beneficiario sin sumarlas a las ventas. La anulación de un cobro revierte ambos importes.

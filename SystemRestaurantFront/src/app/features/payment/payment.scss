@@ -180,6 +180,23 @@ h2 {
   border-top: 0;
   font-size: 0.9rem;
 }
+
+.account-lines footer.account-tip {
+  color: var(--p-primary-color);
+  font-size: 0.9rem;
+}
+.tip-charge-preview {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.65rem;
+  background: var(--p-content-hover-background);
+}
+.tip-detail {
+  color: var(--p-primary-color) !important;
+  font-weight: 650;
+}
 .discount-history {
   padding: 0.8rem 1rem;
   border-bottom: 1px solid var(--p-content-border-color);

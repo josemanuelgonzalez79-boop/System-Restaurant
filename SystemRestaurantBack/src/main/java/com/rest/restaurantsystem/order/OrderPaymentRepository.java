@@ -40,6 +40,18 @@ public interface OrderPaymentRepository extends JpaRepository<OrderPayment, Long
             @Param("method") PaymentMethod method
     );
 
+    @Query("""
+            SELECT COALESCE(SUM(payment.tipAmount), 0)
+            FROM OrderPayment payment
+            WHERE payment.cashRegisterSessionId = :sessionId
+              AND payment.status = com.rest.restaurantsystem.order.PaymentStatus.ACTIVE
+              AND payment.method = :method
+            """)
+    BigDecimal sumActiveTipsByCashRegisterAndMethod(
+            @Param("sessionId") Long sessionId,
+            @Param("method") PaymentMethod method
+    );
+
     @Query(
             value = """
                     SELECT EXISTS (

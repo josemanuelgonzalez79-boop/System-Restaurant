@@ -17,6 +17,7 @@ public record DailyReportResponse(
         Instant periodEnd,
         Instant generatedAt,
         SalesSummary sales,
+        TipsSummary tips,
         OrderSummary orders,
         List<PaymentMethodSummary> paymentMethods,
         List<HourlySalesSummary> hourlySales,
@@ -34,6 +35,20 @@ public record DailyReportResponse(
             long voidedPaymentCount
     ) {
     }
+
+    public record TipsSummary(
+            BigDecimal grossAmount,
+            BigDecimal voidedAmount,
+            BigDecimal netAmount,
+            List<TipMethodSummary> methods,
+            List<TipBeneficiarySummary> beneficiaries
+    ) { }
+
+    public record TipMethodSummary(PaymentMethod method, BigDecimal grossAmount,
+                                   BigDecimal voidedAmount, BigDecimal netAmount) { }
+
+    public record TipBeneficiarySummary(Long userId, String userName, BigDecimal grossAmount,
+                                        BigDecimal voidedAmount, BigDecimal netAmount) { }
 
     public record OrderSummary(
             long openedCount,
@@ -80,6 +95,7 @@ public record DailyReportResponse(
             long openAtEndCount,
             BigDecimal openingAmount,
             BigDecimal cashPayments,
+            BigDecimal cashTips,
             BigDecimal cashInGross,
             BigDecimal cashInVoided,
             BigDecimal cashInNet,

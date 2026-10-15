@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,6 +93,8 @@ public class DailyReportService {
         List<DailyReportResponse.PaymentMethodSummary> paymentMethods =
                 buildPaymentMethods(branchId, start, end);
         DailyReportResponse.SalesSummary sales = buildSalesSummary(paymentMethods);
+        DailyReportResponse.TipsSummary tips = buildTipsSummary(
+                repository.findTipMetrics(branchId, start, end));
         DailyReportResponse.OrderSummary orders = buildOrderSummary(
                 repository.findOrderMetrics(branchId, start, end)
         );
@@ -110,7 +113,8 @@ public class DailyReportService {
                 branchId,
                 start,
                 end,
-                paymentMethods
+                paymentMethods,
+                tips
         );
 
         return new DailyReportResponse(
@@ -123,6 +127,7 @@ public class DailyReportService {
                 end,
                 clock.instant(),
                 sales,
+                tips,
                 orders,
                 paymentMethods,
                 hourlySales,
@@ -201,6 +206,43 @@ public class DailyReportService {
         );
     }
 
+    private DailyReportResponse.TipsSummary buildTipsSummary(
+            List<DailyReportQueryRepository.TipMetricRow> rows
+    ) {
+        Map<PaymentMethod, BigDecimal[]> methods = new EnumMap<>(PaymentMethod.class);
+        Map<Long, BigDecimal[]> people = new LinkedHashMap<>();
+        Map<Long, String> names = new LinkedHashMap<>();
+        BigDecimal gross = BigDecimal.ZERO;
+        BigDecimal voided = BigDecimal.ZERO;
+        for (DailyReportQueryRepository.TipMetricRow row : rows) {
+            gross = gross.add(row.grossAmount());
+            voided = voided.add(row.voidedAmount());
+            BigDecimal[] method = methods.computeIfAbsent(row.method(), ignored ->
+                    new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
+            method[0] = method[0].add(row.grossAmount());
+            method[1] = method[1].add(row.voidedAmount());
+            BigDecimal[] person = people.computeIfAbsent(row.beneficiaryId(), ignored ->
+                    new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
+            person[0] = person[0].add(row.grossAmount());
+            person[1] = person[1].add(row.voidedAmount());
+            names.putIfAbsent(row.beneficiaryId(), row.beneficiaryName());
+        }
+        List<DailyReportResponse.TipMethodSummary> byMethod = List.of(PaymentMethod.values())
+                .stream().map(method -> {
+                    BigDecimal[] amounts = methods.getOrDefault(method,
+                            new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
+                    return new DailyReportResponse.TipMethodSummary(method, amounts[0],
+                            amounts[1], amounts[0].subtract(amounts[1]));
+                }).toList();
+        List<DailyReportResponse.TipBeneficiarySummary> byPerson = people.entrySet().stream()
+                .map(entry -> new DailyReportResponse.TipBeneficiarySummary(entry.getKey(),
+                        names.get(entry.getKey()), entry.getValue()[0], entry.getValue()[1],
+                        entry.getValue()[0].subtract(entry.getValue()[1])))
+                .toList();
+        return new DailyReportResponse.TipsSummary(gross, voided, gross.subtract(voided),
+                byMethod, byPerson);
+    }
+
     private DailyReportResponse.OrderSummary buildOrderSummary(
             DailyReportQueryRepository.OrderMetricsRow metrics
     ) {
@@ -274,7 +316,8 @@ public class DailyReportService {
             Long branchId,
             Instant start,
             Instant end,
-            List<DailyReportResponse.PaymentMethodSummary> paymentMethods
+            List<DailyReportResponse.PaymentMethodSummary> paymentMethods,
+            DailyReportResponse.TipsSummary tips
     ) {
         DailyReportQueryRepository.CashMetricsRow metrics =
                 repository.findCashMetrics(branchId, start, end);
@@ -283,10 +326,15 @@ public class DailyReportService {
                 .map(DailyReportResponse.PaymentMethodSummary::netAmount)
                 .findFirst()
                 .orElse(BigDecimal.ZERO);
+        BigDecimal cashTips = tips.methods().stream()
+                .filter(method -> method.method() == PaymentMethod.CASH)
+                .map(DailyReportResponse.TipMethodSummary::netAmount)
+                .findFirst().orElse(BigDecimal.ZERO);
         BigDecimal cashInNet = metrics.cashInGross().subtract(metrics.cashInVoided());
         BigDecimal cashOutNet = metrics.cashOutGross().subtract(metrics.cashOutVoided());
         BigDecimal expectedCashFlow = metrics.openingAmount()
                 .add(cashPayments)
+                .add(cashTips)
                 .add(cashInNet)
                 .subtract(cashOutNet);
 
@@ -296,6 +344,7 @@ public class DailyReportService {
                 metrics.openAtEndCount(),
                 metrics.openingAmount(),
                 cashPayments,
+                cashTips,
                 metrics.cashInGross(),
                 metrics.cashInVoided(),
                 cashInNet,
