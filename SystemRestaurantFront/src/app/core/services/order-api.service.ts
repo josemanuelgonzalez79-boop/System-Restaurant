@@ -37,6 +37,12 @@ export class OrderApiService {
     return this.http.get<OrderOperator[]>(`${this.ordersUrl}/operators`, { params });
   }
 
+  findHeldPoints(branchId: number): Observable<number[]> {
+    return this.http.get<number[]>(`${this.ordersUrl}/held-points`, {
+      params: new HttpParams().set('branchId', branchId.toString()),
+    });
+  }
+
   create(payload: OrderCreatePayload): Observable<RestaurantOrder> {
     return this.http.post<RestaurantOrder>(this.ordersUrl, payload);
   }

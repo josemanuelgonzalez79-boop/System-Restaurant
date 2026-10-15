@@ -5,6 +5,7 @@ import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
 import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
 import com.rest.restaurantsystem.realtime.RealtimeEventType;
+import com.rest.restaurantsystem.reservation.ReservationService;
 import com.rest.restaurantsystem.structure.BranchAssignmentService;
 import com.rest.restaurantsystem.structure.BranchResponse;
 import com.rest.restaurantsystem.structure.BranchService;
@@ -33,6 +34,7 @@ public class OrderService {
     private final UserService userService;
     private final BranchAssignmentService assignmentService;
     private final RealtimeEventPublisher realtimeEventPublisher;
+    private final ReservationService reservationService;
 
     public OrderService(
             RestaurantOrderRepository repository,
@@ -42,7 +44,8 @@ public class OrderService {
             ServicePointService servicePointService,
             UserService userService,
             BranchAssignmentService assignmentService,
-            RealtimeEventPublisher realtimeEventPublisher
+            RealtimeEventPublisher realtimeEventPublisher,
+            ReservationService reservationService
     ) {
         this.repository = repository;
         this.preparationItemRepository = preparationItemRepository;
@@ -52,6 +55,7 @@ public class OrderService {
         this.userService = userService;
         this.assignmentService = assignmentService;
         this.realtimeEventPublisher = realtimeEventPublisher;
+        this.reservationService = reservationService;
     }
 
     @Transactional(readOnly = true)
@@ -107,6 +111,12 @@ public class OrderService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<Long> findHeldPoints(Long branchId, String currentUsername) {
+        ensureCurrentUserAssigned(branchId, currentUsername);
+        return reservationService.heldPoints(branchId);
+    }
+
     @Transactional
     public OrderResponse create(OrderCreateRequest request, String currentUsername) {
         BranchResponse branch = branchService.findById(request.branchId());
@@ -117,10 +127,18 @@ public class OrderService {
         UserResponse currentUser = ensureCurrentUserAssigned(request.branchId(), currentUsername);
         validateAssignedUser(request.branchId(), request.assignedUserId());
         validateServicePoint(request);
+        if (request.serviceMode() == ServiceMode.TAKEOUT && request.reservationId() != null) {
+            throw new BadRequestException("Una reservación debe abrirse en su mesa, no para llevar.");
+        }
+        if (request.serviceMode() == ServiceMode.DINE_IN) {
+            reservationService.beforeOrder(request.reservationId(), request.branchId(),
+                    request.servicePointId());
+        }
 
         RestaurantOrder order = new RestaurantOrder(request, currentUser.id());
         try {
             RestaurantOrder saved = repository.saveAndFlush(order);
+            reservationService.afterOrder(request.reservationId(), saved.getId(), currentUsername);
             OrderResponse response = toResponse(saved);
             realtimeEventPublisher.publish(
                     RealtimeEventType.ORDER_CREATED,
@@ -194,6 +212,7 @@ public class OrderService {
             throw new BadRequestException("Selecciona una mesa o punto para el pedido en el local.");
         }
 
+        servicePointService.lockPoint(request.servicePointId());
         ServicePointResponse point = servicePointService.findById(request.servicePointId());
         if (!point.active()) {
             throw new BadRequestException("La mesa o punto seleccionado está inactivo.");

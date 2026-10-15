@@ -17,6 +17,10 @@
       <span>Ocupados</span>
     </div>
     <div>
+      <strong>{{ reservedPointCount() }}</strong>
+      <span>Reservados pronto</span>
+    </div>
+    <div>
       <strong>{{ takeoutOrders().length }}</strong>
       <span>Para llevar</span>
     </div>
@@ -148,6 +152,22 @@
                 (onClick)="cancelOrder(order)"
               />
             </footer>
+          </article>
+        } @else if (heldPointIds().has(point.id)) {
+          <article class="point-card reserved">
+            <header>
+              <div class="point-name">
+                <i [class]="pointIcon(point)"></i>
+                <span
+                  ><strong>{{ point.name }}</strong
+                  ><small>{{ point.areaName }}</small></span
+                >
+              </div>
+              <p-tag value="Reservada" severity="warn" />
+            </header>
+            <p class="free-message">
+              Hay una reservación próxima. Recibe al cliente desde Reservaciones.
+            </p>
           </article>
         } @else {
           <article class="point-card free">

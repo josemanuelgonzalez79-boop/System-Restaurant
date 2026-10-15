@@ -69,6 +69,8 @@ El frontend nunca se conecta directamente a PostgreSQL. Toda operación pasa por
   margen sobre venta; costo histórico por comanda.
 - Essential Plus: reporte y alertas de inventario, exportación CSV y conciliación auditable de
   conteos físicos sin cambios parciales.
+- Essential Pro: agenda de reservaciones por mesa, duración, cancelación, ausencia e historial;
+  llegada enlazada al pedido, sin traslapes y con actualización entre tablets.
 
 Rutas:
 
@@ -86,6 +88,7 @@ Rutas:
 /inventario/reporte
 /recetas
 /costos
+/reservaciones
 /configuracion
 /usuarios
 ```

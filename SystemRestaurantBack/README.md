@@ -108,6 +108,7 @@ src/main/resources/db/migration/V12__create_product_recipes.sql
 src/main/resources/db/migration/V13__consume_recipes_on_dispatch.sql
 src/main/resources/db/migration/V14__recipe_costs_and_margin_snapshots.sql
 src/main/resources/db/migration/V15__inventory_counts.sql
+src/main/resources/db/migration/V16__create_local_reservations.sql
 ```
 
 `V2` conserva los datos existentes, generaliza la configuración y agrega usuarios. `V4` incorpora
@@ -136,3 +137,9 @@ migrar. La API `/api/v1/inventory/report?from=AAAA-MM-DD&to=AAAA-MM-DD` resume m
 del periodo y valora la existencia actual, señalando costos pendientes. La API
 `/api/v1/inventory/counts` concilia todos los insumos activos con versiones, registra los ajustes
 necesarios en el libro de movimientos y rechaza cambios simultáneos sin aplicar ajustes parciales.
+
+`V16` agrega reservaciones y eventos auditables. Requiere la extensión PostgreSQL `btree_gist`
+(se crea automáticamente si el usuario de la base tiene permiso). La exclusión GiST impide
+reservaciones traslapadas por mesa; cancelar o registrar una ausencia libera el intervalo.
+`/api/v1/reservations` administra la agenda en la zona horaria local y el pedido acepta un
+`reservationId` opcional para sentar al cliente y vincular la cuenta en una sola transacción.

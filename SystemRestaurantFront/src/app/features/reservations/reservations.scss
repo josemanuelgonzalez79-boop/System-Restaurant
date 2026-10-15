@@ -1,0 +1,325 @@
+:host {
+  display: block;
+  padding-bottom: 2.5rem;
+}
+.eyebrow {
+  color: var(--p-primary-color);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+h1 {
+  margin: 0.2rem 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+h2 {
+  margin: 0.3rem 0;
+  font-size: 1.3rem;
+}
+h3 {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+p {
+  margin: 0.3rem 0;
+  line-height: 1.5;
+}
+.reservations-heading,
+.day-panel,
+.day-stats,
+.filter-row,
+.detail-head,
+.detail-actions,
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+.reservations-heading {
+  margin: 1rem 0 1.1rem;
+  flex-wrap: wrap;
+}
+.reservations-heading p,
+.day-panel label,
+.detail-grid span,
+.guest-block small,
+.time-block small,
+.empty,
+.seat-panel small,
+.history small,
+.reservation-form small {
+  color: var(--p-text-muted-color);
+}
+.day-panel,
+.agenda-card,
+.detail-card {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 1rem;
+  background: var(--p-content-background);
+}
+.day-panel {
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.day-panel > div:first-child {
+  display: grid;
+  gap: 0.35rem;
+}
+.day-panel label {
+  font-size: 0.8rem;
+}
+.day-stats {
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.day-stats span {
+  display: grid;
+  text-align: center;
+  font-size: 0.76rem;
+  color: var(--p-text-muted-color);
+}
+.day-stats strong {
+  color: var(--p-text-color);
+  font-size: 1.4rem;
+}
+.reservations-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  align-items: start;
+  gap: 1rem;
+}
+.agenda-card,
+.detail-card {
+  min-height: 400px;
+}
+.filter-row {
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+.search-box {
+  flex: 1 1 210px;
+  position: relative;
+}
+.search-box i {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--p-text-muted-color);
+}
+.search-box input {
+  display: block;
+  width: 100%;
+  padding-left: 2.2rem;
+}
+.agenda-list {
+  display: grid;
+  max-height: 700px;
+  overflow-y: auto;
+  gap: 0.5rem;
+}
+.reservation-row {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: 0.7rem;
+  color: var(--p-text-color);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.reservation-row:hover,
+.reservation-row.selected {
+  border-color: var(--p-primary-color);
+  background: color-mix(in srgb, var(--p-primary-color) 7%, var(--p-content-background));
+}
+.reservation-row.inactive {
+  opacity: 0.65;
+}
+.time-block,
+.guest-block {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+.time-block strong {
+  color: var(--p-primary-color);
+  font-size: 1.1rem;
+}
+.guest-block strong {
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+.guest-block small {
+  font-size: 0.73rem;
+}
+.detail-head {
+  align-items: start;
+  margin: 0.5rem 0 1rem;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--p-content-border-color);
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+.detail-grid div {
+  min-width: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+.detail-grid span {
+  font-size: 0.75rem;
+}
+.detail-grid strong {
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+}
+.detail-grid a,
+.order-link {
+  color: var(--p-primary-color);
+  font-weight: 700;
+}
+.note,
+.cancel-note {
+  padding: 0.8rem;
+  margin-top: 0.8rem;
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--p-primary-color) 8%, var(--p-content-background));
+}
+.note span {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.order-link {
+  display: inline-block;
+  margin-top: 0.8rem;
+}
+.seat-panel {
+  display: grid;
+  gap: 0.55rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--p-primary-color) 35%, var(--p-content-border-color));
+  border-radius: 0.75rem;
+}
+.seat-panel label,
+.cancel-panel label {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.detail-actions {
+  justify-content: start;
+  flex-wrap: wrap;
+}
+.cancel-panel {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--p-content-border-color);
+}
+.history {
+  border-top: 1px solid var(--p-content-border-color);
+  margin-top: 1.25rem;
+  padding-top: 0.5rem;
+}
+.history p {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--p-content-border-color);
+  font-size: 0.82rem;
+}
+.history small {
+  display: block;
+  margin-top: 0.2rem;
+}
+.empty,
+.empty-detail {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--p-text-muted-color);
+}
+.empty-detail i {
+  font-size: 2.5rem;
+  color: var(--p-primary-color);
+}
+.reservation-form {
+  display: grid;
+  gap: 0.95rem;
+  padding: 0.35rem 0;
+}
+.reservation-form label {
+  display: grid;
+  min-width: 0;
+  gap: 0.38rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.reservation-form input,
+.reservation-form textarea,
+.reservation-form p-select,
+.reservation-form p-inputnumber,
+.seat-panel p-select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+:host ::ng-deep .p-inputnumber,
+:host ::ng-deep .p-inputnumber-input,
+:host ::ng-deep .p-select {
+  width: 100%;
+  min-width: 0;
+}
+.form-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+.form-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+@media (max-width: 880px) {
+  .reservations-layout {
+    grid-template-columns: 1fr;
+  }
+  .agenda-card,
+  .detail-card {
+    min-height: auto;
+  }
+}
+@media (max-width: 600px) {
+  .form-pair,
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .day-stats {
+    justify-content: start;
+  }
+  .reservation-row {
+    grid-template-columns: 4.1rem minmax(0, 1fr);
+  }
+  .reservation-row p-tag {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

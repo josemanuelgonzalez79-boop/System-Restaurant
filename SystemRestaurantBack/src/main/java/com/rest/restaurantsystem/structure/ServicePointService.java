@@ -4,6 +4,7 @@ import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
 import com.rest.restaurantsystem.order.OrderOccupancyService;
+import com.rest.restaurantsystem.reservation.ReservationOccupancyService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,15 +16,18 @@ public class ServicePointService {
     private final ServicePointRepository repository;
     private final OperationalAreaService areaService;
     private final OrderOccupancyService occupancyService;
+    private final ReservationOccupancyService reservationOccupancy;
 
     public ServicePointService(
             ServicePointRepository repository,
             OperationalAreaService areaService,
-            OrderOccupancyService occupancyService
+            OrderOccupancyService occupancyService,
+            ReservationOccupancyService reservationOccupancy
     ) {
         this.repository = repository;
         this.areaService = areaService;
         this.occupancyService = occupancyService;
+        this.reservationOccupancy = reservationOccupancy;
     }
 
     @Transactional(readOnly = true)
@@ -40,6 +44,12 @@ public class ServicePointService {
     }
 
     @Transactional
+    public void lockPoint(Long id) {
+        repository.findLockedById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró la mesa solicitada."));
+    }
+
+    @Transactional
     public ServicePointResponse create(ServicePointRequest request) {
         OperationalArea area = areaService.getEntity(request.areaId());
         ensureActiveHierarchy(area);
@@ -51,11 +61,12 @@ public class ServicePointService {
 
     @Transactional
     public ServicePointResponse update(Long id, ServicePointRequest request) {
-        ServicePoint point = getEntity(id);
+        ServicePoint point = getLockedEntity(id);
         if (!point.getArea().getId().equals(request.areaId())
-                && occupancyService.hasActiveOrderForServicePoint(id)) {
+                && (occupancyService.hasActiveOrderForServicePoint(id)
+                    || reservationOccupancy.hasUpcomingForPoint(id))) {
             throw new BadRequestException(
-                    "Completa o cancela el pedido abierto antes de mover el punto."
+                    "Completa el pedido o cancela las reservaciones pendientes antes de mover la mesa."
             );
         }
         OperationalArea area = areaService.getEntity(request.areaId());
@@ -73,13 +84,14 @@ public class ServicePointService {
 
     @Transactional
     public ServicePointResponse changeActive(Long id, boolean active) {
-        ServicePoint point = getEntity(id);
+        ServicePoint point = getLockedEntity(id);
         if (active) {
             ensureActiveHierarchy(point.getArea());
         }
-        if (!active && point.isActive() && occupancyService.hasActiveOrderForServicePoint(id)) {
+        if (!active && point.isActive() && (occupancyService.hasActiveOrderForServicePoint(id)
+                || reservationOccupancy.hasUpcomingForPoint(id))) {
             throw new BadRequestException(
-                    "Completa o cancela el pedido abierto antes de desactivar el punto."
+                    "Completa el pedido o cancela las reservaciones pendientes antes de desactivar la mesa."
             );
         }
         point.setActive(active);
@@ -88,6 +100,11 @@ public class ServicePointService {
 
     private ServicePoint getEntity(Long id) {
         return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el punto solicitado."));
+    }
+
+    private ServicePoint getLockedEntity(Long id) {
+        return repository.findLockedById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el punto solicitado."));
     }
 

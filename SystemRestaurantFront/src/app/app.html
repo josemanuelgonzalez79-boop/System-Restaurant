@@ -7,7 +7,7 @@
         <img class="brand-logo" src="essential-mark.png" alt="" />
         <span>
           <strong>essential</strong>
-          <small>Restaurante local · Plus</small>
+          <small>Restaurante local · Pro</small>
         </span>
       </a>
     </ng-template>
@@ -21,6 +21,7 @@
           <a routerLink="/pedidos" routerLinkActive="active">Pedidos</a>
           <a routerLink="/preparacion" routerLinkActive="active">Preparación</a>
           @if (auth.canOperateCash()) {
+            <a routerLink="/reservaciones" routerLinkActive="active">Reservaciones</a>
             <a routerLink="/caja" routerLinkActive="active">Caja</a>
           }
           @if (auth.canViewReports()) {

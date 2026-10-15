@@ -4,6 +4,7 @@ import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.exception.ResourceNotFoundException;
 import com.rest.restaurantsystem.order.OrderOccupancyService;
+import com.rest.restaurantsystem.reservation.ReservationOccupancyService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,15 +16,18 @@ public class OperationalAreaService {
     private final OperationalAreaRepository repository;
     private final BranchService branchService;
     private final OrderOccupancyService occupancyService;
+    private final ReservationOccupancyService reservationOccupancy;
 
     public OperationalAreaService(
             OperationalAreaRepository repository,
             BranchService branchService,
-            OrderOccupancyService occupancyService
+            OrderOccupancyService occupancyService,
+            ReservationOccupancyService reservationOccupancy
     ) {
         this.repository = repository;
         this.branchService = branchService;
         this.occupancyService = occupancyService;
+        this.reservationOccupancy = reservationOccupancy;
     }
 
     @Transactional(readOnly = true)
@@ -40,6 +44,11 @@ public class OperationalAreaService {
     }
 
     @Transactional
+    public void lockArea(Long id) {
+        getLockedEntity(id);
+    }
+
+    @Transactional
     public OperationalAreaResponse create(OperationalAreaRequest request) {
         Branch branch = branchService.getEntity(request.branchId());
         ensureActiveBranch(branch);
@@ -51,11 +60,12 @@ public class OperationalAreaService {
 
     @Transactional
     public OperationalAreaResponse update(Long id, OperationalAreaRequest request) {
-        OperationalArea area = getEntity(id);
+        OperationalArea area = getLockedEntity(id);
         if (!area.getBranch().getId().equals(request.branchId())
-                && occupancyService.hasActiveOrdersForArea(id)) {
+                && (occupancyService.hasActiveOrdersForArea(id)
+                    || reservationOccupancy.hasUpcomingForArea(id))) {
             throw new BadRequestException(
-                    "Completa o cancela los pedidos abiertos antes de mover el área."
+                    "Completa los pedidos y cancela las reservaciones pendientes antes de mover el área."
             );
         }
         Branch branch = branchService.getEntity(request.branchId());
@@ -73,13 +83,14 @@ public class OperationalAreaService {
 
     @Transactional
     public OperationalAreaResponse changeActive(Long id, boolean active) {
-        OperationalArea area = getEntity(id);
+        OperationalArea area = getLockedEntity(id);
         if (active) {
             ensureActiveBranch(area.getBranch());
         }
-        if (!active && area.isActive() && occupancyService.hasActiveOrdersForArea(id)) {
+        if (!active && area.isActive() && (occupancyService.hasActiveOrdersForArea(id)
+                || reservationOccupancy.hasUpcomingForArea(id))) {
             throw new BadRequestException(
-                    "Completa o cancela los pedidos abiertos antes de desactivar el área."
+                    "Completa los pedidos y cancela las reservaciones pendientes antes de desactivar el área."
             );
         }
         area.setActive(active);
@@ -88,6 +99,11 @@ public class OperationalAreaService {
 
     OperationalArea getEntity(Long id) {
         return repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el área solicitada."));
+    }
+
+    private OperationalArea getLockedEntity(Long id) {
+        return repository.findLockedById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el área solicitada."));
     }
 

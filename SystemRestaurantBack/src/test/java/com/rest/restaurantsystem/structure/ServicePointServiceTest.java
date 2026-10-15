@@ -2,6 +2,7 @@ package com.rest.restaurantsystem.structure;
 
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.order.OrderOccupancyService;
+import com.rest.restaurantsystem.reservation.ReservationOccupancyService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +26,9 @@ class ServicePointServiceTest {
 
     @Mock
     private OrderOccupancyService occupancyService;
+
+    @Mock
+    private ReservationOccupancyService reservationOccupancy;
 
     @InjectMocks
     private ServicePointService service;
@@ -87,9 +91,23 @@ class ServicePointServiceTest {
                 0
         ), area);
         ReflectionTestUtils.setField(point, "id", 20L);
-        when(repository.findById(20L)).thenReturn(Optional.of(point));
+        when(repository.findLockedById(20L)).thenReturn(Optional.of(point));
         when(occupancyService.hasActiveOrderForServicePoint(20L)).thenReturn(true);
 
+        assertThrows(BadRequestException.class, () -> service.changeActive(20L, false));
+    }
+
+    @Test
+    void rejectsDeactivationWithUpcomingReservation() {
+        Branch branch = new Branch(new BranchRequest("PRINCIPAL", "Principal", null,
+                null, "America/Mazatlan", 0));
+        OperationalArea area = new OperationalArea(new OperationalAreaRequest(1L,
+                "Comedor", null, AreaType.SERVICE, 0), branch);
+        ServicePoint point = new ServicePoint(new ServicePointRequest(5L, "MESA-01",
+                "Mesa 1", null, ServicePointType.TABLE, 0), area);
+        ReflectionTestUtils.setField(point, "id", 20L);
+        when(repository.findLockedById(20L)).thenReturn(Optional.of(point));
+        when(reservationOccupancy.hasUpcomingForPoint(20L)).thenReturn(true);
         assertThrows(BadRequestException.class, () -> service.changeActive(20L, false));
     }
 }

@@ -1,0 +1,340 @@
+<p-confirmDialog />
+
+<header class="reservations-heading">
+  <div>
+    <span class="eyebrow">Essential Pro · bloque 1</span>
+    <h1>Reservaciones</h1>
+    <p>Una agenda para el restaurante local, conectada con las mesas y las cuentas.</p>
+  </div>
+  <p-button
+    label="Nueva reservación"
+    icon="pi pi-plus"
+    [disabled]="!availablePoints().length"
+    (onClick)="newReservation()"
+  />
+</header>
+
+@if (branch(); as restaurant) {
+  <section class="day-panel">
+    <div>
+      <span class="eyebrow">Agenda diaria</span>
+      <label for="reservation-date">Fecha en {{ restaurant.timezone }}</label>
+      <input
+        pInputText
+        id="reservation-date"
+        type="date"
+        [value]="selectedDate"
+        [max]="maximumDate"
+        (change)="selectDate($any($event.target).value)"
+      />
+    </div>
+    <div class="day-stats">
+      <span
+        ><strong>{{ booked() }}</strong> pendientes</span
+      >
+      <span
+        ><strong>{{ seated() }}</strong> sentadas</span
+      >
+      <span
+        ><strong>{{ reservations().length }}</strong> en total</span
+      >
+    </div>
+    <p-button
+      icon="pi pi-refresh"
+      label="Actualizar"
+      severity="secondary"
+      [outlined]="true"
+      [loading]="loading()"
+      (onClick)="loadDay()"
+    />
+  </section>
+
+  <section class="reservations-layout">
+    <div class="agenda-card">
+      <div class="filter-row">
+        <label for="reservation-search" class="search-box"
+          ><i class="pi pi-search"></i
+          ><input
+            pInputText
+            id="reservation-search"
+            type="search"
+            placeholder="Nombre, teléfono o mesa"
+            [value]="search()"
+            (input)="search.set($any($event.target).value)"
+        /></label>
+        <label for="reservation-status" class="visually-hidden">Filtrar por estado</label>
+        <p-select
+          inputId="reservation-status"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="statusFilter.set($event)"
+          [options]="statuses"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+      @if (loading() && reservations().length === 0) {
+        <p class="empty">Consultando la agenda…</p>
+      } @else {
+        <div class="agenda-list">
+          @for (item of visible(); track item.id) {
+            <button
+              type="button"
+              class="reservation-row"
+              [class.selected]="selected()?.id === item.id"
+              [class.inactive]="item.status === 'CANCELLED' || item.status === 'NO_SHOW'"
+              (click)="select(item)"
+            >
+              <div class="time-block">
+                <strong>{{ formatTime(item.startAt) }}</strong
+                ><small>{{ formatTime(item.endAt) }}</small>
+              </div>
+              <div class="guest-block">
+                <strong>{{ item.guestName }}</strong
+                ><small
+                  >{{ item.servicePointName }} · {{ item.areaName }} ·
+                  {{ item.guestCount }} personas</small
+                >
+              </div>
+              <p-tag [value]="statusLabel(item.status)" [severity]="statusSeverity(item.status)" />
+            </button>
+          } @empty {
+            <p class="empty">No hay reservaciones para esta fecha y filtro.</p>
+          }
+        </div>
+      }
+    </div>
+
+    <article class="detail-card">
+      @if (selected(); as item) {
+        <span class="eyebrow">Reservación #{{ item.id }}</span>
+        <div class="detail-head">
+          <h2>{{ item.guestName }}</h2>
+          <p-tag [value]="statusLabel(item.status)" [severity]="statusSeverity(item.status)" />
+        </div>
+        <div class="detail-grid">
+          <div>
+            <span>Horario</span
+            ><strong>{{ formatDateTime(item.startAt) }} – {{ formatTime(item.endAt) }}</strong>
+          </div>
+          <div>
+            <span>Mesa / salón</span
+            ><strong>{{ item.servicePointName }} · {{ item.areaName }}</strong>
+          </div>
+          <div>
+            <span>Comensales</span><strong>{{ item.guestCount }}</strong>
+          </div>
+          <div>
+            <span>Teléfono</span
+            ><strong>
+              @if (item.guestPhone) {
+                <a [href]="'tel:' + item.guestPhone">{{ item.guestPhone }}</a>
+              } @else {
+                No registrado
+              }
+            </strong>
+          </div>
+        </div>
+        @if (item.notes) {
+          <div class="note">
+            <span>Indicaciones</span>
+            <p>{{ item.notes }}</p>
+          </div>
+        }
+        @if (item.cancelReason) {
+          <p class="cancel-note">Motivo de cancelación: {{ item.cancelReason }}</p>
+        }
+        @if (item.orderId) {
+          <a class="order-link" [routerLink]="['/pedidos', item.orderId]"
+            >Abrir pedido PED-{{ item.orderId }}</a
+          >
+        }
+
+        @if (item.status === 'BOOKED') {
+          <div class="seat-panel">
+            <label for="reservation-operator">Responsable del pedido</label>
+            <p-select
+              inputId="reservation-operator"
+              [(ngModel)]="assignedUserId"
+              [options]="operators()"
+              optionLabel="fullName"
+              optionValue="id"
+              placeholder="Selecciona responsable"
+            />
+            <p-button
+              label="Sentar y abrir pedido"
+              icon="pi pi-check"
+              [disabled]="!canSeat(item) || assignedUserId === null"
+              [loading]="seatingId() === item.id"
+              (onClick)="seat(item)"
+            />
+            @if (!canSeat(item)) {
+              <small
+                >Disponible desde 30 minutos antes de la hora reservada y hasta el fin del
+                horario.</small
+              >
+            }
+          </div>
+          <div class="detail-actions">
+            <p-button
+              label="Editar / cambiar horario"
+              icon="pi pi-pencil"
+              severity="secondary"
+              [outlined]="true"
+              [disabled]="saving()"
+              (onClick)="edit(item)"
+            />
+            <p-button
+              label="No asistió"
+              icon="pi pi-clock"
+              severity="warn"
+              [outlined]="true"
+              [disabled]="!canNoShow(item) || saving()"
+              (onClick)="noShow(item)"
+            />
+          </div>
+          <div class="cancel-panel">
+            <label for="reservation-cancel-reason">Cancelar con motivo</label>
+            <textarea
+              pTextarea
+              id="reservation-cancel-reason"
+              [(ngModel)]="cancelReason"
+              maxlength="250"
+              rows="2"
+              placeholder="Ej. Cliente llamó para cancelar"
+            ></textarea>
+            <p-button
+              label="Cancelar reservación"
+              icon="pi pi-times"
+              severity="danger"
+              [outlined]="true"
+              [disabled]="cancelReason.trim().length < 5 || saving()"
+              (onClick)="cancel(item)"
+            />
+          </div>
+        }
+
+        <div class="history">
+          <h3>Historial</h3>
+          @for (event of history(); track event.id) {
+            <p>
+              <b>{{ actionLabel(event.action) }}</b> · {{ event.detail
+              }}<small>{{ event.actorUsername }} · {{ formatDateTime(event.occurredAt) }}</small>
+            </p>
+          } @empty {
+            <p>Consultando historial…</p>
+          }
+        </div>
+      } @else {
+        <div class="empty-detail">
+          <i class="pi pi-calendar"></i>
+          <h2>Organiza las llegadas</h2>
+          <p>Selecciona una reservación para ver sus datos o crea una nueva.</p>
+        </div>
+      }
+    </article>
+  </section>
+} @else if (!loading()) {
+  <p class="empty">No se encontró el restaurante local. Revisa la configuración.</p>
+}
+
+<p-dialog
+  [header]="editingId() === null ? 'Nueva reservación' : 'Editar reservación'"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(94vw, 610px)' }"
+>
+  <form class="reservation-form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="form-pair">
+      <label for="reservation-name"
+        >Nombre de la persona
+        <input
+          pInputText
+          id="reservation-name"
+          formControlName="guestName"
+          maxlength="120"
+          placeholder="Nombre para recibirla"
+      /></label>
+      <label for="reservation-phone"
+        >Teléfono (opcional)
+        <input
+          pInputText
+          id="reservation-phone"
+          formControlName="guestPhone"
+          maxlength="30"
+          inputmode="tel"
+          placeholder="Para confirmar la llegada"
+      /></label>
+    </div>
+    <div class="form-pair">
+      <label for="reservation-table"
+        >Mesa o salón
+        <p-select
+          inputId="reservation-table"
+          formControlName="servicePointId"
+          [options]="availablePoints()"
+          optionLabel="name"
+          optionValue="id"
+          [filter]="true"
+          filterBy="name"
+          placeholder="Selecciona mesa"
+      /></label>
+      <label for="reservation-guests"
+        >Personas
+        <p-inputnumber
+          inputId="reservation-guests"
+          formControlName="guestCount"
+          [min]="1"
+          [max]="99"
+          [useGrouping]="false"
+      /></label>
+    </div>
+    <div class="form-pair">
+      <label for="reservation-start"
+        >Fecha y hora local
+        <input
+          pInputText
+          id="reservation-start"
+          type="datetime-local"
+          formControlName="startLocal"
+          [min]="selectedDate + 'T00:00'"
+          step="900"
+      /></label>
+      <label for="reservation-duration"
+        >Duración estimada
+        <p-select
+          inputId="reservation-duration"
+          formControlName="durationMinutes"
+          [options]="durations"
+          optionLabel="label"
+          optionValue="value"
+      /></label>
+    </div>
+    <small
+      >Los horarios se interpretan en {{ branch()?.timezone }}. La duración reserva la mesa durante
+      ese intervalo.</small
+    >
+    <label for="reservation-notes"
+      >Indicaciones (opcional)
+      <textarea
+        pTextarea
+        id="reservation-notes"
+        formControlName="notes"
+        maxlength="500"
+        rows="3"
+        placeholder="Ej. Silla para bebé o acceso preferente"
+      ></textarea>
+    </label>
+    <div class="form-actions">
+      <p-button
+        label="Volver"
+        severity="secondary"
+        [text]="true"
+        type="button"
+        (onClick)="dialogVisible.set(false)"
+      />
+      <p-button label="Guardar reservación" icon="pi pi-save" type="submit" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

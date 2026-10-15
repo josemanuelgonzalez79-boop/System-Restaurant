@@ -54,10 +54,24 @@ diferencias y rechaza todo el conteo si algún insumo cambió antes de guardarlo
 historial anterior sin alterar existencias al migrar. La validación en una instalación con datos
 reales sigue pendiente antes de ofrecer Plus a otros restaurantes.
 
-## Opción 3: Essential Pro (alcance futuro)
+## Opción 3: Essential Pro (rama `pro`)
 
-Podría agregar reservaciones, clientes frecuentes, promociones e integraciones según las
-necesidades del restaurante. También conservará el límite de un restaurante por instalación.
+Parte de **Plus completo, incluida V15**, y sigue instalado para un solo restaurante por base de
+datos. El plan inicial comprende cuatro bloques, sujeto a ajustes después de probar cada uno:
+
+| Bloque | Función | Estado |
+| --- | --- | --- |
+| 1 | Reservaciones, agenda de mesas y llegada con pedido | Implementado en esta entrega; pendiente de prueba local |
+| 2 | Fichas de clientes y preferencias, con control de acceso | Planeado |
+| 3 | Promociones y descuentos auditables durante el cobro | Planeado |
+| 4 | Integraciones y operaciones avanzadas que el piloto requiera | Alcance por concretar |
+
+La reserva ocupa un intervalo específico de una mesa o salón y PostgreSQL impide traslapes.
+Un cliente que llega puede sentarse y abrir un pedido vinculado. El pedido normal no puede
+ocupar una mesa reservada dentro de los próximos 90 minutos; el mapa la señala sin revelar los
+datos del cliente al personal de mesas. Cancelación y ausencia liberan el
+horario y dejan historial. Los horarios se interpretan con la zona horaria del restaurante; no
+hay reservas compartidas entre instalaciones ni dependencia de internet.
 
 Ninguna de estas opciones presupone WAN, sincronización entre locales ni reportes consolidados.
 Para dar servicio a otro establecimiento se instala una instancia distinta, con una base de datos

@@ -62,6 +62,15 @@ export const routes: Routes = [
     title: 'Caja | Essential',
   },
   {
+    path: 'reservaciones',
+    loadComponent: () =>
+      import('./features/reservations/reservations').then(
+        (component) => component.ReservationsPage,
+      ),
+    canActivate: [cashierGuard],
+    title: 'Reservaciones | Essential Pro',
+  },
+  {
     path: 'reporte-diario',
     loadComponent: () =>
       import('./features/daily-report/daily-report').then((component) => component.DailyReportPage),

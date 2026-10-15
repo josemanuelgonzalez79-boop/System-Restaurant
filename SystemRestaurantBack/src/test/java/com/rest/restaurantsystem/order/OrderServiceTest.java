@@ -4,6 +4,7 @@ import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.exception.ConflictException;
 import com.rest.restaurantsystem.realtime.RealtimeEventPublisher;
 import com.rest.restaurantsystem.realtime.RealtimeEventType;
+import com.rest.restaurantsystem.reservation.ReservationService;
 import com.rest.restaurantsystem.structure.BranchAssignmentService;
 import com.rest.restaurantsystem.structure.BranchResponse;
 import com.rest.restaurantsystem.structure.BranchService;
@@ -57,6 +58,9 @@ class OrderServiceTest {
     @Mock
     private RealtimeEventPublisher realtimeEventPublisher;
 
+    @Mock
+    private ReservationService reservationService;
+
     @InjectMocks
     private OrderService service;
 
@@ -85,6 +89,26 @@ class OrderServiceTest {
                 null,
                 null
         );
+    }
+
+    @Test
+    void openingFromReservationLinksTheCreatedOrderInOneTransaction() {
+        OrderCreateRequest request = new OrderCreateRequest(1L, 20L, ServiceMode.DINE_IN,
+                10L, 2, "Ana", null, 7L);
+        mockValidUsersAndBranch();
+        when(servicePointService.findById(20L)).thenReturn(point(20L, 1L));
+        when(repository.saveAndFlush(any(RestaurantOrder.class))).thenAnswer(invocation -> {
+            RestaurantOrder order = invocation.getArgument(0);
+            ReflectionTestUtils.setField(order, "id", 42L);
+            order.onCreate();
+            return order;
+        });
+
+        OrderResponse result = service.create(request, "mesero");
+
+        assertThat(result.folio()).isEqualTo("PED-000042");
+        verify(reservationService).beforeOrder(7L, 1L, 20L);
+        verify(reservationService).afterOrder(7L, 42L, "mesero");
     }
 
     @Test

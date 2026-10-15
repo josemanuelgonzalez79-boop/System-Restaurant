@@ -53,6 +53,11 @@ public class OrderController {
         return service.findOperators(branchId, authentication.getName());
     }
 
+    @GetMapping("/held-points")
+    public List<Long> findHeldPoints(@RequestParam Long branchId, Authentication authentication) {
+        return service.findHeldPoints(branchId, authentication.getName());
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse create(

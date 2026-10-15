@@ -31,7 +31,7 @@ small,
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(90px, 1fr));
+  grid-template-columns: repeat(4, minmax(80px, 1fr));
   overflow: hidden;
   border: 1px solid var(--p-content-border-color);
   border-radius: 0.85rem;
@@ -139,6 +139,11 @@ small,
 
 .point-card.occupied {
   border-color: color-mix(in srgb, var(--p-orange-500) 52%, var(--p-content-border-color));
+}
+
+.point-card.reserved {
+  border-color: color-mix(in srgb, var(--p-orange-500) 58%, var(--p-content-border-color));
+  background: color-mix(in srgb, var(--p-orange-50) 40%, var(--p-content-background));
 }
 
 .point-card > header,

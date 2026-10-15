@@ -2,6 +2,7 @@ package com.rest.restaurantsystem.structure;
 
 import com.rest.restaurantsystem.exception.BadRequestException;
 import com.rest.restaurantsystem.order.OrderOccupancyService;
+import com.rest.restaurantsystem.reservation.ReservationOccupancyService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,6 +26,9 @@ class OperationalAreaServiceTest {
 
     @Mock
     private OrderOccupancyService occupancyService;
+
+    @Mock
+    private ReservationOccupancyService reservationOccupancy;
 
     @InjectMocks
     private OperationalAreaService service;
@@ -71,7 +75,7 @@ class OperationalAreaServiceTest {
                 0
         ), branch);
         ReflectionTestUtils.setField(area, "id", 5L);
-        when(repository.findById(5L)).thenReturn(Optional.of(area));
+        when(repository.findLockedById(5L)).thenReturn(Optional.of(area));
         when(occupancyService.hasActiveOrdersForArea(5L)).thenReturn(true);
 
         assertThrows(BadRequestException.class, () -> service.changeActive(5L, false));

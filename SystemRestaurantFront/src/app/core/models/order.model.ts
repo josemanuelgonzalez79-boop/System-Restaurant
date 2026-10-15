@@ -36,6 +36,7 @@ export interface OrderCreatePayload {
   guestCount: number;
   customerReference: string;
   notes: string;
+  reservationId?: number;
 }
 
 export interface OrderOperator {

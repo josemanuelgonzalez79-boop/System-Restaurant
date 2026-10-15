@@ -66,6 +66,7 @@ export class Orders implements OnInit, OnDestroy {
   protected readonly points = signal<ServicePoint[]>([]);
   protected readonly orders = signal<RestaurantOrder[]>([]);
   protected readonly operators = signal<OrderOperator[]>([]);
+  protected readonly heldPointIds = signal<Set<number>>(new Set());
 
   protected readonly selectedBranchId = signal<number | null>(null);
   protected readonly selectedAreaId = signal<number | null>(null);
@@ -110,8 +111,14 @@ export class Orders implements OnInit, OnDestroy {
   protected readonly occupiedPointCount = computed(
     () => this.visiblePoints().filter((point) => this.activeOrdersByPoint().has(point.id)).length,
   );
+  protected readonly reservedPointCount = computed(
+    () =>
+      this.visiblePoints().filter(
+        (point) => !this.activeOrdersByPoint().has(point.id) && this.heldPointIds().has(point.id),
+      ).length,
+  );
   protected readonly freePointCount = computed(
-    () => this.visiblePoints().length - this.occupiedPointCount(),
+    () => this.visiblePoints().length - this.occupiedPointCount() - this.reservedPointCount(),
   );
 
   protected readonly orderForm = this.formBuilder.group({
@@ -140,6 +147,7 @@ export class Orders implements OnInit, OnDestroy {
     this.selectedBranchId.set(branchId);
     this.selectedAreaId.set(null);
     this.orders.set([]);
+    this.heldPointIds.set(new Set());
     this.operators.set([]);
     if (branchId !== null) {
       this.watchBranch(branchId);
@@ -152,7 +160,7 @@ export class Orders implements OnInit, OnDestroy {
   }
 
   protected openPoint(point: ServicePoint): void {
-    if (this.activeOrdersByPoint().has(point.id)) {
+    if (this.activeOrdersByPoint().has(point.id) || this.heldPointIds().has(point.id)) {
       return;
     }
     this.openDialog(point);
@@ -299,6 +307,7 @@ export class Orders implements OnInit, OnDestroy {
     forkJoin({
       orders: this.orderApi.findOrders(branchId),
       operators: this.orderApi.findOperators(branchId),
+      held: this.orderApi.findHeldPoints(branchId),
     })
       .pipe(
         finalize(() => {
@@ -309,12 +318,13 @@ export class Orders implements OnInit, OnDestroy {
           }
         }),
       )
-      .subscribe(({ orders, operators }) => {
+      .subscribe(({ orders, operators, held }) => {
         if (this.selectedBranchId() !== branchId) {
           return;
         }
         this.orders.set(orders);
         this.operators.set(operators);
+        this.heldPointIds.set(new Set(held));
       });
   }
 
