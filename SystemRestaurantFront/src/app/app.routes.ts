@@ -23,7 +23,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./features/home/home').then((component) => component.Home),
     canActivate: [authGuard],
-    title: 'Inicio | Essential',
+    title: 'Inicio | Essential Pro',
   },
   {
     path: 'pedidos/:id/cobro',
